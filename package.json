@@ -1,0 +1,98 @@
+{
+  "name": "@nauticalstream/sdk",
+  "version": "0.1.0",
+  "description": "Nauticalstream SDK for JavaScript",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./telemetry": {
+      "types": "./dist/telemetry/index.d.ts",
+      "default": "./dist/telemetry/index.js"
+    },
+    "./errors": {
+      "types": "./dist/errors/index.d.ts",
+      "default": "./dist/errors/index.js"
+    },
+    "./eventbus": {
+      "types": "./dist/eventbus/index.d.ts",
+      "default": "./dist/eventbus/index.js"
+    },
+    "./crypto": {
+      "types": "./dist/crypto/index.d.ts",
+      "default": "./dist/crypto/index.js"
+    },
+    "./realtime": {
+      "types": "./dist/realtime/index.d.ts",
+      "default": "./dist/realtime/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "nauticalstream",
+    "sdk",
+    "telemetry",
+    "eventbus",
+    "realtime"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nauticalstream/sdk-js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nauticalstream/sdk-js/issues"
+  },
+  "homepage": "https://github.com/nauticalstream/sdk-js#readme",
+  "author": "",
+  "license": "ISC",
+  "publishConfig": {
+    "access": "restricted"
+  },
+  "dependencies": {
+    "@bufbuild/protobuf": "^2.11.0",
+    "@nauticalstream/proto": "^1.0.1",
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.53.0",
+    "@opentelemetry/exporter-trace-otlp-grpc": "^0.212.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.212.0",
+    "@opentelemetry/instrumentation-dns": "^0.42.0",
+    "@opentelemetry/instrumentation-http": "^0.54.2",
+    "@opentelemetry/instrumentation-mongodb": "^0.51.0",
+    "@opentelemetry/resources": "^2.5.1",
+    "@opentelemetry/sdk-node": "^0.212.0",
+    "@opentelemetry/sdk-trace-node": "^2.5.1",
+    "@opentelemetry/semantic-conventions": "^1.39.0",
+    "@sentry/node": "^10.39.0",
+    "@sentry/profiling-node": "^10.39.0",
+    "graphql": "^16.12.0",
+    "mqtt": "^5.15.0",
+    "nanoid": "^5.1.6",
+    "nats": "^2.29.3",
+    "opossum": "^9.0.0",
+    "p-retry": "^7.1.1",
+    "pino": "^10.3.1"
+  },
+  "peerDependencies": {
+    "fastify": "^5.0.0"
+  },
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@types/node": "^22.19.11",
+    "@types/opossum": "^8.1.9",
+    "semantic-release": "^25.0.3",
+    "typescript": "^5.9.3"
+  }
+}

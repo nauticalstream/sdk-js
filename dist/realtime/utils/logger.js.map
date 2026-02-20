@@ -1,0 +1,1 @@
+{"version":3,"file":"logger.js","sourceRoot":"","sources":["../../../src/realtime/utils/logger.ts"],"names":[],"mappings":";;;AAAA,+CAA+C;AAE/C;;;;;;GAMG;AACU,QAAA,aAAa,GAAG,IAAA,wBAAY,EAAC;IACxC,IAAI,EAAE,0BAA0B;IAChC,KAAK,EAAE,OAAO,CAAC,GAAG,CAAC,SAAS,IAAI,MAAM;IAEtC,0DAA0D;IAC1D,MAAM,EAAE;QACN,OAAO,EAAE,KAAK;KACf;CACF,CAAC,CAAC"}

@@ -1,0 +1,33 @@
+import { ErrorCode, ErrorSeverity } from '@nauticalstream/proto/error/v1/codes_pb';
+import { DomainException } from '../base/DomainException';
+/**
+ * ConflictError
+ *
+ * Thrown when an operation conflicts with existing data or state.
+ *
+ * - Error Code: 30002 (CONFLICT)
+ * - HTTP Status: 409
+ * - Severity: CLIENT_ERROR (non-retryable)
+ * - GraphQL Code: CONFLICT
+ *
+ * @example
+ * ```typescript
+ * const existing = await db.findByEmail(email);
+ * if (existing) {
+ *   throw new ConflictError('User with this email already exists');
+ * }
+ *
+ * const booking = await db.findOverlapping(startDate, endDate);
+ * if (booking) {
+ *   throw new ConflictError('Booking already exists for this time slot');
+ * }
+ * ```
+ */
+export declare class ConflictError extends DomainException {
+    readonly errorCode = ErrorCode.CONFLICT;
+    readonly severity = ErrorSeverity.CLIENT_ERROR;
+    readonly httpStatus = 409;
+    readonly graphqlCode = "CONFLICT";
+    constructor(message: string);
+}
+//# sourceMappingURL=ConflictError.d.ts.map

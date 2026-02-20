@@ -1,0 +1,1 @@
+{"version":3,"file":"config.js","sourceRoot":"","sources":["../../../src/eventbus/core/config.ts"],"names":[],"mappings":";;;AAgBA;;GAEG;AACU,QAAA,oBAAoB,GAA0B;IACzD,UAAU,EAAE,CAAC;IACb,cAAc,EAAE,GAAG;IACnB,UAAU,EAAE,GAAG;IACf,aAAa,EAAE,CAAC;IAChB,gBAAgB,EAAE,IAAI;CACvB,CAAC"}
