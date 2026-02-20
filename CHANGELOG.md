@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/nauticalstream/sdk-js/compare/v1.0.1...v1.0.2) (2026-02-20)
+
+
+### Bug Fixes
+
+* add NPM_TOKEN environment variable for semantic-release npm plugin ([f7f5ad4](https://github.com/nauticalstream/sdk-js/commit/f7f5ad410d3f563f796f3e8f3d7cfa670dd8e780))
+
 ## [1.0.1](https://github.com/nauticalstream/sdk-js/compare/v1.0.0...v1.0.1) (2026-02-20)
 
 
