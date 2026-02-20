@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/nauticalstream/sdk-js/compare/v1.0.0...v1.0.1) (2026-02-20)
+
+
+### Bug Fixes
+
+* remove npm provenance for private package publishing ([ff7de08](https://github.com/nauticalstream/sdk-js/commit/ff7de08980e7946dc5fc053db7717fd4a448cd59))
+
 # 1.0.0 (2026-02-20)
 
 
