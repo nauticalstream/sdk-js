@@ -2,7 +2,7 @@ import type { NatsClient } from '../client/nats-client';
 import type { Logger } from 'pino';
 import type { JsMsg, Consumer, JetStreamClient, KV, ObjectStore } from 'nats';
 import { AckPolicy, DeliverPolicy } from 'nats';
-import { fromBinary, type Message } from '@bufbuild/protobuf';
+import { fromBinary, type Message, type MessageInitShape } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
 import { EventSchema, type Event } from '@nauticalstream/proto/platform/v1/event_pb';
 import { publish as jsPublish, type JetStreamPublishOptions } from './publish';
@@ -27,7 +27,7 @@ export class JetStreamAPI {
    */
   async publish<T extends Message>(
     schema: GenMessage<T>,
-    data: T,
+    data: MessageInitShape<T>,
     options?: JetStreamPublishOptions
   ): Promise<{ ok: boolean; error?: boolean }> {
     return jsPublish(this.client, this.logger, this.source, schema, data, options);

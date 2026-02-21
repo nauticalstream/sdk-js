@@ -1,9 +1,8 @@
 import type { NatsClient } from '../client/nats-client';
 import type { Logger } from 'pino';
 import type { Subscription } from 'nats';
-import type { Message } from '@bufbuild/protobuf';
+import { type Message, type MessageInitShape, fromBinary, toBinary, create } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
-import { fromBinary, toBinary, create } from '@bufbuild/protobuf';
 import { EventSchema, type Event } from '@nauticalstream/proto/platform/v1/event_pb';
 import { deriveSubject } from '../utils/derive-subject';
 import type { ReplyOptions, Unsubscribe } from './types';
@@ -12,7 +11,7 @@ export interface ReplyHandlerConfig<TRequest extends Message, TResponse extends 
   source: string;
   reqSchema: GenMessage<TRequest>;
   respSchema: GenMessage<TResponse>;
-  handler: (data: TRequest, envelope: Event) => Promise<TResponse>;
+  handler: (data: TRequest, envelope: Event) => Promise<MessageInitShape<TResponse>>;
   options?: ReplyOptions;
 }
 
@@ -60,7 +59,8 @@ export async function reply<TRequest extends Message, TResponse extends Message>
           const data = fromBinary(reqSchema, inboundEnvelope.payload) as TRequest;
 
           logger.debug({ subject, correlationId: inboundCorrelationId }, 'Processing request');
-          const response = await handler(data, inboundEnvelope);
+          const responseData = await handler(data, inboundEnvelope);
+          const response = create(respSchema, responseData);
 
           // Echo the inbound correlationId so callers can correlate the pair
           const responseEnvelope = create(EventSchema, {

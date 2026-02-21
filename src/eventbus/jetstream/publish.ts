@@ -1,6 +1,6 @@
 import type { NatsClient } from '../client/nats-client';
 import type { Logger } from 'pino';
-import type { Message } from '@bufbuild/protobuf';
+import { create, type Message, type MessageInitShape } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
 import pRetry from 'p-retry';
 import { classifyNatsError, shouldRetry } from '../errors';
@@ -33,9 +33,10 @@ export async function publish<T extends Message>(
   logger: Logger,
   source: string,
   schema: GenMessage<T>,
-  data: T,
+  data: MessageInitShape<T>,
   options?: JetStreamPublishOptions
 ): Promise<{ ok: boolean; error?: boolean }> {
+  const message = create(schema, data);
   const subject = options?.subject ?? deriveSubject(schema.typeName);
   const correlationId = options?.correlationId;
   const retryConfig = options?.retryConfig;
@@ -57,7 +58,7 @@ export async function publish<T extends Message>(
 
   try {
     const js = client.getJetStream();
-    const { binary, event, headers } = buildEnvelope(source, subject, schema, data, correlationId);
+    const { binary, event, headers } = buildEnvelope(source, subject, schema, message, correlationId);
     const config = { ...DEFAULT_RETRY_CONFIG, ...retryConfig };
     
     const breaker = getOrCreateBreaker(serverCluster, logger);

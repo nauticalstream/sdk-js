@@ -1,6 +1,6 @@
 import type { NatsClient } from '../client/nats-client';
 import type { Logger } from 'pino';
-import type { Message } from '@bufbuild/protobuf';
+import { create, type Message, type MessageInitShape } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
 import { buildEnvelope } from './envelope';
 import { deriveSubject } from '../utils/derive-subject';
@@ -21,7 +21,7 @@ export async function publish<T extends Message>(
   logger: Logger,
   source: string,
   schema: GenMessage<T>,
-  data: T,
+  data: MessageInitShape<T>,
   options?: PublishOptions
 ): Promise<void> {
   if (!client.connected) {
@@ -30,7 +30,8 @@ export async function publish<T extends Message>(
 
   const subject = deriveSubject(schema.typeName);
   const connection = client.getConnection();
-  const { binary, event, headers } = buildEnvelope(source, subject, schema, data, options?.correlationId);
+  const message = create(schema, data);
+  const { binary, event, headers } = buildEnvelope(source, subject, schema, message, options?.correlationId);
   
   connection.publish(subject, binary, { headers });
   logger.debug({ subject, correlationId: event.correlationId }, 'Published to core NATS');
