@@ -16,7 +16,8 @@ async function request(client, logger, source, subject, reqSchema, respSchema, d
             return null;
         }
         const connection = client.getConnection();
-        const { binary, event } = (0, envelope_1.buildEnvelope)(source, subject, reqSchema, data);
+        const message = (0, protobuf_1.create)(reqSchema, data);
+        const { binary, event } = (0, envelope_1.buildEnvelope)(source, subject, reqSchema, message);
         logger.debug({ subject, correlationId: event.correlationId }, 'Making NATS request');
         const response = await connection.request(subject, binary, { timeout: timeoutMs });
         const responseEnvelope = (0, protobuf_1.fromBinary)(event_pb_1.EventSchema, response.data);

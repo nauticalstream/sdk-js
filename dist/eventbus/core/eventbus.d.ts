@@ -1,6 +1,6 @@
 import { JetStreamAPI } from '../jetstream/api';
 import type { Logger } from 'pino';
-import type { Message } from '@bufbuild/protobuf';
+import type { Message, MessageInitShape } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
 import type { Event } from '@nauticalstream/proto/platform/v1/event_pb';
 export interface EventBusConfig {
@@ -63,7 +63,7 @@ export declare class EventBus {
      * Request/reply (synchronous RPC)
      * Both request and response are wrapped in Event envelopes.
      */
-    request<TRequest extends Message, TResponse extends Message>(subject: string, reqSchema: GenMessage<TRequest>, respSchema: GenMessage<TResponse>, data: TRequest, timeoutMs?: number): Promise<TResponse | null>;
+    request<TRequest extends Message, TResponse extends Message>(subject: string, reqSchema: GenMessage<TRequest>, respSchema: GenMessage<TResponse>, data: MessageInitShape<GenMessage<TRequest>>, timeoutMs?: number): Promise<TResponse | null>;
     /**
      * Handle requests (reply handler)
      * Handler receives the deserialized request and Event envelope; return value is re-wrapped in an Event echoing the inbound correlationId.

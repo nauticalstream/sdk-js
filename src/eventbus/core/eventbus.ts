@@ -7,7 +7,7 @@ import * as coreRequest from './request';
 import * as coreReply from './reply';
 import type { Logger } from 'pino';
 import { defaultLogger } from '../utils/logger';
-import type { Message } from '@bufbuild/protobuf';
+import type { Message, MessageInitShape } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
 import type { Event } from '@nauticalstream/proto/platform/v1/event_pb';
 
@@ -123,7 +123,7 @@ export class EventBus {
     subject: string,
     reqSchema: GenMessage<TRequest>,
     respSchema: GenMessage<TResponse>,
-    data: TRequest,
+    data: MessageInitShape<GenMessage<TRequest>>,
     timeoutMs = 5000
   ): Promise<TResponse | null> {
     return coreRequest.request(this.client, this.logger, this.source, subject, reqSchema, respSchema, data, timeoutMs);

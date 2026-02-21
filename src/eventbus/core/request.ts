@@ -1,8 +1,8 @@
 import type { NatsClient } from '../client/nats-client';
 import type { Logger } from 'pino';
-import type { Message } from '@bufbuild/protobuf';
+import type { Message, MessageInitShape } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
-import { fromBinary } from '@bufbuild/protobuf';
+import { create, fromBinary } from '@bufbuild/protobuf';
 import { EventSchema, type Event } from '@nauticalstream/proto/platform/v1/event_pb';
 import { buildEnvelope } from './envelope';
 
@@ -18,7 +18,7 @@ export async function request<TRequest extends Message, TResponse extends Messag
   subject: string,
   reqSchema: GenMessage<TRequest>,
   respSchema: GenMessage<TResponse>,
-  data: TRequest,
+  data: MessageInitShape<GenMessage<TRequest>>,
   timeoutMs = 5000
 ): Promise<TResponse | null> {
   try {
@@ -28,7 +28,8 @@ export async function request<TRequest extends Message, TResponse extends Messag
     }
 
     const connection = client.getConnection();
-    const { binary, event } = buildEnvelope(source, subject, reqSchema, data);
+    const message = create(reqSchema, data);
+    const { binary, event } = buildEnvelope(source, subject, reqSchema, message);
 
     logger.debug({ subject, correlationId: event.correlationId }, 'Making NATS request');
 
