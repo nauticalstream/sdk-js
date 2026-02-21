@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/nauticalstream/sdk-js/compare/v1.0.2...v1.0.3) (2026-02-21)
+
+
+### Bug Fixes
+
+* **eventbus:** accept plain objects in request() instead of requiring create() call ([f04d642](https://github.com/nauticalstream/sdk-js/commit/f04d6424bba52382aaaed8142db605169ad0351b))
+
 ## [1.0.2](https://github.com/nauticalstream/sdk-js/compare/v1.0.1...v1.0.2) (2026-02-20)
 
 
