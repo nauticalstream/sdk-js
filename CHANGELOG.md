@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/nauticalstream/sdk-js/compare/v1.0.5...v1.1.0) (2026-02-21)
+
+
+### Features
+
+* **eventbus:** make NATS connection mandatory with waitOnFirstConnect ([8b4729e](https://github.com/nauticalstream/sdk-js/commit/8b4729e28d770ff3c3be965b82216fdea603d093))
+
 ## [1.0.5](https://github.com/nauticalstream/sdk-js/compare/v1.0.4...v1.0.5) (2026-02-21)
 
 
