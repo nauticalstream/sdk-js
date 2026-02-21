@@ -93,7 +93,7 @@ export class EventBus {
    */
   async publish<T extends Message>(
     schema: GenMessage<T>,
-    data: MessageInitShape<T>,
+    data: MessageInitShape<GenMessage<T>>,
     options?: PublishOptions
   ): Promise<void> {
     return corePublish.publish(this.client, this.logger, this.source, schema, data, options);
@@ -157,7 +157,7 @@ export class EventBus {
   async reply<TRequest extends Message, TResponse extends Message>(
     reqSchema: GenMessage<TRequest>,
     respSchema: GenMessage<TResponse>,
-    handler: (data: TRequest, envelope: Event) => Promise<MessageInitShape<TResponse>>,
+    handler: (data: TRequest, envelope: Event) => Promise<MessageInitShape<GenMessage<TResponse>>>,
     options?: ReplyOptions
   ): Promise<Unsubscribe> {
     return coreReply.reply(this.client, this.logger, { 

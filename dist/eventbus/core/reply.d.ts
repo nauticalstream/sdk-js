@@ -1,6 +1,6 @@
 import type { NatsClient } from '../client/nats-client';
 import type { Logger } from 'pino';
-import type { Message } from '@bufbuild/protobuf';
+import { type Message, type MessageInitShape } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
 import { type Event } from '@nauticalstream/proto/platform/v1/event_pb';
 import type { ReplyOptions, Unsubscribe } from './types';
@@ -8,7 +8,7 @@ export interface ReplyHandlerConfig<TRequest extends Message, TResponse extends 
     source: string;
     reqSchema: GenMessage<TRequest>;
     respSchema: GenMessage<TResponse>;
-    handler: (data: TRequest, envelope: Event) => Promise<TResponse>;
+    handler: (data: TRequest, envelope: Event) => Promise<MessageInitShape<GenMessage<TResponse>>>;
     options?: ReplyOptions;
 }
 /**

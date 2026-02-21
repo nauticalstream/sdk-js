@@ -1,3 +1,4 @@
+import { create } from '@bufbuild/protobuf';
 import { buildEnvelope } from './envelope';
 import { deriveSubject } from '../utils/derive-subject';
 /**
@@ -16,7 +17,8 @@ export async function publish(client, logger, source, schema, data, options) {
     }
     const subject = deriveSubject(schema.typeName);
     const connection = client.getConnection();
-    const { binary, event, headers } = buildEnvelope(source, subject, schema, data, options?.correlationId);
+    const message = create(schema, data);
+    const { binary, event, headers } = buildEnvelope(source, subject, schema, message, options?.correlationId);
     connection.publish(subject, binary, { headers });
     logger.debug({ subject, correlationId: event.correlationId }, 'Published to core NATS');
 }

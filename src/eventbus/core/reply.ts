@@ -11,7 +11,7 @@ export interface ReplyHandlerConfig<TRequest extends Message, TResponse extends 
   source: string;
   reqSchema: GenMessage<TRequest>;
   respSchema: GenMessage<TResponse>;
-  handler: (data: TRequest, envelope: Event) => Promise<MessageInitShape<TResponse>>;
+  handler: (data: TRequest, envelope: Event) => Promise<MessageInitShape<GenMessage<TResponse>>>;
   options?: ReplyOptions;
 }
 

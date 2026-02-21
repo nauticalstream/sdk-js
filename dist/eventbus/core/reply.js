@@ -33,7 +33,8 @@ export async function reply(client, logger, config) {
                     inboundCorrelationId = inboundEnvelope.correlationId;
                     const data = fromBinary(reqSchema, inboundEnvelope.payload);
                     logger.debug({ subject, correlationId: inboundCorrelationId }, 'Processing request');
-                    const response = await handler(data, inboundEnvelope);
+                    const responseData = await handler(data, inboundEnvelope);
+                    const response = create(respSchema, responseData);
                     // Echo the inbound correlationId so callers can correlate the pair
                     const responseEnvelope = create(EventSchema, {
                         type: subject,

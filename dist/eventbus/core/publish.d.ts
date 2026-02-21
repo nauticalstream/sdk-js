@@ -1,6 +1,6 @@
 import type { NatsClient } from '../client/nats-client';
 import type { Logger } from 'pino';
-import type { Message } from '@bufbuild/protobuf';
+import { type Message, type MessageInitShape } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
 import type { PublishOptions } from './types';
 /**
@@ -13,5 +13,5 @@ import type { PublishOptions } from './types';
  *
  * @throws Error if NATS is not connected or schema is invalid
  */
-export declare function publish<T extends Message>(client: NatsClient, logger: Logger, source: string, schema: GenMessage<T>, data: T, options?: PublishOptions): Promise<void>;
+export declare function publish<T extends Message>(client: NatsClient, logger: Logger, source: string, schema: GenMessage<T>, data: MessageInitShape<GenMessage<T>>, options?: PublishOptions): Promise<void>;
 //# sourceMappingURL=publish.d.ts.map

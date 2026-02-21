@@ -24,6 +24,7 @@ export class NatsClient {
                 name: this.config.name,
                 maxReconnectAttempts: -1, // Infinite reconnect attempts
                 reconnectTimeWait: 2000, // 2 seconds between reconnects
+                waitOnFirstConnect: true, // Wait for initial connection instead of failing immediately
             });
             this.jetstream = this.connection.jetstream();
             this.isConnected = true;

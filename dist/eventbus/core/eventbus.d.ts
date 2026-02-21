@@ -52,7 +52,7 @@ export declare class EventBus {
      *
      * @throws Error if NATS is not connected
      */
-    publish<T extends Message>(schema: GenMessage<T>, data: T, options?: PublishOptions): Promise<void>;
+    publish<T extends Message>(schema: GenMessage<T>, data: MessageInitShape<GenMessage<T>>, options?: PublishOptions): Promise<void>;
     /**
      * Subscribe to subject (ephemeral)
      * Handler receives the deserialized payload and the full Event envelope.
@@ -87,6 +87,6 @@ export declare class EventBus {
      * @throws Error if NATS is not connected
      * @returns Cleanup function to unsubscribe
      */
-    reply<TRequest extends Message, TResponse extends Message>(reqSchema: GenMessage<TRequest>, respSchema: GenMessage<TResponse>, handler: (data: TRequest, envelope: Event) => Promise<TResponse>, options?: ReplyOptions): Promise<Unsubscribe>;
+    reply<TRequest extends Message, TResponse extends Message>(reqSchema: GenMessage<TRequest>, respSchema: GenMessage<TResponse>, handler: (data: TRequest, envelope: Event) => Promise<MessageInitShape<GenMessage<TResponse>>>, options?: ReplyOptions): Promise<Unsubscribe>;
 }
 //# sourceMappingURL=eventbus.d.ts.map

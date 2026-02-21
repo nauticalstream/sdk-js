@@ -1,3 +1,4 @@
+import { create } from '@bufbuild/protobuf';
 import pRetry from 'p-retry';
 import { classifyNatsError, shouldRetry } from '../errors';
 import { buildEnvelope } from '../core/envelope';
@@ -15,6 +16,7 @@ import { deriveSubject } from '../utils/derive-subject';
  * Subject is auto-derived from schema.typeName unless overridden in options.
  */
 export async function publish(client, logger, source, schema, data, options) {
+    const message = create(schema, data);
     const subject = options?.subject ?? deriveSubject(schema.typeName);
     const correlationId = options?.correlationId;
     const retryConfig = options?.retryConfig;
@@ -34,7 +36,7 @@ export async function publish(client, logger, source, schema, data, options) {
     }
     try {
         const js = client.getJetStream();
-        const { binary, event, headers } = buildEnvelope(source, subject, schema, data, correlationId);
+        const { binary, event, headers } = buildEnvelope(source, subject, schema, message, correlationId);
         const config = { ...DEFAULT_RETRY_CONFIG, ...retryConfig };
         const breaker = getOrCreateBreaker(serverCluster, logger);
         // Create abort controller for operation timeout

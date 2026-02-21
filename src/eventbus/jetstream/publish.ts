@@ -33,7 +33,7 @@ export async function publish<T extends Message>(
   logger: Logger,
   source: string,
   schema: GenMessage<T>,
-  data: MessageInitShape<T>,
+  data: MessageInitShape<GenMessage<T>>,
   options?: JetStreamPublishOptions
 ): Promise<{ ok: boolean; error?: boolean }> {
   const message = create(schema, data);

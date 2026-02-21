@@ -1,7 +1,7 @@
 import type { NatsClient } from '../client/nats-client';
 import type { Logger } from 'pino';
 import type { KV, ObjectStore } from 'nats';
-import { type Message } from '@bufbuild/protobuf';
+import { type Message, type MessageInitShape } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
 import { type Event } from '@nauticalstream/proto/platform/v1/event_pb';
 import { type JetStreamPublishOptions } from './publish';
@@ -19,7 +19,7 @@ export declare class JetStreamAPI {
      * Payload is automatically wrapped in a platform.v1.Event envelope.
      * Subject is auto-derived from schema.typeName unless overridden in options.
      */
-    publish<T extends Message>(schema: GenMessage<T>, data: T, options?: JetStreamPublishOptions): Promise<{
+    publish<T extends Message>(schema: GenMessage<T>, data: MessageInitShape<GenMessage<T>>, options?: JetStreamPublishOptions): Promise<{
         ok: boolean;
         error?: boolean;
     }>;

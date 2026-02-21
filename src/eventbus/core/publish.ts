@@ -21,7 +21,7 @@ export async function publish<T extends Message>(
   logger: Logger,
   source: string,
   schema: GenMessage<T>,
-  data: MessageInitShape<T>,
+  data: MessageInitShape<GenMessage<T>>,
   options?: PublishOptions
 ): Promise<void> {
   if (!client.connected) {

@@ -27,7 +27,7 @@ export class JetStreamAPI {
    */
   async publish<T extends Message>(
     schema: GenMessage<T>,
-    data: MessageInitShape<T>,
+    data: MessageInitShape<GenMessage<T>>,
     options?: JetStreamPublishOptions
   ): Promise<{ ok: boolean; error?: boolean }> {
     return jsPublish(this.client, this.logger, this.source, schema, data, options);
