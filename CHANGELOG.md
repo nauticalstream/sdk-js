@@ -1,3 +1,10 @@
+## [1.3.2](https://github.com/nauticalstream/sdk-js/compare/v1.3.1...v1.3.2) (2026-02-21)
+
+
+### Bug Fixes
+
+* refactor server/fastify - always use telemetry logger, remove logging plugin, clean comments, fix health plugin bugs ([59b114a](https://github.com/nauticalstream/sdk-js/commit/59b114abeb367fada173cb4ac086da494498352d))
+
 ## [1.3.1](https://github.com/nauticalstream/sdk-js/compare/v1.3.0...v1.3.1) (2026-02-21)
 
 
