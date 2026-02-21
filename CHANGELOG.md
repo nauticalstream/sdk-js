@@ -1,3 +1,10 @@
+## [1.3.6](https://github.com/nauticalstream/sdk-js/compare/v1.3.5...v1.3.6) (2026-02-21)
+
+
+### Bug Fixes
+
+* trigger release with updated dependencies ([80260e0](https://github.com/nauticalstream/sdk-js/commit/80260e04720f2ef5f5aef223a6eb22d02b88ed29))
+
 ## [1.3.5](https://github.com/nauticalstream/sdk-js/compare/v1.3.4...v1.3.5) (2026-02-21)
 
 
