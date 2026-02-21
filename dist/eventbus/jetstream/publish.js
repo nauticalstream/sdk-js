@@ -1,93 +1,49 @@
 import { create } from '@bufbuild/protobuf';
-import pRetry from 'p-retry';
-import { classifyNatsError, shouldRetry } from '../errors';
+import { classifyNatsError } from '../errors';
 import { buildEnvelope } from '../core/envelope';
 import { jetstreamPublishLatency, jetstreamPublishSuccess, jetstreamPublishAttempts, jetstreamRetryAttempts, jetstreamPublishErrors } from '../core/metrics';
-import { getOrCreateBreaker, isBreakerOpen } from '../core/circuit-breaker';
+import { resilientOperation, getOrCreateCircuitBreaker, shouldRetry } from '../../resilience';
 import { DEFAULT_RETRY_CONFIG } from '../core/config';
 import { deriveSubject } from '../utils/derive-subject';
-/**
- * Publish to JetStream (persistent)
- * Safe publisher — returns { ok: true } on success or { ok: false, error: true } on failure.
- * Payload is automatically wrapped in a platform.v1.Event envelope.
- * Implements smart retry logic that distinguishes infrastructure errors from application errors.
- * Uses circuit breaker to prevent cascading failures when NATS cluster is unhealthy.
- *
- * Subject is auto-derived from schema.typeName unless overridden in options.
- */
+// Circuit breaker shared across all JetStream publishes
+let natsBreaker;
+function getNatsBreaker() {
+    if (!natsBreaker) {
+        natsBreaker = getOrCreateCircuitBreaker('nats-default');
+    }
+    return natsBreaker;
+}
+/** Publish to JetStream with retry, circuit breaker and timeout */
 export async function publish(client, logger, source, schema, data, options) {
     const message = create(schema, data);
     const subject = options?.subject ?? deriveSubject(schema.typeName);
     const correlationId = options?.correlationId;
-    const retryConfig = options?.retryConfig;
-    const startTime = Date.now();
+    const config = { ...DEFAULT_RETRY_CONFIG, ...options?.retryConfig };
     jetstreamPublishAttempts.add(1, { subject });
-    // Circuit Breaker Pattern: Fast-fail if NATS cluster is experiencing issues
-    // Prevents cascading failures by rejecting requests when error threshold is exceeded
-    // Breaker automatically resets after cooldown period to test recovery
-    const serverCluster = 'nats-default';
-    if (isBreakerOpen(serverCluster)) {
-        jetstreamPublishErrors.add(1, {
-            subject,
-            errorType: 'CircuitBreakerOpenError'
-        });
-        logger.warn({ subject }, 'NATS circuit breaker is open, rejecting publish');
-        return { ok: false, error: true };
-    }
     try {
         const js = client.getJetStream();
         const { binary, event, headers } = buildEnvelope(source, subject, schema, message, correlationId);
-        const config = { ...DEFAULT_RETRY_CONFIG, ...retryConfig };
-        const breaker = getOrCreateBreaker(serverCluster, logger);
-        // Create abort controller for operation timeout
-        const abortController = new AbortController();
-        const timeoutId = setTimeout(() => abortController.abort(), config.operationTimeout);
-        try {
-            // Retry Pattern: Automatically retry transient failures with exponential backoff
-            // Circuit Breaker: Track failure rate and open breaker if threshold exceeded
-            // Flow: pRetry handles backoff → breaker tracks success/failure → opens on threshold
-            await breaker.fire(async () => {
-                return pRetry(() => js.publish(subject, binary, { headers }), {
-                    retries: config.maxRetries,
-                    minTimeout: config.initialDelayMs,
-                    maxTimeout: config.maxDelayMs,
-                    factor: config.backoffFactor,
-                    signal: abortController.signal,
-                    shouldRetry: (error) => shouldRetry(logger, subject, classifyNatsError(error)),
-                    onFailedAttempt: (error) => {
-                        jetstreamRetryAttempts.add(1, {
-                            subject,
-                            attempt: error.attemptNumber,
-                            errorType: error instanceof Error ? error.constructor.name : 'unknown',
-                        });
-                        logger.warn({
-                            subject,
-                            attempt: error.attemptNumber,
-                            retriesLeft: error.retriesLeft,
-                            error: error.message || String(error),
-                        }, 'JetStream publish failed, retrying');
-                    }
-                });
-            });
-        }
-        finally {
-            clearTimeout(timeoutId);
-        }
-        const duration = Date.now() - startTime;
-        jetstreamPublishLatency.record(duration, { subject });
-        jetstreamPublishSuccess.add(1, { subject });
+        await resilientOperation(() => js.publish(subject, binary, { headers }), {
+            operation: 'jetstream.publish',
+            logger,
+            classifier: classifyNatsError,
+            shouldRetry,
+            retry: config,
+            breaker: getNatsBreaker(),
+            timeoutMs: config.operationTimeout,
+            metrics: {
+                latency: jetstreamPublishLatency,
+                success: jetstreamPublishSuccess,
+                errors: jetstreamPublishErrors,
+                retries: jetstreamRetryAttempts,
+            },
+            labels: { subject },
+        });
         logger.debug({ subject, bytes: binary.length, correlationId: event.correlationId }, 'Published to JetStream');
         return { ok: true };
     }
     catch (err) {
-        const duration = Date.now() - startTime;
-        jetstreamPublishLatency.record(duration, { subject });
-        const classified = classifyNatsError(err);
-        jetstreamPublishErrors.add(1, {
-            subject,
-            errorType: classified.constructor.name
-        });
-        logger.warn({ subject, error: classified }, 'JetStream publish failed (retried 3x)');
+        logger.warn({ subject, error: err }, 'JetStream publish failed');
         return { ok: false, error: true };
     }
 }

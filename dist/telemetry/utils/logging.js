@@ -18,6 +18,8 @@ import { getCorrelationId, getTraceId, getSpanId } from './context';
  *   sentry: { enabled: true, minLevel: 'error' }
  * });
  * ```
+ *
+ * @returns Pino logger instance compatible with Fastify
  */
 export function createLogger(options = {}) {
     const { sentry, ...pinoOptions } = options;

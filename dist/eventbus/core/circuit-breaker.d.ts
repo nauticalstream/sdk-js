@@ -1,12 +1,12 @@
-import CircuitBreaker from 'opossum';
-import { Logger } from 'pino';
-interface BreakerConfig {
-    timeout?: number;
-    errorThresholdPercentage?: number;
-    resetTimeout?: number;
-}
-export declare function getOrCreateBreaker(serverCluster: string, logger?: Logger, config?: BreakerConfig): CircuitBreaker<any>;
-export declare function isBreakerOpen(serverCluster: string): boolean;
-export declare function resetBreaker(serverCluster: string): void;
-export {};
+/**
+ * Circuit breaker utilities for EventBus module
+ * Wraps resilience module functions for module-specific breaker management
+ */
+/**
+ * Reset the JetStream publish circuit breaker
+ * Useful after resolving downstream NATS issues
+ *
+ * @param breakerId - Optional specific breaker ID, defaults to JetStream publish breaker
+ */
+export declare function resetBreaker(breakerId?: string): void;
 //# sourceMappingURL=circuit-breaker.d.ts.map

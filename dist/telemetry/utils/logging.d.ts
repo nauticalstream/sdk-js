@@ -10,6 +10,11 @@ export interface TelemetryLoggerOptions extends LoggerOptions {
     };
 }
 /**
+ * Logger type that's compatible with both Pino and Fastify
+ * Pino's Logger implements all methods required by Fastify's logger interface
+ */
+export type TelemetryLogger = Logger;
+/**
  * Create a Pino logger with automatic correlation ID and trace ID injection
  *
  * @param options - Logger options
@@ -27,6 +32,8 @@ export interface TelemetryLoggerOptions extends LoggerOptions {
  *   sentry: { enabled: true, minLevel: 'error' }
  * });
  * ```
+ *
+ * @returns Pino logger instance compatible with Fastify
  */
-export declare function createLogger(options?: TelemetryLoggerOptions): Logger;
+export declare function createLogger(options?: TelemetryLoggerOptions): TelemetryLogger;
 //# sourceMappingURL=logging.d.ts.map

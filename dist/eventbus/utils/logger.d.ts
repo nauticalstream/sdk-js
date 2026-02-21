@@ -1,8 +1,9 @@
 /**
- * Default logger for @nauticalstream/eventbus package.
+ * Default logger for @nauticalstream/eventbus package
+ * Used when no logger is provided in configuration
  *
- * Sentry is disabled by default for packages - services can enable it
- * by providing their own logger with sentry.enabled = true.
+ * Sentry integration is disabled by default in packages.
+ * Services should enable it explicitly if needed.
  */
-export declare const defaultLogger: import("pino").Logger;
+export declare const defaultLogger: import("../../telemetry/utils/logging").TelemetryLogger;
 //# sourceMappingURL=logger.d.ts.map

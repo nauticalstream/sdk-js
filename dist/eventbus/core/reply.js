@@ -1,5 +1,6 @@
 import { fromBinary, toBinary, create } from '@bufbuild/protobuf';
 import { EventSchema } from '@nauticalstream/proto/platform/v1/event_pb';
+import { withCorrelationId, generateCorrelationId } from '../../telemetry/utils/context';
 import { deriveSubject } from '../utils/derive-subject';
 /**
  * Subscribe to a request/reply subject (RPC server side)
@@ -33,7 +34,7 @@ export async function reply(client, logger, config) {
                     inboundCorrelationId = inboundEnvelope.correlationId;
                     const data = fromBinary(reqSchema, inboundEnvelope.payload);
                     logger.debug({ subject, correlationId: inboundCorrelationId }, 'Processing request');
-                    const responseData = await handler(data, inboundEnvelope);
+                    const responseData = await withCorrelationId(inboundCorrelationId ?? generateCorrelationId(), () => handler(data, inboundEnvelope));
                     const response = create(respSchema, responseData);
                     // Echo the inbound correlationId so callers can correlate the pair
                     const responseEnvelope = create(EventSchema, {
@@ -53,7 +54,7 @@ export async function reply(client, logger, config) {
                     const errorEnvelope = create(EventSchema, {
                         type: `${subject}.error`,
                         source,
-                        correlationId: inboundCorrelationId ?? crypto.randomUUID(),
+                        correlationId: inboundCorrelationId ?? generateCorrelationId(),
                         timestamp: new Date().toISOString(),
                     });
                     msg.respond(toBinary(EventSchema, errorEnvelope));

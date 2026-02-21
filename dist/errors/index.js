@@ -30,40 +30,28 @@
  * await mqtt.publish(`user/${userId}/errors`, protoError);
  * ```
  */
-// ============================================================================
-// Base Classes
-// ============================================================================
+// Base classes
 export { DomainException } from './base/DomainException';
 export { SystemException } from './base/SystemException';
-// ============================================================================
-// Domain Exceptions (Client Errors - Non-Retryable)
-// ============================================================================
+// Domain exceptions (client errors — non-retryable)
 export { NotFoundError } from './domain/NotFoundError';
 export { UnauthorizedError } from './domain/UnauthorizedError';
 export { ForbiddenError } from './domain/ForbiddenError';
 export { ValidationError } from './domain/ValidationError';
 export { ConflictError } from './domain/ConflictError';
 export { OperationError } from './domain/OperationError';
-// ============================================================================
-// System Exceptions (Infrastructure Errors - Retryable)
-// ============================================================================
+// System exceptions (infrastructure errors — retryable)
 export { DatabaseError } from './system/DatabaseError';
 export { ServiceUnavailableError } from './system/ServiceUnavailableError';
 export { NetworkError } from './system/NetworkError';
 export { TimeoutError } from './system/TimeoutError';
-// ============================================================================
-// Converters (Exception ↔ Proto Error)
-// ============================================================================
+// Converters (exception ↔ proto error)
 export { toProtoError } from './converters/toProtoError';
 export { fromProtoError } from './converters/fromProtoError';
-// ============================================================================
-// Formatters (Exception → GraphQL/HTTP/JetStream)
-// ============================================================================
+// Formatters (exception → GraphQL/HTTP/JetStream)
 export { formatGraphQLError } from './formatters/graphql/formatGraphQLError';
 export { formatHttpError } from './formatters/http/formatHttpError';
 export { withErrorBoundary } from './formatters/subscriber/withErrorBoundary';
-// ============================================================================
-// Re-export Proto Types for Convenience
-// ============================================================================
+// Proto types
 export { ErrorCode, ErrorSeverity, ResourceType } from '@nauticalstream/proto/error/v1/codes_pb';
 //# sourceMappingURL=index.js.map

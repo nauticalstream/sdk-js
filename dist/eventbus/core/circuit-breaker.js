@@ -1,51 +1,16 @@
-import CircuitBreaker from 'opossum';
-import { jetstreamCircuitBreakerState } from './metrics';
-import { defaultLogger } from '../utils/logger';
-const DEFAULT_CONFIG = {
-    timeout: 5000,
-    errorThresholdPercentage: 50,
-    resetTimeout: 30000,
-};
-const breakers = new Map();
-export function getOrCreateBreaker(serverCluster, logger, config = {}) {
-    if (breakers.has(serverCluster)) {
-        return breakers.get(serverCluster);
-    }
-    const effectiveLogger = logger || defaultLogger;
-    const merged = { ...DEFAULT_CONFIG, ...config };
-    const breaker = new CircuitBreaker(async (fn) => fn(), {
-        timeout: merged.timeout,
-        errorThresholdPercentage: merged.errorThresholdPercentage,
-        resetTimeout: merged.resetTimeout,
-        name: `nats-breaker-${serverCluster}`,
-        rollingCountBuckets: 10,
-        rollingCountTimeout: 10000,
-    });
-    breaker.on('open', () => {
-        effectiveLogger.error({ server: serverCluster }, 'Circuit breaker OPEN - NATS cluster unhealthy');
-        jetstreamCircuitBreakerState.add(-1, { server: serverCluster });
-    });
-    breaker.on('halfOpen', () => {
-        effectiveLogger.warn({ server: serverCluster }, 'Circuit breaker HALF-OPEN - testing NATS recovery');
-    });
-    breaker.on('close', () => {
-        effectiveLogger.info({ server: serverCluster }, 'Circuit breaker CLOSED - NATS recovered');
-        jetstreamCircuitBreakerState.add(1, { server: serverCluster });
-    });
-    jetstreamCircuitBreakerState.add(1, { server: serverCluster });
-    breakers.set(serverCluster, breaker);
-    return breaker;
-}
-export function isBreakerOpen(serverCluster) {
-    const breaker = breakers.get(serverCluster);
-    if (!breaker)
-        return false;
-    return breaker.opened;
-}
-export function resetBreaker(serverCluster) {
-    const breaker = breakers.get(serverCluster);
-    if (breaker) {
-        breaker.close();
-    }
+/**
+ * Circuit breaker utilities for EventBus module
+ * Wraps resilience module functions for module-specific breaker management
+ */
+import { resetCircuitBreaker } from '../../resilience';
+/**
+ * Reset the JetStream publish circuit breaker
+ * Useful after resolving downstream NATS issues
+ *
+ * @param breakerId - Optional specific breaker ID, defaults to JetStream publish breaker
+ */
+export function resetBreaker(breakerId) {
+    const id = breakerId || 'jetstream-publish';
+    resetCircuitBreaker(id);
 }
 //# sourceMappingURL=circuit-breaker.js.map

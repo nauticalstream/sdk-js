@@ -1,28 +1,20 @@
-import CircuitBreaker from 'opossum';
-import { Logger } from 'pino';
-interface BreakerConfig {
-    timeout?: number;
-    errorThresholdPercentage?: number;
-    resetTimeout?: number;
-}
 /**
- * Get or create circuit breaker for MQTT broker
- * @param brokerUrl - Unique identifier for broker (hostname or connection string)
- * @param logger - Logger instance (optional, uses default logger if not provided)
- * @param config - Optional circuit breaker config
+ * Circuit breaker utilities for Realtime module
+ * Wraps resilience module functions for module-specific breaker management
  */
-export declare function getOrCreateBreaker(brokerUrl: string, logger?: Logger, config?: BreakerConfig): CircuitBreaker<any>;
+import { type BreakerMetrics } from '../../resilience';
 /**
- * Check if circuit breaker is open for a broker
+ * Reset the MQTT publish circuit breaker
+ * Useful after resolving downstream broker issues
+ *
+ * @param brokerUrl - Optional specific broker URL, defaults to MQTT publish breaker
  */
-export declare function isBreakerOpen(brokerUrl: string): boolean;
+export declare function resetBreaker(brokerUrl?: string): void;
 /**
- * Manually reset circuit breaker (for operational use)
+ * Get circuit breaker metrics for a specific broker
+ *
+ * @param brokerUrl - Broker URL to check, defaults to MQTT publish breaker
+ * @returns Breaker metrics or undefined if breaker doesn't exist
  */
-export declare function resetBreaker(brokerUrl: string): void;
-/**
- * Get metrics for all breakers
- */
-export declare function getBreakerMetrics(): Record<string, any>;
-export {};
+export declare function getBreakerMetrics(brokerUrl?: string): BreakerMetrics | undefined;
 //# sourceMappingURL=circuit-breaker.d.ts.map

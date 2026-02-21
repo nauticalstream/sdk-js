@@ -38,8 +38,8 @@ export class SystemException extends Error {
     constructor(message) {
         super(message);
         this.name = this.constructor.name;
-        // Set severity to RETRYABLE (import at runtime to avoid circular deps)
-        const { ErrorSeverity } = require('@nauticalstream/proto');
+        // Set severity to RETRYABLE (runtime import to avoid circular deps)
+        const { ErrorSeverity } = require('@nauticalstream/proto/error/v1/codes_pb');
         this.severity = ErrorSeverity.RETRYABLE;
         // Maintains proper stack trace
         if (Error.captureStackTrace) {

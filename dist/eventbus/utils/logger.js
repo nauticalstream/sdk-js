@@ -1,13 +1,15 @@
 import { createLogger } from '../../telemetry';
 /**
- * Default logger for @nauticalstream/eventbus package.
+ * Default logger for @nauticalstream/eventbus package
+ * Used when no logger is provided in configuration
  *
- * Sentry is disabled by default for packages - services can enable it
- * by providing their own logger with sentry.enabled = true.
+ * Sentry integration is disabled by default in packages.
+ * Services should enable it explicitly if needed.
  */
 export const defaultLogger = createLogger({
     name: '@nauticalstream/eventbus',
     level: process.env.LOG_LEVEL || 'info',
+    // Sentry disabled in packages - let services control this
     sentry: {
         enabled: false,
     },

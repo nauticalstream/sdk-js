@@ -1,6 +1,7 @@
 import { fromBinary } from '@bufbuild/protobuf';
 import { EventSchema } from '@nauticalstream/proto/platform/v1/event_pb';
 import { withSubscribeSpan } from './telemetry';
+import { withCorrelationId, generateCorrelationId } from '../../telemetry/utils/context';
 import { deriveSubject } from '../utils/derive-subject';
 /**
  * Subscribe to subject (ephemeral)
@@ -29,7 +30,7 @@ export async function subscribe(client, logger, schema, handler) {
             try {
                 const envelope = fromBinary(EventSchema, msg.data);
                 const data = fromBinary(schema, envelope.payload);
-                await withSubscribeSpan(subject, msg.headers ?? undefined, () => handler(data, envelope));
+                await withSubscribeSpan(subject, msg.headers ?? undefined, () => withCorrelationId(envelope.correlationId || generateCorrelationId(), () => handler(data, envelope)));
             }
             catch (error) {
                 logger.error({ error, subject }, 'Handler failed');

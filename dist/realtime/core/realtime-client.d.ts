@@ -2,25 +2,7 @@ import { type RealtimeClientConfig, type PublishOptions, type QoS } from './conf
 import type { Message } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
 /**
- * RealtimeClient provides a clean, singleton-style MQTT client for NauticalStream services.
- *
- * Features:
- * - Proto-based message serialization
- * - Automatic connection management
- * - Type-safe topic publishing
- * - Singleton pattern per service
- *
- * Usage:
- * ```typescript
- * import { realtime } from '@src/shared/realtime';
- * import { TOPICS } from '@nauticalstream/realtime';
- *
- * await realtime.publish(
- *   [TOPICS.CHAT.user('123'), TOPICS.CHAT.conversation('456')],
- *   ChatMessageSchema,
- *   message
- * );
- * ```
+ * RealtimeClient - MQTT client with proto serialization and resilience
  */
 export declare class RealtimeClient {
     private mqttClient;
@@ -31,62 +13,17 @@ export declare class RealtimeClient {
     private connected;
     private retryConfig;
     constructor(config: RealtimeClientConfig);
-    /**
-     * Connect to MQTT broker
-     */
+    /** Connect to MQTT broker */
     connect(): Promise<void>;
-    /**
-     * Publish a protobuf message to one or more MQTT topics
-     *
-     * Features:
-     * - Circuit breaker protection (fast-fail when broker unhealthy)
-     * - Automatic retry with exponential backoff
-     * - Timeout enforcement (configurable via retryConfig.operationTimeout)
-     * - Full OpenTelemetry metrics and tracing
-     *
-     * @param topics - Single topic or array of topics
-     * @param schema - Protobuf message schema
-     * @param message - Message instance to publish
-     * @param options - Publish options (QoS, retain, correlationId)
-     * @throws {ServiceUnavailableError} Circuit breaker open
-     * @throws {ResourceExhaustedError} All retries exhausted
-     * @throws {OperationTimeoutError} Operation timeout exceeded
-     */
+    /** Publish a protobuf message to one or more MQTT topics */
     publish<T extends Message>(topics: string | string[], schema: GenMessage<T>, message: T, options?: PublishOptions): Promise<void>;
-    /**
-     * Publish a JSON-serializable object to one or more MQTT topics
-     *
-     * Features:
-     * - Circuit breaker protection (fast-fail when broker unhealthy)
-     * - Automatic retry with exponential backoff
-     * - Timeout enforcement (configurable via retryConfig.operationTimeout)
-     * - Full OpenTelemetry metrics and tracing
-     *
-     * @param topics - Single topic or array of topics
-     * @param message - JavaScript object to serialize and publish
-     * @param options - Publish options (QoS, retain, correlationId)
-     * @throws {ServiceUnavailableError} Circuit breaker open
-     * @throws {ResourceExhaustedError} All retries exhausted
-     * @throws {OperationTimeoutError} Operation timeout exceeded
-     */
+    /** Publish a JSON-serializable object to one or more MQTT topics */
     publishJSON(topics: string | string[], message: any, options?: PublishOptions): Promise<void>;
-    /**
-     * Internal publish implementation shared by publish() and publishJSON()
-     * Handles circuit breaker, retries, timeouts, and metrics
-     *
-     * @private
-     */
+    /** Internal publish implementation with retry + circuit breaker */
     private _publishInternal;
-    /**
-     * Subscribe to MQTT topic(s)
-     *
-     * @param topics - Single topic or array of topics
-     * @param qos - Quality of Service level
-     */
+    /** Subscribe to MQTT topic(s) */
     subscribe(topics: string | string[], qos?: QoS): Promise<void>;
-    /**
-     * Unsubscribe from MQTT topic(s)
-     */
+    /** Unsubscribe from MQTT topic(s) */
     unsubscribe(topics: string | string[]): Promise<void>;
     /**
      * Register message handler for subscribed topics

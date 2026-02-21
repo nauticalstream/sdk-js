@@ -39,7 +39,7 @@ export class DomainException extends Error {
      */
     get isRetryable() {
         // Import at runtime to avoid circular dependency issues
-        const { ErrorSeverity } = require('@nauticalstream/proto');
+        const { ErrorSeverity } = require('@nauticalstream/proto/error/v1/codes_pb');
         return this.severity === ErrorSeverity.RETRYABLE;
     }
     /**

@@ -9,6 +9,10 @@ export function classifyMQTTError(error) {
     if (error instanceof SystemException || error instanceof DomainException) {
         return error;
     }
+    // Non-error objects
+    if (!(error instanceof Error)) {
+        return new ServiceUnavailableError('Unknown MQTT error');
+    }
     const code = error.code;
     const message = error.message || '';
     // MQTT-specific error codes (RFC 3749)

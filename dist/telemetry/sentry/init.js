@@ -104,6 +104,8 @@ export async function closeSentry() {
         return true;
     }
     console.log('[Sentry] Closing...');
-    return Sentry.close(2000);
+    const result = await Sentry.close(2000);
+    sentryInitialized = false;
+    return result;
 }
 //# sourceMappingURL=init.js.map
