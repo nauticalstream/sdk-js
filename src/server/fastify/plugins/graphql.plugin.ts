@@ -11,7 +11,7 @@ import { createGraphQLErrorFormatter } from '../errors/formatter';
  * await server.register(createGraphQLPlugin({
  *   schema: readFileSync('./schema.graphql', 'utf-8'),
  *   resolvers,
- *   context: createUniversalContext,
+ *   context: createContext,
  * }));
  */
 export function createGraphQLPlugin(options: GraphQLPluginOptions) {

@@ -17,7 +17,7 @@ export interface BusinessContext {
 }
 
 /** Combined telemetry + business context available in all services */
-export interface UniversalContext extends BaseContext, BusinessContext {}
+export interface Context extends BaseContext, BusinessContext {}
 
 /** Function that extracts custom context fields from a request */
 export type ContextExtractor<T extends object> = (request: FastifyRequest) => T;

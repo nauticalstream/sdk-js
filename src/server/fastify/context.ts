@@ -1,6 +1,6 @@
 import type { FastifyRequest } from 'fastify';
 import { getCorrelationId, getTraceId, getSpanId } from '../../telemetry';
-import type { BaseContext, BusinessContext, UniversalContext, ContextExtractor } from './types';
+import type { BaseContext, BusinessContext, Context, ContextExtractor } from './types';
 
 /** Builds base telemetry context from the incoming request */
 export function createBaseContext(request: FastifyRequest): BaseContext {
@@ -26,7 +26,7 @@ export function extractBusinessContext(request: FastifyRequest): BusinessContext
  * Builds the universal context (telemetry + business) for a request.
  * Use directly as the `context` function in `createGraphQLPlugin`.
  */
-export function createUniversalContext(request: FastifyRequest): UniversalContext {
+export function createContext(request: FastifyRequest): Context {
   return {
     ...createBaseContext(request),
     ...extractBusinessContext(request),
@@ -45,10 +45,10 @@ export function createUniversalContext(request: FastifyRequest): UniversalContex
  */
 export function createContextBuilder<T extends object>(
   extractor: ContextExtractor<T>
-): (request: FastifyRequest) => UniversalContext & T {
-  return (request: FastifyRequest): UniversalContext & T => {
+): (request: FastifyRequest) => Context & T {
+  return (request: FastifyRequest): Context & T => {
     return {
-      ...createUniversalContext(request),
+      ...createContext(request),
       ...extractor(request),
     };
   };

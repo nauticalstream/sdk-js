@@ -3,7 +3,7 @@ export { createFastifyServer } from './factory';
 export {
   createBaseContext,
   extractBusinessContext,
-  createUniversalContext,
+  createContext,
   createContextBuilder,
 } from './context';
 
@@ -16,7 +16,7 @@ export * from './errors';
 export type {
   BaseContext,
   BusinessContext,
-  UniversalContext,
+  Context,
   ContextExtractor,
   FastifyServerOptions,
   GraphQLPluginOptions,

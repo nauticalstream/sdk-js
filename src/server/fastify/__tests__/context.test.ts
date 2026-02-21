@@ -5,7 +5,7 @@ import type { FastifyRequest } from 'fastify';
 import {
   createBaseContext,
   extractBusinessContext,
-  createUniversalContext,
+  createContext,
   createContextBuilder,
 } from '../context';
 import { setCorrelationId } from '../../../telemetry/utils/context';
@@ -83,7 +83,7 @@ describe('extractBusinessContext', () => {
   });
 });
 
-describe('createUniversalContext', () => {
+describe('createContext', () => {
   it('combines base and business context', () => {
     const request = createMockRequest({
       'x-correlation-id': 'universal-123',
@@ -91,7 +91,7 @@ describe('createUniversalContext', () => {
       'x-workspace-id': 'ws-888',
     });
 
-    const ctx = createUniversalContext(request);
+    const ctx = createContext(request);
 
     // Base context
     expect(ctx.correlationId).toBe('universal-123');
@@ -108,7 +108,7 @@ describe('createUniversalContext', () => {
       'x-user-id': 'user-only',
     });
 
-    const ctx = createUniversalContext(request);
+    const ctx = createContext(request);
 
     expect(ctx.userId).toBe('user-only');
     expect(ctx.workspaceId).toBeUndefined();
