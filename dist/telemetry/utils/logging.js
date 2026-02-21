@@ -21,7 +21,7 @@ import { getCorrelationId, getTraceId, getSpanId } from './context';
  *
  * @returns Pino logger instance compatible with Fastify
  */
-export function createLogger(options = {}) {
+export function createLogger(options = {}, destination) {
     const { sentry, ...pinoOptions } = options;
     const baseOptions = {
         ...pinoOptions,
@@ -81,6 +81,6 @@ export function createLogger(options = {}) {
             },
         };
     }
-    return pino(baseOptions);
+    return destination ? pino(baseOptions, destination) : pino(baseOptions);
 }
 //# sourceMappingURL=logging.js.map

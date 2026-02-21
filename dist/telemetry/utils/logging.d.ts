@@ -1,4 +1,4 @@
-import { type LoggerOptions, type Logger } from 'pino';
+import { type LoggerOptions, type Logger, type DestinationStream } from 'pino';
 export interface TelemetryLoggerOptions extends LoggerOptions {
     name?: string;
     /** Optional Sentry integration for automatic error capture */
@@ -35,5 +35,5 @@ export type TelemetryLogger = Logger;
  *
  * @returns Pino logger instance compatible with Fastify
  */
-export declare function createLogger(options?: TelemetryLoggerOptions): TelemetryLogger;
+export declare function createLogger(options?: TelemetryLoggerOptions, destination?: DestinationStream): TelemetryLogger;
 //# sourceMappingURL=logging.d.ts.map

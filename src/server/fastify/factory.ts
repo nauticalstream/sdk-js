@@ -2,6 +2,7 @@ import fastify, { type FastifyInstance, type FastifyBaseLogger } from 'fastify';
 import type { Bindings, ChildLoggerOptions } from 'pino';
 import { createLogger } from '../../telemetry/utils/logging';
 import { fastifyTelemetry } from './plugins/telemetry.plugin';
+import { fastifyRequestLogging } from './plugins/logging.plugin';
 import type { FastifyServerOptions } from './types';
 
 /** Adapts telemetry logger (Pino) to Fastify's logger interface */
@@ -38,17 +39,22 @@ function createFastifyLoggerAdapter(logger: ReturnType<typeof createLogger>): Fa
 export async function createFastifyServer(
   options: FastifyServerOptions
 ): Promise<FastifyInstance> {
-  const { serviceName = 'fastify', requestLogging = true, cors, ...fastifyOptions } = options;
+  const { serviceName = 'fastify', requestLogging = true, cors, destination, ...fastifyOptions } = options;
   
-  const telemetryLogger = createLogger({ name: serviceName });
+  const telemetryLogger = createLogger({ name: serviceName }, destination);
   const logger = createFastifyLoggerAdapter(telemetryLogger);
   
   const server = fastify({
     ...fastifyOptions,
     loggerInstance: logger,
+    disableRequestLogging: true,
   });
 
   await server.register(fastifyTelemetry);
+
+  if (requestLogging) {
+    await server.register(fastifyRequestLogging);
+  }
 
   if (cors) {
     const fastifyCors = await import('@fastify/cors');

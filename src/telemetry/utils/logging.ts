@@ -1,4 +1,4 @@
-import pino, { type LoggerOptions, type Logger } from 'pino';
+import pino, { type LoggerOptions, type Logger, type DestinationStream } from 'pino';
 import { getCorrelationId, getTraceId, getSpanId } from './context';
 // NOTE: Sentry import is lazy-loaded to avoid circular dependencies during initialization
 import type * as SentryType from '@sentry/node';
@@ -43,7 +43,7 @@ export type TelemetryLogger = Logger;
  * 
  * @returns Pino logger instance compatible with Fastify
  */
-export function createLogger(options: TelemetryLoggerOptions = {}): TelemetryLogger {
+export function createLogger(options: TelemetryLoggerOptions = {}, destination?: DestinationStream): TelemetryLogger {
   const { sentry, ...pinoOptions } = options;
   
   const baseOptions: LoggerOptions = {
@@ -119,5 +119,5 @@ export function createLogger(options: TelemetryLoggerOptions = {}): TelemetryLog
     };
   }
 
-  return pino(baseOptions);
+  return destination ? pino(baseOptions, destination) : pino(baseOptions);
 }

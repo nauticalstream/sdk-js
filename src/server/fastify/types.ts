@@ -1,4 +1,5 @@
 import type { FastifyRequest } from 'fastify';
+import type { DestinationStream } from 'pino';
 
 /** Telemetry fields attached to every request context */
 export interface BaseContext {
@@ -32,6 +33,11 @@ export interface FastifyServerOptions {
     origin: string | string[] | boolean;
     credentials?: boolean;
   };
+  /**
+   * Custom Pino destination stream for the logger.
+   * Useful in tests to capture log output instead of writing to stdout.
+   */
+  destination?: DestinationStream;
 }
 
 export interface GraphQLPluginOptions {
