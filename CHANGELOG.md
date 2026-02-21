@@ -1,3 +1,15 @@
+# [1.2.0](https://github.com/nauticalstream/sdk-js/compare/v1.1.0...v1.2.0) (2026-02-21)
+
+
+### Bug Fixes
+
+* accept MessageInitShape plain objects in publish and reply handlers ([0de2491](https://github.com/nauticalstream/sdk-js/commit/0de24913d472eb4189798a32199dc9decf79ff2e))
+
+
+### Features
+
+* accept MessageInitShape in publish and reply — callers no longer need create() ([3701667](https://github.com/nauticalstream/sdk-js/commit/3701667ade8c56a903c679f60d2a12e01ac858df))
+
 # [1.1.0](https://github.com/nauticalstream/sdk-js/compare/v1.0.5...v1.1.0) (2026-02-21)
 
 
