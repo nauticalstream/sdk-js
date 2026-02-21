@@ -76,6 +76,10 @@ export function initTelemetry(config) {
     const spanProcessors = [];
     if (mergedConfig.otlp) {
         const ExporterClass = mergedConfig.otlp.protocol === 'grpc' ? OTLPGrpcExporter : OTLPHttpExporter;
+        console.log('[OTel] Configuring OTLP exporter:', {
+            protocol: mergedConfig.otlp.protocol,
+            endpoint: mergedConfig.otlp.endpoint,
+        });
         const exporter = new ExporterClass({
             url: mergedConfig.otlp.endpoint,
             headers: mergedConfig.otlp.headers || {},
