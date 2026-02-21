@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.UnauthorizedError = void 0;
-const codes_pb_1 = require("@nauticalstream/proto/error/v1/codes_pb");
-const DomainException_1 = require("../base/DomainException");
+import { ErrorCode, ErrorSeverity } from '@nauticalstream/proto/error/v1/codes_pb';
+import { DomainException } from '../base/DomainException';
 /**
  * UnauthorizedError
  *
@@ -24,14 +21,13 @@ const DomainException_1 = require("../base/DomainException");
  * }
  * ```
  */
-class UnauthorizedError extends DomainException_1.DomainException {
+export class UnauthorizedError extends DomainException {
+    errorCode = ErrorCode.UNAUTHORIZED;
+    severity = ErrorSeverity.CLIENT_ERROR;
+    httpStatus = 401;
+    graphqlCode = 'UNAUTHORIZED';
     constructor(message = 'Unauthorized') {
         super(message);
-        this.errorCode = codes_pb_1.ErrorCode.UNAUTHORIZED;
-        this.severity = codes_pb_1.ErrorSeverity.CLIENT_ERROR;
-        this.httpStatus = 401;
-        this.graphqlCode = 'UNAUTHORIZED';
     }
 }
-exports.UnauthorizedError = UnauthorizedError;
 //# sourceMappingURL=UnauthorizedError.js.map

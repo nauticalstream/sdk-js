@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ConflictError = void 0;
-const codes_pb_1 = require("@nauticalstream/proto/error/v1/codes_pb");
-const DomainException_1 = require("../base/DomainException");
+import { ErrorCode, ErrorSeverity } from '@nauticalstream/proto/error/v1/codes_pb';
+import { DomainException } from '../base/DomainException';
 /**
  * ConflictError
  *
@@ -26,14 +23,13 @@ const DomainException_1 = require("../base/DomainException");
  * }
  * ```
  */
-class ConflictError extends DomainException_1.DomainException {
+export class ConflictError extends DomainException {
+    errorCode = ErrorCode.CONFLICT;
+    severity = ErrorSeverity.CLIENT_ERROR;
+    httpStatus = 409;
+    graphqlCode = 'CONFLICT';
     constructor(message) {
         super(message);
-        this.errorCode = codes_pb_1.ErrorCode.CONFLICT;
-        this.severity = codes_pb_1.ErrorSeverity.CLIENT_ERROR;
-        this.httpStatus = 409;
-        this.graphqlCode = 'CONFLICT';
     }
 }
-exports.ConflictError = ConflictError;
 //# sourceMappingURL=ConflictError.js.map

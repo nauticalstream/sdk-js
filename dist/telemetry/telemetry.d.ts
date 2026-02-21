@@ -1,5 +1,5 @@
 import { type Tracer, type Meter } from '@opentelemetry/api';
-import type { TelemetryConfig } from './config.js';
+import type { TelemetryConfig } from './config';
 /**
  * Initialize OpenTelemetry SDK with the provided configuration
  * OTel v2 optimized initialization with BatchSpanProcessor for production

@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SUBJECTS = void 0;
 /**
  * NATS Subject definitions for all services
  * Single source of truth for event routing
@@ -10,7 +7,7 @@ exports.SUBJECTS = void 0;
  * - Queries: storage.image.has, places.location.has-batch
  * - Wildcards: storage.> (all storage), *.*.deleted (all deletes)
  */
-exports.SUBJECTS = {
+export const SUBJECTS = {
     // ============================================
     // CHAT
     // ============================================

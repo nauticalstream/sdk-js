@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.TimeoutError = void 0;
-const codes_pb_1 = require("@nauticalstream/proto/error/v1/codes_pb");
-const SystemException_1 = require("../base/SystemException");
+import { ErrorCode } from '@nauticalstream/proto/error/v1/codes_pb';
+import { SystemException } from '../base/SystemException';
 /**
  * TimeoutError
  *
@@ -31,12 +28,13 @@ const SystemException_1 = require("../base/SystemException");
  * }
  * ```
  */
-class TimeoutError extends SystemException_1.SystemException {
+export class TimeoutError extends SystemException {
+    timeoutMs;
+    errorCode = ErrorCode.DEADLINE_EXCEEDED;
+    httpStatus = 504;
     constructor(message, timeoutMs) {
         super(message);
         this.timeoutMs = timeoutMs;
-        this.errorCode = codes_pb_1.ErrorCode.DEADLINE_EXCEEDED;
-        this.httpStatus = 504;
     }
     toJSON() {
         return {
@@ -45,5 +43,4 @@ class TimeoutError extends SystemException_1.SystemException {
         };
     }
 }
-exports.TimeoutError = TimeoutError;
 //# sourceMappingURL=TimeoutError.js.map

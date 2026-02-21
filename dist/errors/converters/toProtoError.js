@@ -1,10 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.toProtoError = toProtoError;
-const protobuf_1 = require("@bufbuild/protobuf");
-const error_pb_1 = require("@nauticalstream/proto/error/v1/error_pb");
-const codes_pb_1 = require("@nauticalstream/proto/error/v1/codes_pb");
-const telemetry_1 = require("../../telemetry");
+import { create } from '@bufbuild/protobuf';
+import { ErrorSchema } from '@nauticalstream/proto/error/v1/error_pb';
+import { ResourceType } from '@nauticalstream/proto/error/v1/codes_pb';
+import { getCorrelationId } from '../../telemetry';
 /**
  * Convert DomainException or SystemException to Proto Error message
  *
@@ -33,18 +30,18 @@ const telemetry_1 = require("../../telemetry");
  * }
  * ```
  */
-function toProtoError(error, options = {}) {
-    return (0, protobuf_1.create)(error_pb_1.ErrorSchema, {
-        correlationId: (0, telemetry_1.getCorrelationId)(),
+export function toProtoError(error, options = {}) {
+    return create(ErrorSchema, {
+        correlationId: getCorrelationId(),
         optimisticId: options.optimisticId ?? '',
         code: error.errorCode,
         severity: error.severity,
         message: error.message,
-        resourceType: options.resourceType ?? codes_pb_1.ResourceType.UNSPECIFIED,
+        resourceType: options.resourceType ?? ResourceType.UNSPECIFIED,
         resourceId: options.resourceId ?? '',
         timestamp: {
             seconds: BigInt(Math.floor(Date.now() / 1000)),
-            nanos: (Date.now() % 1000) * 1000000,
+            nanos: (Date.now() % 1000) * 1_000_000,
         },
         retryAfterSeconds: options.retryAfterSeconds,
     });

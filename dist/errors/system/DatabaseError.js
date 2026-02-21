@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.DatabaseError = void 0;
-const codes_pb_1 = require("@nauticalstream/proto/error/v1/codes_pb");
-const SystemException_1 = require("../base/SystemException");
+import { ErrorCode } from '@nauticalstream/proto/error/v1/codes_pb';
+import { SystemException } from '../base/SystemException';
 /**
  * DatabaseError
  *
@@ -28,11 +25,12 @@ const SystemException_1 = require("../base/SystemException");
  * }
  * ```
  */
-class DatabaseError extends SystemException_1.SystemException {
+export class DatabaseError extends SystemException {
+    originalError;
+    errorCode = ErrorCode.INTERNAL_ERROR;
     constructor(message, originalError) {
         super(message);
         this.originalError = originalError;
-        this.errorCode = codes_pb_1.ErrorCode.INTERNAL_ERROR;
     }
     toJSON() {
         return {
@@ -43,5 +41,4 @@ class DatabaseError extends SystemException_1.SystemException {
         };
     }
 }
-exports.DatabaseError = DatabaseError;
 //# sourceMappingURL=DatabaseError.js.map

@@ -1,15 +1,12 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.classifyMQTTError = classifyMQTTError;
-const errors_1 = require("../../errors");
+import { NetworkError, TimeoutError, ServiceUnavailableError, ValidationError, UnauthorizedError, SystemException, DomainException } from '../../errors';
 /**
  * Classify MQTT errors to determine if they should be retried
  * Only infrastructure errors (transient) inherit from SystemException
  * Domain errors (permanent) inherit from DomainException and should not retry
  */
-function classifyMQTTError(error) {
+export function classifyMQTTError(error) {
     // Already classified error
-    if (error instanceof errors_1.SystemException || error instanceof errors_1.DomainException) {
+    if (error instanceof SystemException || error instanceof DomainException) {
         return error;
     }
     const code = error.code;
@@ -18,7 +15,7 @@ function classifyMQTTError(error) {
     // https://docs.oasis-open.org/mqtt/mqtt/v3.1.1/mqtt-v3.1.1.html#_Toc442180779
     // Malformed packet or bad format → ValidationError (don't retry)
     if (code === 132 || code === 138 || message.includes('format') || message.includes('malformed')) {
-        return new errors_1.ValidationError('Malformed MQTT packet - payload validation failed');
+        return new ValidationError('Malformed MQTT packet - payload validation failed');
     }
     // Authentication/authorization failures → don't retry
     if (code === 130 ||
@@ -26,7 +23,7 @@ function classifyMQTTError(error) {
         message.includes('not authorized') ||
         message.includes('unauthorized') ||
         message.includes('auth')) {
-        return new errors_1.UnauthorizedError('MQTT authentication failed - check credentials');
+        return new UnauthorizedError('MQTT authentication failed - check credentials');
     }
     // Transient failures → ServiceUnavailableError (retry)
     if (code === 131 || // Server unavailable
@@ -35,20 +32,20 @@ function classifyMQTTError(error) {
         message.includes('ECONNREFUSED') ||
         message.includes('temporarily unavailable') ||
         message.includes('server')) {
-        return new errors_1.ServiceUnavailableError('MQTT broker temporarily unavailable');
+        return new ServiceUnavailableError('MQTT broker temporarily unavailable');
     }
     // Timeout → TimeoutError (retry)
     if (message.includes('timeout') || message.includes('ETIMEDOUT') || message.includes('EHOSTUNREACH')) {
-        return new errors_1.TimeoutError(message || 'MQTT operation timeout');
+        return new TimeoutError(message || 'MQTT operation timeout');
     }
     // Network errors → NetworkError (retry)
     if (message.includes('ECONNRESET') ||
         message.includes('ENOTFOUND') ||
         message.includes('socket') ||
         message.includes('DNS')) {
-        return new errors_1.NetworkError(message || 'Network error during MQTT operation');
+        return new NetworkError(message || 'Network error during MQTT operation');
     }
     // Unknown error → default to retryable (infrastructure errors more common than logic errors in networking)
-    return new errors_1.ServiceUnavailableError('Unknown MQTT error - will retry');
+    return new ServiceUnavailableError('Unknown MQTT error - will retry');
 }
 //# sourceMappingURL=classifyMQTTError.js.map

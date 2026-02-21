@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/node';
-import type { SentryConfig } from './config.js';
+import type { SentryConfig } from './config';
 /**
  * Initialize Sentry error tracking
  * Should be called once at application startup, before any other code

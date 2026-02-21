@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.NotFoundError = void 0;
-const codes_pb_1 = require("@nauticalstream/proto/error/v1/codes_pb");
-const DomainException_1 = require("../base/DomainException");
+import { ErrorCode, ErrorSeverity } from '@nauticalstream/proto/error/v1/codes_pb';
+import { DomainException } from '../base/DomainException';
 /**
  * NotFoundError
  *
@@ -21,16 +18,17 @@ const DomainException_1 = require("../base/DomainException");
  * }
  * ```
  */
-class NotFoundError extends DomainException_1.DomainException {
+export class NotFoundError extends DomainException {
+    resource;
+    resourceId;
+    errorCode = ErrorCode.NOT_FOUND;
+    severity = ErrorSeverity.CLIENT_ERROR;
+    httpStatus = 404;
+    graphqlCode = 'NOT_FOUND';
     constructor(resource, resourceId) {
         super(`${resource} with id ${resourceId} not found`);
         this.resource = resource;
         this.resourceId = resourceId;
-        this.errorCode = codes_pb_1.ErrorCode.NOT_FOUND;
-        this.severity = codes_pb_1.ErrorSeverity.CLIENT_ERROR;
-        this.httpStatus = 404;
-        this.graphqlCode = 'NOT_FOUND';
     }
 }
-exports.NotFoundError = NotFoundError;
 //# sourceMappingURL=NotFoundError.js.map

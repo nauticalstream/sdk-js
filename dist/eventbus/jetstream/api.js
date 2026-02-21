@@ -1,16 +1,16 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.JetStreamAPI = void 0;
-const nats_1 = require("nats");
-const protobuf_1 = require("@bufbuild/protobuf");
-const event_pb_1 = require("@nauticalstream/proto/platform/v1/event_pb");
-const publish_1 = require("./publish");
-const telemetry_1 = require("../core/telemetry");
-const subscribe_1 = require("./subscribe");
+import { AckPolicy, DeliverPolicy } from 'nats';
+import { fromBinary } from '@bufbuild/protobuf';
+import { EventSchema } from '@nauticalstream/proto/platform/v1/event_pb';
+import { publish as jsPublish } from './publish';
+import { withSubscribeSpan } from '../core/telemetry';
+import { defaultErrorClassifier } from './subscribe';
 /**
  * JetStream API - persistent, reliable, durable operations
  */
-class JetStreamAPI {
+export class JetStreamAPI {
+    client;
+    logger;
+    source;
     constructor(client, logger, source) {
         this.client = client;
         this.logger = logger;
@@ -21,14 +21,14 @@ class JetStreamAPI {
      * Payload is automatically wrapped in a platform.v1.Event envelope.
      */
     async publish(subject, schema, data, correlationId) {
-        return (0, publish_1.publish)(this.client, this.logger, this.source, subject, schema, data, correlationId);
+        return jsPublish(this.client, this.logger, this.source, subject, schema, data, correlationId);
     }
     /**
      * Subscribe to JetStream with durable consumer.
      * Deserializes incoming binary data using the provided protobuf schema.
      */
     async subscribe(config) {
-        const { stream, consumer: consumerName, subject, schema, handler, concurrency = 1, retryDelayMs = 500, maxDeliveries = 5, errorClassifier = subscribe_1.defaultErrorClassifier } = config;
+        const { stream, consumer: consumerName, subject, schema, handler, concurrency = 1, retryDelayMs = 500, maxDeliveries = 5, errorClassifier = defaultErrorClassifier } = config;
         try {
             if (!this.client.connected) {
                 this.logger.warn({ subject }, 'NATS not connected');
@@ -47,9 +47,9 @@ class JetStreamAPI {
                 await jsm.consumers.add(stream, {
                     name: consumerName,
                     durable_name: consumerName,
-                    ack_policy: nats_1.AckPolicy.Explicit,
+                    ack_policy: AckPolicy.Explicit,
                     filter_subject: subject,
-                    deliver_policy: nats_1.DeliverPolicy.All,
+                    deliver_policy: DeliverPolicy.All,
                     max_deliver: maxDeliveries
                 });
             }
@@ -66,9 +66,9 @@ class JetStreamAPI {
                     return;
                 active++;
                 try {
-                    const envelope = (0, protobuf_1.fromBinary)(event_pb_1.EventSchema, msg.data);
-                    const data = (0, protobuf_1.fromBinary)(schema, envelope.payload);
-                    await (0, telemetry_1.withSubscribeSpan)(subject, msg.headers ?? undefined, () => handler(data, envelope));
+                    const envelope = fromBinary(EventSchema, msg.data);
+                    const data = fromBinary(schema, envelope.payload);
+                    await withSubscribeSpan(subject, msg.headers ?? undefined, () => handler(data, envelope));
                     msg.ack();
                 }
                 catch (err) {
@@ -146,18 +146,18 @@ class JetStreamAPI {
             const js = this.client.getJetStream();
             const consumerName = `replay-${Date.now()}`;
             const jsm = await this.client.getJetStreamManager();
-            let deliverPolicy = nats_1.DeliverPolicy.All;
+            let deliverPolicy = DeliverPolicy.All;
             const consumerOpts = {
                 name: consumerName,
-                ack_policy: nats_1.AckPolicy.Explicit,
+                ack_policy: AckPolicy.Explicit,
                 filter_subject: subject
             };
             if (startTime) {
-                deliverPolicy = nats_1.DeliverPolicy.StartTime;
+                deliverPolicy = DeliverPolicy.StartTime;
                 consumerOpts.opt_start_time = new Date(startTime).toISOString();
             }
             else if (startSequence) {
-                deliverPolicy = nats_1.DeliverPolicy.StartSequence;
+                deliverPolicy = DeliverPolicy.StartSequence;
                 consumerOpts.opt_start_seq = startSequence;
             }
             consumerOpts.deliver_policy = deliverPolicy;
@@ -170,9 +170,9 @@ class JetStreamAPI {
                     for await (const msg of messages) {
                         if (stopped)
                             break;
-                        const envelope = (0, protobuf_1.fromBinary)(event_pb_1.EventSchema, msg.data);
-                        const data = (0, protobuf_1.fromBinary)(schema, envelope.payload);
-                        await (0, telemetry_1.withSubscribeSpan)(subject, msg.headers ?? undefined, () => handler(data, envelope));
+                        const envelope = fromBinary(EventSchema, msg.data);
+                        const data = fromBinary(schema, envelope.payload);
+                        await withSubscribeSpan(subject, msg.headers ?? undefined, () => handler(data, envelope));
                         msg.ack();
                     }
                 }
@@ -233,5 +233,4 @@ class JetStreamAPI {
         }
     }
 }
-exports.JetStreamAPI = JetStreamAPI;
 //# sourceMappingURL=api.js.map

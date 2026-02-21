@@ -1,20 +1,12 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.meter = exports.tracer = void 0;
-exports.initTelemetry = initTelemetry;
-exports.shutdownTelemetry = shutdownTelemetry;
-exports.getTracer = getTracer;
-exports.getMeter = getMeter;
-exports.withSpan = withSpan;
-const sdk_node_1 = require("@opentelemetry/sdk-node");
-const auto_instrumentations_node_1 = require("@opentelemetry/auto-instrumentations-node");
-const exporter_trace_otlp_http_1 = require("@opentelemetry/exporter-trace-otlp-http");
-const exporter_trace_otlp_grpc_1 = require("@opentelemetry/exporter-trace-otlp-grpc");
-const sdk_trace_node_1 = require("@opentelemetry/sdk-trace-node");
-const resources_1 = require("@opentelemetry/resources");
-const semantic_conventions_1 = require("@opentelemetry/semantic-conventions");
-const api_1 = require("@opentelemetry/api");
-const config_js_1 = require("./config.js");
+import { NodeSDK } from '@opentelemetry/sdk-node';
+import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
+import { OTLPTraceExporter as OTLPHttpExporter } from '@opentelemetry/exporter-trace-otlp-http';
+import { OTLPTraceExporter as OTLPGrpcExporter } from '@opentelemetry/exporter-trace-otlp-grpc';
+import { ConsoleSpanExporter, BatchSpanProcessor, ParentBasedSampler, TraceIdRatioBasedSampler } from '@opentelemetry/sdk-trace-node';
+import { resourceFromAttributes } from '@opentelemetry/resources';
+import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
+import { trace, metrics, SpanStatusCode } from '@opentelemetry/api';
+import { DEFAULT_CONFIG } from './config';
 let sdk = null;
 let isInitialized = false;
 /**
@@ -23,11 +15,11 @@ let isInitialized = false;
  * Note: Fastify instrumentation is provided by getNodeAutoInstrumentations from auto-instrumentations-node
  */
 function buildInstrumentations(config) {
-    const instConfig = config.instrumentations || config_js_1.DEFAULT_CONFIG.instrumentations || {};
+    const instConfig = config.instrumentations || DEFAULT_CONFIG.instrumentations || {};
     // getNodeAutoInstrumentations provides all standard instrumentations including:
     // - @fastify/otel (official Fastify instrumentation)
     // - MongoDB, HTTP, DNS, and many others
-    return (0, auto_instrumentations_node_1.getNodeAutoInstrumentations)({
+    return getNodeAutoInstrumentations({
         '@opentelemetry/instrumentation-fastify': {
             enabled: instConfig.fastify !== false,
             ...(typeof instConfig.fastify === 'object' && instConfig.fastify),
@@ -50,31 +42,31 @@ function buildInstrumentations(config) {
  * Initialize OpenTelemetry SDK with the provided configuration
  * OTel v2 optimized initialization with BatchSpanProcessor for production
  */
-function initTelemetry(config) {
+export function initTelemetry(config) {
     if (isInitialized) {
         console.warn('Telemetry already initialized. Skipping re-initialization.');
         return;
     }
     const mergedConfig = {
-        ...config_js_1.DEFAULT_CONFIG,
+        ...DEFAULT_CONFIG,
         ...config,
         instrumentations: {
-            ...config_js_1.DEFAULT_CONFIG.instrumentations,
+            ...DEFAULT_CONFIG.instrumentations,
             ...config.instrumentations,
         },
         correlationId: {
-            ...config_js_1.DEFAULT_CONFIG.correlationId,
+            ...DEFAULT_CONFIG.correlationId,
             ...config.correlationId,
         },
         sampling: {
-            ...config_js_1.DEFAULT_CONFIG.sampling,
+            ...DEFAULT_CONFIG.sampling,
             ...config.sampling,
         },
     };
     // Create resource with service metadata (OTel v2 API)
-    const resource = (0, resources_1.resourceFromAttributes)({
-        [semantic_conventions_1.ATTR_SERVICE_NAME]: mergedConfig.serviceName,
-        [semantic_conventions_1.ATTR_SERVICE_VERSION]: mergedConfig.serviceVersion || '1.0.0',
+    const resource = resourceFromAttributes({
+        [ATTR_SERVICE_NAME]: mergedConfig.serviceName,
+        [ATTR_SERVICE_VERSION]: mergedConfig.serviceVersion || '1.0.0',
         'deployment.environment': mergedConfig.environment || 'development',
         ...mergedConfig.resource,
     });
@@ -83,23 +75,23 @@ function initTelemetry(config) {
     // Configure trace exporters with BatchSpanProcessor for production efficiency
     const spanProcessors = [];
     if (mergedConfig.otlp) {
-        const ExporterClass = mergedConfig.otlp.protocol === 'grpc' ? exporter_trace_otlp_grpc_1.OTLPTraceExporter : exporter_trace_otlp_http_1.OTLPTraceExporter;
+        const ExporterClass = mergedConfig.otlp.protocol === 'grpc' ? OTLPGrpcExporter : OTLPHttpExporter;
         const exporter = new ExporterClass({
             url: mergedConfig.otlp.endpoint,
             headers: mergedConfig.otlp.headers || {},
         });
         // BatchSpanProcessor: Groups spans and sends them in batches for better performance
-        spanProcessors.push(new sdk_trace_node_1.BatchSpanProcessor(exporter));
+        spanProcessors.push(new BatchSpanProcessor(exporter));
     }
     if (mergedConfig.consoleExporter) {
-        spanProcessors.push(new sdk_trace_node_1.BatchSpanProcessor(new sdk_trace_node_1.ConsoleSpanExporter()));
+        spanProcessors.push(new BatchSpanProcessor(new ConsoleSpanExporter()));
     }
     // Configure sampler (OTel v2 best practice: ParentBased with TraceIdRatio)
-    const sampler = new sdk_trace_node_1.ParentBasedSampler({
-        root: new sdk_trace_node_1.TraceIdRatioBasedSampler(mergedConfig.sampling?.probability ?? 1.0),
+    const sampler = new ParentBasedSampler({
+        root: new TraceIdRatioBasedSampler(mergedConfig.sampling?.probability ?? 1.0),
     });
     // Initialize SDK with OTel v2 options
-    sdk = new sdk_node_1.NodeSDK({
+    sdk = new NodeSDK({
         resource,
         instrumentations,
         spanProcessors,
@@ -116,7 +108,7 @@ function initTelemetry(config) {
 /**
  * Shutdown the OpenTelemetry SDK gracefully
  */
-async function shutdownTelemetry() {
+export async function shutdownTelemetry() {
     if (!sdk) {
         return;
     }
@@ -135,14 +127,14 @@ async function shutdownTelemetry() {
 /**
  * Get the tracer for the application
  */
-function getTracer(name) {
-    return api_1.trace.getTracer(name || 'default');
+export function getTracer(name) {
+    return trace.getTracer(name || 'default');
 }
 /**
  * Get the meter for the application
  */
-function getMeter(name) {
-    return api_1.metrics.getMeter(name || 'default');
+export function getMeter(name) {
+    return metrics.getMeter(name || 'default');
 }
 /**
  * Create a span with the given name and execute a function
@@ -152,7 +144,7 @@ function getMeter(name) {
  * @param tracerName - Optional tracer name (defaults to 'default')
  * @param attributes - Optional span attributes to set
  */
-async function withSpan(name, fn, tracerName, attributes) {
+export async function withSpan(name, fn, tracerName, attributes) {
     const tracer = getTracer(tracerName);
     return tracer.startActiveSpan(name, async (span) => {
         try {
@@ -189,7 +181,7 @@ async function withSpan(name, fn, tracerName, attributes) {
             span.addEvent('operation_started');
             const result = await fn();
             // Mark successful completion
-            span.setStatus({ code: api_1.SpanStatusCode.OK });
+            span.setStatus({ code: SpanStatusCode.OK });
             span.addEvent('operation_completed');
             return result;
         }
@@ -217,7 +209,7 @@ async function withSpan(name, fn, tracerName, attributes) {
                     ? error
                     : 'Unknown error';
             span.setStatus({
-                code: api_1.SpanStatusCode.ERROR,
+                code: SpanStatusCode.ERROR,
                 message: errorMessage.substring(0, 255),
             });
             throw error;
@@ -230,6 +222,6 @@ async function withSpan(name, fn, tracerName, attributes) {
 /**
  * Export tracer and meter directly
  */
-exports.tracer = api_1.trace.getTracer('@nauticalstream/telemetry');
-exports.meter = api_1.metrics.getMeter('@nauticalstream/telemetry');
+export const tracer = trace.getTracer('@nauticalstream/telemetry');
+export const meter = metrics.getMeter('@nauticalstream/telemetry');
 //# sourceMappingURL=telemetry.js.map

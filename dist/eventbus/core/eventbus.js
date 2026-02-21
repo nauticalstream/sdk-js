@@ -1,47 +1,11 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.EventBus = void 0;
-const nats_client_1 = require("../client/nats-client");
-const api_1 = require("../jetstream/api");
-const corePublish = __importStar(require("./publish"));
-const coreSubscribe = __importStar(require("./subscribe"));
-const coreQueueGroup = __importStar(require("./queue-group"));
-const coreRequest = __importStar(require("./request"));
-const coreReply = __importStar(require("./reply"));
-const logger_1 = require("../utils/logger");
+import { NatsClient } from '../client/nats-client';
+import { JetStreamAPI } from '../jetstream/api';
+import * as corePublish from './publish';
+import * as coreSubscribe from './subscribe';
+import * as coreQueueGroup from './queue-group';
+import * as coreRequest from './request';
+import * as coreReply from './reply';
+import { defaultLogger } from '../utils/logger';
 /**
  * EventBus - Unified API for NATS messaging patterns
  *
@@ -60,16 +24,20 @@ const logger_1 = require("../utils/logger");
  *   - bus.jetstream.kv()
  *   - bus.jetstream.objectStore()
  */
-class EventBus {
+export class EventBus {
+    client;
+    logger;
+    source;
+    jetstream;
     constructor(config) {
-        this.logger = config.logger || logger_1.defaultLogger.child({ service: config.name });
+        this.logger = config.logger || defaultLogger.child({ service: config.name });
         this.source = config.name;
-        this.client = new nats_client_1.NatsClient({
+        this.client = new NatsClient({
             servers: config.servers,
             name: config.name,
             logger: this.logger
         });
-        this.jetstream = new api_1.JetStreamAPI(this.client, this.logger, this.source);
+        this.jetstream = new JetStreamAPI(this.client, this.logger, this.source);
     }
     /**
      * Connect to NATS server
@@ -128,5 +96,4 @@ class EventBus {
         return coreReply.reply(this.client, this.logger, { subject, source: this.source, reqSchema, respSchema, handler });
     }
 }
-exports.EventBus = EventBus;
 //# sourceMappingURL=eventbus.js.map

@@ -1,16 +1,13 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.queueGroup = queueGroup;
-const protobuf_1 = require("@bufbuild/protobuf");
-const event_pb_1 = require("@nauticalstream/proto/platform/v1/event_pb");
-const telemetry_1 = require("./telemetry");
+import { fromBinary } from '@bufbuild/protobuf';
+import { EventSchema } from '@nauticalstream/proto/platform/v1/event_pb';
+import { withSubscribeSpan } from './telemetry';
 /**
  * Subscribe with queue group (load balancing)
  * Only one member of the queue group receives each message.
  * Incoming binary is decoded as platform.v1.Event; payload is deserialized using the provided schema.
  * Core NATS - fast, ephemeral, load-balanced
  */
-async function queueGroup(client, logger, subject, queueGroupName, schema, handler) {
+export async function queueGroup(client, logger, subject, queueGroupName, schema, handler) {
     if (!client.connected) {
         logger.warn({ subject, queueGroup: queueGroupName }, 'NATS not connected');
         return () => { };
@@ -25,9 +22,9 @@ async function queueGroup(client, logger, subject, queueGroupName, schema, handl
                 return;
             }
             try {
-                const envelope = (0, protobuf_1.fromBinary)(event_pb_1.EventSchema, msg.data);
-                const data = (0, protobuf_1.fromBinary)(schema, envelope.payload);
-                await (0, telemetry_1.withSubscribeSpan)(subject, msg.headers ?? undefined, () => handler(data, envelope));
+                const envelope = fromBinary(EventSchema, msg.data);
+                const data = fromBinary(schema, envelope.payload);
+                await withSubscribeSpan(subject, msg.headers ?? undefined, () => handler(data, envelope));
             }
             catch (error) {
                 logger.error({ error, subject, queueGroup: queueGroupName }, 'Handler failed');

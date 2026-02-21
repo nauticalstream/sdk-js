@@ -1,15 +1,11 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.MQTTClientManager = void 0;
-const mqtt_1 = __importDefault(require("mqtt"));
-class MQTTClientManager {
+import mqtt from 'mqtt';
+export class MQTTClientManager {
+    client = null;
+    config;
+    logger;
+    isConnecting = false;
+    isDisconnecting = false;
     constructor(config) {
-        this.client = null;
-        this.isConnecting = false;
-        this.isDisconnecting = false;
         this.config = config;
         this.logger = config.logger;
     }
@@ -43,7 +39,7 @@ class MQTTClientManager {
             protocolVersion: 5, // Enable MQTT v5 for User Properties support
         };
         return new Promise((resolve, reject) => {
-            this.client = mqtt_1.default.connect(this.config.brokerUrl, options);
+            this.client = mqtt.connect(this.config.brokerUrl, options);
             this.client.on('connect', () => {
                 this.logger?.info('MQTT connected');
                 this.isConnecting = false;
@@ -100,5 +96,4 @@ class MQTTClientManager {
         return this.client?.connected ?? false;
     }
 }
-exports.MQTTClientManager = MQTTClientManager;
 //# sourceMappingURL=mqtt-client.js.map

@@ -1,5 +1,5 @@
 import pino, { type LoggerOptions, type Logger } from 'pino';
-import { getCorrelationId, getTraceId, getSpanId } from './context.js';
+import { getCorrelationId, getTraceId, getSpanId } from './context';
 // NOTE: Sentry import is lazy-loaded to avoid circular dependencies during initialization
 import type * as SentryType from '@sentry/node';
 

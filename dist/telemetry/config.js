@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.DEFAULT_CONFIG = void 0;
-exports.DEFAULT_CONFIG = {
+export const DEFAULT_CONFIG = {
     serviceVersion: '1.0.0',
     environment: process.env.NODE_ENV || 'development',
     instrumentations: {

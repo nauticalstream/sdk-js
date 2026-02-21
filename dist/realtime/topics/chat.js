@@ -1,10 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.chatTopics = void 0;
 /**
  * Chat-related MQTT topics
  */
-exports.chatTopics = {
+export const chatTopics = {
     /**
      * User-specific chat updates (messages, read receipts, etc.)
      * @param userId - The user ID

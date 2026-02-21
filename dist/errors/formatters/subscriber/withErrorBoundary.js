@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.withErrorBoundary = withErrorBoundary;
-const DomainException_1 = require("../../base/DomainException");
-const SystemException_1 = require("../../base/SystemException");
+import { DomainException } from '../../base/DomainException';
+import { SystemException } from '../../base/SystemException';
 /**
  * Wrap JetStream/NATS subscriber handler with automatic error boundary
  *
@@ -29,7 +26,7 @@ const SystemException_1 = require("../../base/SystemException");
  * });
  * ```
  */
-function withErrorBoundary(subject, handler, logger) {
+export function withErrorBoundary(subject, handler, logger) {
     const log = logger ?? console;
     return async (data) => {
         try {
@@ -37,7 +34,7 @@ function withErrorBoundary(subject, handler, logger) {
         }
         catch (error) {
             // Domain exception - check if retryable
-            if (error instanceof DomainException_1.DomainException) {
+            if (error instanceof DomainException) {
                 if (error.isRetryable) {
                     log.warn({
                         subject,
@@ -59,7 +56,7 @@ function withErrorBoundary(subject, handler, logger) {
                 }
             }
             // System exception - always retryable
-            if (error instanceof SystemException_1.SystemException) {
+            if (error instanceof SystemException) {
                 log.warn({
                     subject,
                     errorCode: error.errorCode,

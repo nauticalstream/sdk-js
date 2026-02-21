@@ -1,22 +1,17 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.defaultErrorClassifier = void 0;
-exports.subscribe = subscribe;
-const nats_1 = require("nats");
+import { AckPolicy, DeliverPolicy } from 'nats';
 /**
  * Default error classifier - retry everything (backward compatible)
  */
-const defaultErrorClassifier = (_error) => {
+export const defaultErrorClassifier = (_error) => {
     return 'retry';
 };
-exports.defaultErrorClassifier = defaultErrorClassifier;
 /**
  * Establish a resilient JetStream durable subscription.
  * Returns a cleanup function to stop consumption gracefully.
  *
  * Handler receives raw binary data (Uint8Array) for protobuf decoding
  */
-async function subscribe(client, logger, config) {
+export async function subscribe(client, logger, config) {
     const { stream, consumer: consumerName, subject, handler, concurrency = 1, retryDelayMs = 500 } = config;
     try {
         if (!client.connected) {
@@ -36,9 +31,9 @@ async function subscribe(client, logger, config) {
             await jsm.consumers.add(stream, {
                 name: consumerName,
                 durable_name: consumerName,
-                ack_policy: nats_1.AckPolicy.Explicit,
+                ack_policy: AckPolicy.Explicit,
                 filter_subject: subject,
-                deliver_policy: nats_1.DeliverPolicy.All
+                deliver_policy: DeliverPolicy.All
             });
         }
         consumer = await js.consumers.get(stream, consumerName);
@@ -62,7 +57,7 @@ async function subscribe(client, logger, config) {
                 logger.debug({ subject: msg.subject, consumer: consumerName }, 'Message processed');
             }
             catch (err) {
-                const classifier = config.errorClassifier || exports.defaultErrorClassifier;
+                const classifier = config.errorClassifier || defaultErrorClassifier;
                 const action = classifier(err);
                 const errorName = err instanceof Error ? err.constructor.name : 'UnknownError';
                 const errorMessage = err instanceof Error ? err.message : String(err);

@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ValidationError = void 0;
-const codes_pb_1 = require("@nauticalstream/proto/error/v1/codes_pb");
-const DomainException_1 = require("../base/DomainException");
+import { ErrorCode, ErrorSeverity } from '@nauticalstream/proto/error/v1/codes_pb';
+import { DomainException } from '../base/DomainException';
 /**
  * ValidationError
  *
@@ -26,14 +23,13 @@ const DomainException_1 = require("../base/DomainException");
  * }
  * ```
  */
-class ValidationError extends DomainException_1.DomainException {
+export class ValidationError extends DomainException {
+    errorCode = ErrorCode.VALIDATION_ERROR;
+    severity = ErrorSeverity.CLIENT_ERROR;
+    httpStatus = 400;
+    graphqlCode = 'VALIDATION_ERROR';
     constructor(message) {
         super(message);
-        this.errorCode = codes_pb_1.ErrorCode.VALIDATION_ERROR;
-        this.severity = codes_pb_1.ErrorSeverity.CLIENT_ERROR;
-        this.httpStatus = 400;
-        this.graphqlCode = 'VALIDATION_ERROR';
     }
 }
-exports.ValidationError = ValidationError;
 //# sourceMappingURL=ValidationError.js.map

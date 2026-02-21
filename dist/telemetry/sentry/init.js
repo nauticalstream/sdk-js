@@ -1,44 +1,6 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.initSentry = initSentry;
-exports.getSentry = getSentry;
-exports.closeSentry = closeSentry;
-const Sentry = __importStar(require("@sentry/node"));
-const profiling_node_1 = require("@sentry/profiling-node");
-const context_js_1 = require("../utils/context.js");
+import * as Sentry from '@sentry/node';
+import { nodeProfilingIntegration } from '@sentry/profiling-node';
+import { getCorrelationId, getTraceId, getSpanId } from '../utils/context';
 let sentryInitialized = false;
 /**
  * Initialize Sentry error tracking
@@ -55,7 +17,7 @@ let sentryInitialized = false;
  * });
  * ```
  */
-function initSentry(config) {
+export function initSentry(config) {
     if (!config.enabled || !config.dsn) {
         console.log('[Sentry] Disabled or no DSN provided');
         return;
@@ -72,7 +34,7 @@ function initSentry(config) {
         profilesSampleRate: config.profilesSampleRate || 0.1,
         integrations: [
             // Performance profiling
-            (0, profiling_node_1.nodeProfilingIntegration)(),
+            nodeProfilingIntegration(),
             // Auto-capture uncaught exceptions (process-level)
             Sentry.onUncaughtExceptionIntegration({
                 onFatalError: async (err) => {
@@ -92,9 +54,9 @@ function initSentry(config) {
             // Add trace context to all events
             event.contexts = event.contexts || {};
             event.contexts.telemetry = {
-                correlationId: (0, context_js_1.getCorrelationId)(),
-                traceId: (0, context_js_1.getTraceId)(),
-                spanId: (0, context_js_1.getSpanId)(),
+                correlationId: getCorrelationId(),
+                traceId: getTraceId(),
+                spanId: getSpanId(),
             };
             // Custom filtering
             if (config.beforeSend) {
@@ -121,7 +83,7 @@ function initSentry(config) {
  * });
  * ```
  */
-function getSentry() {
+export function getSentry() {
     return { Sentry };
 }
 /**
@@ -137,7 +99,7 @@ function getSentry() {
  * });
  * ```
  */
-async function closeSentry() {
+export async function closeSentry() {
     if (!sentryInitialized) {
         return true;
     }

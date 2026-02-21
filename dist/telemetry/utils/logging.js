@@ -1,11 +1,5 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.createLogger = createLogger;
-const pino_1 = __importDefault(require("pino"));
-const context_js_1 = require("./context.js");
+import pino from 'pino';
+import { getCorrelationId, getTraceId, getSpanId } from './context';
 /**
  * Create a Pino logger with automatic correlation ID and trace ID injection
  *
@@ -25,15 +19,15 @@ const context_js_1 = require("./context.js");
  * });
  * ```
  */
-function createLogger(options = {}) {
+export function createLogger(options = {}) {
     const { sentry, ...pinoOptions } = options;
     const baseOptions = {
         ...pinoOptions,
         // Mixin to add telemetry context to every log
         mixin() {
-            const correlationId = (0, context_js_1.getCorrelationId)();
-            const traceId = (0, context_js_1.getTraceId)();
-            const spanId = (0, context_js_1.getSpanId)();
+            const correlationId = getCorrelationId();
+            const traceId = getTraceId();
+            const spanId = getSpanId();
             const telemetryContext = {};
             if (correlationId) {
                 telemetryContext.correlationId = correlationId;
@@ -76,8 +70,8 @@ function createLogger(options = {}) {
                     SentryModule.withScope((scope) => {
                         scope.setContext('log', obj);
                         scope.setTag('logger', options.name || 'unknown');
-                        scope.setTag('correlationId', (0, context_js_1.getCorrelationId)() || 'none');
-                        scope.setTag('traceId', (0, context_js_1.getTraceId)() || 'none');
+                        scope.setTag('correlationId', getCorrelationId() || 'none');
+                        scope.setTag('traceId', getTraceId() || 'none');
                         SentryModule.captureException(error);
                     });
                 }
@@ -85,6 +79,6 @@ function createLogger(options = {}) {
             },
         };
     }
-    return (0, pino_1.default)(baseOptions);
+    return pino(baseOptions);
 }
 //# sourceMappingURL=logging.js.map

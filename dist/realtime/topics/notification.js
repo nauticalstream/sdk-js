@@ -1,10 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.notificationTopics = void 0;
 /**
  * Notification-related MQTT topics
  */
-exports.notificationTopics = {
+export const notificationTopics = {
     /**
      * User-specific notifications
      * @param userId - The user ID

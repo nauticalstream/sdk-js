@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/node';
 import { nodeProfilingIntegration } from '@sentry/profiling-node';
-import type { SentryConfig } from './config.js';
-import { getCorrelationId, getTraceId, getSpanId } from '../utils/context.js';
+import type { SentryConfig } from './config';
+import { getCorrelationId, getTraceId, getSpanId } from '../utils/context';
 
 let sentryInitialized = false;
 

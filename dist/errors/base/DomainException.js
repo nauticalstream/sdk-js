@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.DomainException = void 0;
 /**
  * Base class for all domain/business errors
  *
@@ -27,7 +24,7 @@ exports.DomainException = void 0;
  * }
  * ```
  */
-class DomainException extends Error {
+export class DomainException extends Error {
     constructor(message) {
         super(message);
         this.name = this.constructor.name;
@@ -61,5 +58,4 @@ class DomainException extends Error {
         };
     }
 }
-exports.DomainException = DomainException;
 //# sourceMappingURL=DomainException.js.map

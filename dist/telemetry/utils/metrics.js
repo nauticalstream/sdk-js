@@ -1,11 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.recordCounter = recordCounter;
-exports.recordHistogram = recordHistogram;
-exports.recordGauge = recordGauge;
-exports.createObservableGauge = createObservableGauge;
-exports.startTimer = startTimer;
-const api_1 = require("@opentelemetry/api");
+import { metrics } from '@opentelemetry/api';
 /**
  * Metric helper functions for OTel v2
  *
@@ -28,7 +21,7 @@ const meterCache = new Map();
  */
 function getMeter(name = '@nauticalstream/telemetry') {
     if (!meterCache.has(name)) {
-        meterCache.set(name, api_1.metrics.getMeter(name));
+        meterCache.set(name, metrics.getMeter(name));
     }
     return meterCache.get(name);
 }
@@ -44,7 +37,7 @@ function getMeter(name = '@nauticalstream/telemetry') {
  * @example
  * recordCounter('api_calls', 1, { endpoint: '/users', status: 200 });
  */
-function recordCounter(name, value = 1, attributes, meterName) {
+export function recordCounter(name, value = 1, attributes, meterName) {
     try {
         const meter = getMeter(meterName);
         const counter = meter.createCounter(name, {
@@ -68,7 +61,7 @@ function recordCounter(name, value = 1, attributes, meterName) {
  * @example
  * recordHistogram('db_query_duration_ms', 45.3, { table: 'users' });
  */
-function recordHistogram(name, value, attributes, meterName) {
+export function recordHistogram(name, value, attributes, meterName) {
     try {
         const meter = getMeter(meterName);
         const histogram = meter.createHistogram(name, {
@@ -95,7 +88,7 @@ function recordHistogram(name, value, attributes, meterName) {
  * @example
  * recordGauge('queue_length', 42, { queue: 'background_jobs' });
  */
-function recordGauge(name, value, attributes, meterName) {
+export function recordGauge(name, value, attributes, meterName) {
     try {
         const meter = getMeter(meterName);
         // OTel v2 uses UpDownCounter for manual gauge updates
@@ -124,7 +117,7 @@ function recordGauge(name, value, attributes, meterName) {
  *   return usage.heapUsed;
  * });
  */
-function createObservableGauge(name, callback, meterName) {
+export function createObservableGauge(name, callback, meterName) {
     try {
         const meter = getMeter(meterName);
         meter.createObservableGauge(name, {
@@ -161,7 +154,7 @@ function createObservableGauge(name, callback, meterName) {
  *   timer({ success: false, error_type: err.name });
  * }
  */
-function startTimer(name, attributes, meterName) {
+export function startTimer(name, attributes, meterName) {
     const startTime = Date.now();
     return (resultAttrs) => {
         const duration = Date.now() - startTime;

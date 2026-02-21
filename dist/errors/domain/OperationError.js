@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.OperationError = void 0;
-const codes_pb_1 = require("@nauticalstream/proto/error/v1/codes_pb");
-const DomainException_1 = require("../base/DomainException");
+import { ErrorCode, ErrorSeverity } from '@nauticalstream/proto/error/v1/codes_pb';
+import { DomainException } from '../base/DomainException';
 /**
  * OperationError
  *
@@ -25,14 +22,13 @@ const DomainException_1 = require("../base/DomainException");
  * }
  * ```
  */
-class OperationError extends DomainException_1.DomainException {
+export class OperationError extends DomainException {
+    errorCode = ErrorCode.INTERNAL_ERROR;
+    severity = ErrorSeverity.FATAL;
+    httpStatus = 500;
+    graphqlCode = 'OPERATION_ERROR';
     constructor(message = 'Operation failed') {
         super(message);
-        this.errorCode = codes_pb_1.ErrorCode.INTERNAL_ERROR;
-        this.severity = codes_pb_1.ErrorSeverity.FATAL;
-        this.httpStatus = 500;
-        this.graphqlCode = 'OPERATION_ERROR';
     }
 }
-exports.OperationError = OperationError;
 //# sourceMappingURL=OperationError.js.map

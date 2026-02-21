@@ -1,9 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.createPublishProperties = createPublishProperties;
-exports.withPublishSpan = withPublishSpan;
-exports.withMessageSpan = withMessageSpan;
-const api_1 = require("@opentelemetry/api");
+import { context, propagation, trace, SpanKind, SpanStatusCode, } from '@opentelemetry/api';
 const TRACER_NAME = '@nauticalstream/realtime';
 /**
  * TextMap carrier adapters for MQTT User Properties
@@ -40,7 +35,7 @@ const getter = {
  * @param correlationId - Unique ID for message tracing across services
  * @param source - Optional service name that published the message
  */
-function createPublishProperties(correlationId, source) {
+export function createPublishProperties(correlationId, source) {
     const properties = {
         'x-correlation-id': correlationId,
         'x-timestamp': new Date().toISOString(),
@@ -49,7 +44,7 @@ function createPublishProperties(correlationId, source) {
         properties['x-source'] = source;
     }
     // Inject OTel trace context (silent no-op if no SDK registered)
-    api_1.propagation.inject(api_1.context.active(), properties, setter);
+    propagation.inject(context.active(), properties, setter);
     return properties;
 }
 /**
@@ -62,23 +57,23 @@ function createPublishProperties(correlationId, source) {
  * @param messageSize - Size of the message payload in bytes
  * @param fn - Async function to execute within the span
  */
-async function withPublishSpan(topic, messageSize, fn) {
-    const tracer = api_1.trace.getTracer(TRACER_NAME);
+export async function withPublishSpan(topic, messageSize, fn) {
+    const tracer = trace.getTracer(TRACER_NAME);
     const span = tracer.startSpan(`publish ${topic}`, {
-        kind: api_1.SpanKind.PRODUCER,
+        kind: SpanKind.PRODUCER,
         attributes: {
             'messaging.system': 'mqtt',
             'messaging.destination': topic,
             'messaging.message.payload_size_bytes': messageSize,
         },
     });
-    return api_1.context.with(api_1.trace.setSpan(api_1.context.active(), span), async () => {
+    return context.with(trace.setSpan(context.active(), span), async () => {
         try {
             await fn();
-            span.setStatus({ code: api_1.SpanStatusCode.OK });
+            span.setStatus({ code: SpanStatusCode.OK });
         }
         catch (err) {
-            span.setStatus({ code: api_1.SpanStatusCode.ERROR });
+            span.setStatus({ code: SpanStatusCode.ERROR });
             if (err instanceof Error)
                 span.recordException(err);
             throw err;
@@ -98,23 +93,23 @@ async function withPublishSpan(topic, messageSize, fn) {
  * @param userProperties - MQTT v5 userProperties containing trace context
  * @param fn - Async function to execute within the span
  */
-async function withMessageSpan(topic, userProperties, fn) {
-    const parentCtx = api_1.propagation.extract(api_1.context.active(), userProperties, getter);
-    const tracer = api_1.trace.getTracer(TRACER_NAME);
+export async function withMessageSpan(topic, userProperties, fn) {
+    const parentCtx = propagation.extract(context.active(), userProperties, getter);
+    const tracer = trace.getTracer(TRACER_NAME);
     const span = tracer.startSpan(`receive ${topic}`, {
-        kind: api_1.SpanKind.CONSUMER,
+        kind: SpanKind.CONSUMER,
         attributes: {
             'messaging.system': 'mqtt',
             'messaging.destination': topic,
         },
     }, parentCtx);
-    return api_1.context.with(api_1.trace.setSpan(parentCtx, span), async () => {
+    return context.with(trace.setSpan(parentCtx, span), async () => {
         try {
             await fn();
-            span.setStatus({ code: api_1.SpanStatusCode.OK });
+            span.setStatus({ code: SpanStatusCode.OK });
         }
         catch (err) {
-            span.setStatus({ code: api_1.SpanStatusCode.ERROR });
+            span.setStatus({ code: SpanStatusCode.ERROR });
             if (err instanceof Error)
                 span.recordException(err);
             throw err;

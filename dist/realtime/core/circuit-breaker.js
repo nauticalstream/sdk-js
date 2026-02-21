@@ -1,15 +1,6 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getOrCreateBreaker = getOrCreateBreaker;
-exports.isBreakerOpen = isBreakerOpen;
-exports.resetBreaker = resetBreaker;
-exports.getBreakerMetrics = getBreakerMetrics;
-const opossum_1 = __importDefault(require("opossum"));
-const metrics_1 = require("./metrics");
-const logger_1 = require("../utils/logger");
+import CircuitBreaker from 'opossum';
+import { circuitBreakerState } from './metrics';
+import { defaultLogger } from '../utils/logger';
 const DEFAULT_CONFIG = {
     timeout: 5000,
     errorThresholdPercentage: 50,
@@ -22,13 +13,13 @@ const breakers = new Map();
  * @param logger - Logger instance (optional, uses default logger if not provided)
  * @param config - Optional circuit breaker config
  */
-function getOrCreateBreaker(brokerUrl, logger, config = {}) {
-    const effectiveLogger = logger || logger_1.defaultLogger;
+export function getOrCreateBreaker(brokerUrl, logger, config = {}) {
+    const effectiveLogger = logger || defaultLogger;
     if (breakers.has(brokerUrl)) {
         return breakers.get(brokerUrl);
     }
     const merged = { ...DEFAULT_CONFIG, ...config };
-    const breaker = new opossum_1.default(async (fn) => fn(), {
+    const breaker = new CircuitBreaker(async (fn) => fn(), {
         timeout: merged.timeout,
         errorThresholdPercentage: merged.errorThresholdPercentage,
         resetTimeout: merged.resetTimeout,
@@ -39,26 +30,26 @@ function getOrCreateBreaker(brokerUrl, logger, config = {}) {
     // State transition handlers
     breaker.on('open', () => {
         effectiveLogger.error({ broker: brokerUrl }, 'Circuit breaker OPEN - broker health check failed');
-        metrics_1.circuitBreakerState.add(-1, { broker: brokerUrl });
+        circuitBreakerState.add(-1, { broker: brokerUrl });
     });
     breaker.on('halfOpen', () => {
         effectiveLogger.warn({ broker: brokerUrl }, 'Circuit breaker HALF-OPEN - attempting recovery');
     });
     breaker.on('close', () => {
         effectiveLogger.info({ broker: brokerUrl }, 'Circuit breaker CLOSED - broker recovered');
-        metrics_1.circuitBreakerState.add(1, { broker: brokerUrl });
+        circuitBreakerState.add(1, { broker: brokerUrl });
     });
     breaker.on('fallback', () => {
         effectiveLogger.error({ broker: brokerUrl }, 'Circuit breaker FALLBACK - returning cached/default response');
     });
-    metrics_1.circuitBreakerState.add(1, { broker: brokerUrl }); // Start as closed (1)
+    circuitBreakerState.add(1, { broker: brokerUrl }); // Start as closed (1)
     breakers.set(brokerUrl, breaker);
     return breaker;
 }
 /**
  * Check if circuit breaker is open for a broker
  */
-function isBreakerOpen(brokerUrl) {
+export function isBreakerOpen(brokerUrl) {
     const breaker = breakers.get(brokerUrl);
     if (!breaker)
         return false;
@@ -67,7 +58,7 @@ function isBreakerOpen(brokerUrl) {
 /**
  * Manually reset circuit breaker (for operational use)
  */
-function resetBreaker(brokerUrl) {
+export function resetBreaker(brokerUrl) {
     const breaker = breakers.get(brokerUrl);
     if (breaker) {
         breaker.fallback(() => {
@@ -79,7 +70,7 @@ function resetBreaker(brokerUrl) {
 /**
  * Get metrics for all breakers
  */
-function getBreakerMetrics() {
+export function getBreakerMetrics() {
     const metrics = {};
     breakers.forEach((breaker, url) => {
         metrics[url] = {

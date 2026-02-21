@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.formatGraphQLError = formatGraphQLError;
-const DomainException_1 = require("../../base/DomainException");
-const SystemException_1 = require("../../base/SystemException");
+import { DomainException } from '../../base/DomainException';
+import { SystemException } from '../../base/SystemException';
 /**
  * Format GraphQL errors for Mercurius/Apollo Server
  *
@@ -22,7 +19,7 @@ const SystemException_1 = require("../../base/SystemException");
  * });
  * ```
  */
-function formatGraphQLError(err) {
+export function formatGraphQLError(err) {
     // Import GraphQLError at runtime to avoid peer dependency issues
     const { GraphQLError: GQLError } = require('graphql');
     const original = err.originalError;
@@ -31,7 +28,7 @@ function formatGraphQLError(err) {
         return err;
     }
     // Domain exception - use its metadata
-    if (original instanceof DomainException_1.DomainException) {
+    if (original instanceof DomainException) {
         return new GQLError(original.message, {
             ...err,
             extensions: {
@@ -43,7 +40,7 @@ function formatGraphQLError(err) {
         });
     }
     // System exception - use its metadata
-    if (original instanceof SystemException_1.SystemException) {
+    if (original instanceof SystemException) {
         return new GQLError(original.message, {
             ...err,
             extensions: {

@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.fastifyTelemetry = void 0;
-const api_1 = require("@opentelemetry/api");
-const context_js_1 = require("../utils/context.js");
+import { context } from '@opentelemetry/api';
+import { setCorrelationId, generateCorrelationId, getCorrelationId, } from '../utils/context';
 const DEFAULT_OPTIONS = {
     correlationIdHeader: 'x-correlation-id',
     generateIfMissing: true,
@@ -11,7 +8,7 @@ const DEFAULT_OPTIONS = {
  * Fastify plugin for correlation ID extraction and propagation
  * OTel v2 optimized: Properly handles context lifecycle across async request handlers
  */
-const fastifyTelemetry = async (fastify, opts) => {
+export const fastifyTelemetry = async (fastify, opts) => {
     const options = { ...DEFAULT_OPTIONS, ...opts };
     const headerName = options.correlationIdHeader.toLowerCase();
     /**
@@ -23,16 +20,16 @@ const fastifyTelemetry = async (fastify, opts) => {
         let correlationId = request.headers[headerName];
         // Generate new one if missing and configured to do so
         if (!correlationId && options.generateIfMissing) {
-            correlationId = (0, context_js_1.generateCorrelationId)();
+            correlationId = generateCorrelationId();
         }
         // Store correlation ID on request object for access throughout lifecycle
         request.correlationId = correlationId;
         // Set in OpenTelemetry context for this request's async context
         // OTel v2 automatically maintains async context through the request
         if (correlationId) {
-            const ctx = (0, context_js_1.setCorrelationId)(correlationId);
+            const ctx = setCorrelationId(correlationId);
             // Execute the rest of the request within this context
-            await api_1.context.with(ctx, async () => {
+            await context.with(ctx, async () => {
                 // Handler execution continues in this context
                 return Promise.resolve();
             });
@@ -44,7 +41,7 @@ const fastifyTelemetry = async (fastify, opts) => {
      */
     fastify.addHook('onSend', async (request, reply) => {
         // Get correlation ID from request (set in onRequest)
-        const correlationId = request.correlationId || (0, context_js_1.getCorrelationId)();
+        const correlationId = request.correlationId || getCorrelationId();
         // Add to response headers if not already present
         if (correlationId && !reply.hasHeader(headerName)) {
             reply.header(headerName, correlationId);
@@ -66,6 +63,5 @@ const fastifyTelemetry = async (fastify, opts) => {
         },
     });
 };
-exports.fastifyTelemetry = fastifyTelemetry;
-exports.default = exports.fastifyTelemetry;
+export default fastifyTelemetry;
 //# sourceMappingURL=fastify-telemetry.plugin.js.map

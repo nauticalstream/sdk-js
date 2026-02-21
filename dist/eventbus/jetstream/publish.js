@@ -1,15 +1,9 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.publish = publish;
-const p_retry_1 = __importDefault(require("p-retry"));
-const errors_1 = require("../errors");
-const envelope_1 = require("../core/envelope");
-const metrics_1 = require("../core/metrics");
-const circuit_breaker_1 = require("../core/circuit-breaker");
-const config_1 = require("../core/config");
+import pRetry from 'p-retry';
+import { classifyNatsError, shouldRetry } from '../errors';
+import { buildEnvelope } from '../core/envelope';
+import { jetstreamPublishLatency, jetstreamPublishSuccess, jetstreamPublishAttempts, jetstreamRetryAttempts, jetstreamPublishErrors } from '../core/metrics';
+import { getOrCreateBreaker, isBreakerOpen } from '../core/circuit-breaker';
+import { DEFAULT_RETRY_CONFIG } from '../core/config';
 /**
  * Publish to JetStream (persistent)
  * Safe publisher — returns { ok: true } on success or { ok: false, error: true } on failure.
@@ -19,13 +13,13 @@ const config_1 = require("../core/config");
  *
  * @param retryConfig - Retry configuration. Uses defaults if not provided.
  */
-async function publish(client, logger, source, subject, schema, data, correlationId, retryConfig) {
+export async function publish(client, logger, source, subject, schema, data, correlationId, retryConfig) {
     const startTime = Date.now();
-    metrics_1.jetstreamPublishAttempts.add(1, { subject });
+    jetstreamPublishAttempts.add(1, { subject });
     // Fast-fail if NATS cluster circuit breaker is open (known degradation)
     const serverCluster = 'nats-default';
-    if ((0, circuit_breaker_1.isBreakerOpen)(serverCluster)) {
-        metrics_1.jetstreamPublishErrors.add(1, {
+    if (isBreakerOpen(serverCluster)) {
+        jetstreamPublishErrors.add(1, {
             subject,
             errorType: 'CircuitBreakerOpenError'
         });
@@ -34,9 +28,9 @@ async function publish(client, logger, source, subject, schema, data, correlatio
     }
     try {
         const js = client.getJetStream();
-        const { binary, event, headers } = (0, envelope_1.buildEnvelope)(source, subject, schema, data, correlationId);
-        const config = { ...config_1.DEFAULT_RETRY_CONFIG, ...retryConfig };
-        const breaker = (0, circuit_breaker_1.getOrCreateBreaker)(serverCluster, logger);
+        const { binary, event, headers } = buildEnvelope(source, subject, schema, data, correlationId);
+        const config = { ...DEFAULT_RETRY_CONFIG, ...retryConfig };
+        const breaker = getOrCreateBreaker(serverCluster, logger);
         // Create abort controller for operation timeout
         const abortController = new AbortController();
         const timeoutId = setTimeout(() => abortController.abort(), config.operationTimeout);
@@ -44,15 +38,15 @@ async function publish(client, logger, source, subject, schema, data, correlatio
             // Publish with automatic retry on transient connection failures
             // Wrapped in circuit breaker to track failures and open on threshold
             await breaker.fire(async () => {
-                return (0, p_retry_1.default)(() => js.publish(subject, binary, { headers }), {
+                return pRetry(() => js.publish(subject, binary, { headers }), {
                     retries: config.maxRetries,
                     minTimeout: config.initialDelayMs,
                     maxTimeout: config.maxDelayMs,
                     factor: config.backoffFactor,
                     signal: abortController.signal,
-                    shouldRetry: (error) => (0, errors_1.shouldRetry)(logger, subject, (0, errors_1.classifyNatsError)(error)),
+                    shouldRetry: (error) => shouldRetry(logger, subject, classifyNatsError(error)),
                     onFailedAttempt: (error) => {
-                        metrics_1.jetstreamRetryAttempts.add(1, {
+                        jetstreamRetryAttempts.add(1, {
                             subject,
                             attempt: error.attemptNumber,
                             errorType: error instanceof Error ? error.constructor.name : 'unknown',
@@ -71,16 +65,16 @@ async function publish(client, logger, source, subject, schema, data, correlatio
             clearTimeout(timeoutId);
         }
         const duration = Date.now() - startTime;
-        metrics_1.jetstreamPublishLatency.record(duration, { subject });
-        metrics_1.jetstreamPublishSuccess.add(1, { subject });
+        jetstreamPublishLatency.record(duration, { subject });
+        jetstreamPublishSuccess.add(1, { subject });
         logger.debug({ subject, bytes: binary.length, correlationId: event.correlationId }, 'Published to JetStream');
         return { ok: true };
     }
     catch (err) {
         const duration = Date.now() - startTime;
-        metrics_1.jetstreamPublishLatency.record(duration, { subject });
-        const classified = (0, errors_1.classifyNatsError)(err);
-        metrics_1.jetstreamPublishErrors.add(1, {
+        jetstreamPublishLatency.record(duration, { subject });
+        const classified = classifyNatsError(err);
+        jetstreamPublishErrors.add(1, {
             subject,
             errorType: classified.constructor.name
         });

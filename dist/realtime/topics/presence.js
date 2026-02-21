@@ -1,10 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.presenceTopics = void 0;
 /**
  * Presence-related MQTT topics
  */
-exports.presenceTopics = {
+export const presenceTopics = {
     /**
      * User presence updates (online, offline, away, etc.)
      * @param userId - The user ID

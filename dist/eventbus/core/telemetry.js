@@ -1,9 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.createPublishHeaders = createPublishHeaders;
-exports.withSubscribeSpan = withSubscribeSpan;
-const api_1 = require("@opentelemetry/api");
-const nats_1 = require("nats");
+import { context, propagation, trace, SpanKind, SpanStatusCode, } from '@opentelemetry/api';
+import { headers as natsHeaders } from 'nats';
 const TRACER_NAME = '@nauticalstream/eventbus';
 /**
  * TextMap carrier adapters for NATS MsgHdrs
@@ -29,10 +25,10 @@ const getter = {
  * Also carries the correlationId as a header for log correlation.
  * If no OTel SDK is registered this is a silent no-op and empty headers are returned.
  */
-function createPublishHeaders(correlationId) {
-    const h = (0, nats_1.headers)();
+export function createPublishHeaders(correlationId) {
+    const h = natsHeaders();
     h.set('x-correlation-id', correlationId);
-    api_1.propagation.inject(api_1.context.active(), h, setter);
+    propagation.inject(context.active(), h, setter);
     return h;
 }
 /**
@@ -41,17 +37,17 @@ function createPublishHeaders(correlationId) {
  * Records exceptions and sets error status on failure.
  * If no OTel SDK is registered all calls are silent no-ops.
  */
-async function withSubscribeSpan(subject, msgHeaders, fn) {
-    const parentCtx = api_1.propagation.extract(api_1.context.active(), msgHeaders, getter);
-    const tracer = api_1.trace.getTracer(TRACER_NAME);
-    const span = tracer.startSpan(`receive ${subject}`, { kind: api_1.SpanKind.CONSUMER }, parentCtx);
-    return api_1.context.with(api_1.trace.setSpan(parentCtx, span), async () => {
+export async function withSubscribeSpan(subject, msgHeaders, fn) {
+    const parentCtx = propagation.extract(context.active(), msgHeaders, getter);
+    const tracer = trace.getTracer(TRACER_NAME);
+    const span = tracer.startSpan(`receive ${subject}`, { kind: SpanKind.CONSUMER }, parentCtx);
+    return context.with(trace.setSpan(parentCtx, span), async () => {
         try {
             await fn();
-            span.setStatus({ code: api_1.SpanStatusCode.OK });
+            span.setStatus({ code: SpanStatusCode.OK });
         }
         catch (err) {
-            span.setStatus({ code: api_1.SpanStatusCode.ERROR });
+            span.setStatus({ code: SpanStatusCode.ERROR });
             if (err instanceof Error)
                 span.recordException(err);
             throw err;

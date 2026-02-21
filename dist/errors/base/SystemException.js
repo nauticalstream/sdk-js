@@ -1,6 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SystemException = void 0;
 /**
  * Base class for system/infrastructure errors
  *
@@ -24,17 +21,22 @@ exports.SystemException = void 0;
  * }
  * ```
  */
-class SystemException extends Error {
+export class SystemException extends Error {
+    /**
+     * System exceptions are always RETRYABLE by default
+     * Infrastructure failures are typically transient
+     */
+    severity;
+    /**
+     * HTTP status code - usually 500 or 503
+     */
+    httpStatus = 500;
+    /**
+     * GraphQL error code - usually 'INTERNAL_SERVER_ERROR'
+     */
+    graphqlCode = 'INTERNAL_SERVER_ERROR';
     constructor(message) {
         super(message);
-        /**
-         * HTTP status code - usually 500 or 503
-         */
-        this.httpStatus = 500;
-        /**
-         * GraphQL error code - usually 'INTERNAL_SERVER_ERROR'
-         */
-        this.graphqlCode = 'INTERNAL_SERVER_ERROR';
         this.name = this.constructor.name;
         // Set severity to RETRYABLE (import at runtime to avoid circular deps)
         const { ErrorSeverity } = require('@nauticalstream/proto');
@@ -66,5 +68,4 @@ class SystemException extends Error {
         };
     }
 }
-exports.SystemException = SystemException;
 //# sourceMappingURL=SystemException.js.map

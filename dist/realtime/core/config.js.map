@@ -1,1 +1,1 @@
-{"version":3,"file":"config.js","sourceRoot":"","sources":["../../../src/realtime/core/config.ts"],"names":[],"mappings":";;;AAkBA;;GAEG;AACU,QAAA,oBAAoB,GAA0B;IACzD,UAAU,EAAE,CAAC;IACb,cAAc,EAAE,GAAG;IACnB,UAAU,EAAE,GAAG;IACf,aAAa,EAAE,CAAC;IAChB,gBAAgB,EAAE,IAAI;CACvB,CAAC"}
+{"version":3,"file":"config.js","sourceRoot":"","sources":["../../../src/realtime/core/config.ts"],"names":[],"mappings":"AAkBA;;GAEG;AACH,MAAM,CAAC,MAAM,oBAAoB,GAA0B;IACzD,UAAU,EAAE,CAAC;IACb,cAAc,EAAE,GAAG;IACnB,UAAU,EAAE,GAAG;IACf,aAAa,EAAE,CAAC;IAChB,gBAAgB,EAAE,IAAI;CACvB,CAAC"}

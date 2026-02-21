@@ -1,9 +1,6 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.formatHttpError = formatHttpError;
-const telemetry_1 = require("../../../telemetry");
-const DomainException_1 = require("../../base/DomainException");
-const SystemException_1 = require("../../base/SystemException");
+import { getCorrelationId } from '../../../telemetry';
+import { DomainException } from '../../base/DomainException';
+import { SystemException } from '../../base/SystemException';
 /**
  * Format errors for HTTP/REST API responses
  *
@@ -30,25 +27,25 @@ const SystemException_1 = require("../../base/SystemException");
  * // }
  * ```
  */
-function formatHttpError(error) {
+export function formatHttpError(error) {
     // Domain exception
-    if (error instanceof DomainException_1.DomainException) {
+    if (error instanceof DomainException) {
         return {
             statusCode: error.httpStatus,
             error: error.graphqlCode,
             message: error.message,
             errorCode: error.errorCode,
-            correlationId: (0, telemetry_1.getCorrelationId)(),
+            correlationId: getCorrelationId(),
         };
     }
     // System exception
-    if (error instanceof SystemException_1.SystemException) {
+    if (error instanceof SystemException) {
         return {
             statusCode: error.httpStatus,
             error: error.graphqlCode,
             message: error.message,
             errorCode: error.errorCode,
-            correlationId: (0, telemetry_1.getCorrelationId)(),
+            correlationId: getCorrelationId(),
         };
     }
     // Unknown error - hide details
@@ -56,7 +53,7 @@ function formatHttpError(error) {
         statusCode: 500,
         error: 'INTERNAL_SERVER_ERROR',
         message: 'An unexpected error occurred',
-        correlationId: (0, telemetry_1.getCorrelationId)(),
+        correlationId: getCorrelationId(),
     };
 }
 //# sourceMappingURL=formatHttpError.js.map

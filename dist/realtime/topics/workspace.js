@@ -1,10 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.workspaceTopics = void 0;
 /**
  * Workspace-related MQTT topics
  */
-exports.workspaceTopics = {
+export const workspaceTopics = {
     /**
      * Workspace-wide updates
      * @param workspaceId - The workspace ID

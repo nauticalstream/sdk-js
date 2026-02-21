@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.DEFAULT_SENTRY_CONFIG = void 0;
-exports.DEFAULT_SENTRY_CONFIG = {
+export const DEFAULT_SENTRY_CONFIG = {
     environment: process.env.NODE_ENV || 'development',
     tracesSampleRate: 0.1, // 10% of transactions
     profilesSampleRate: 0.1, // 10% of transactions

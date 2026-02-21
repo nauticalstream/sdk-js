@@ -7,7 +7,7 @@ export {
   withSpan,
   tracer,
   meter,
-} from './telemetry.js';
+} from './telemetry';
 
 // Configuration types
 export type {
@@ -16,7 +16,7 @@ export type {
   InstrumentationConfig,
   CorrelationIdConfig,
   SamplingConfig,
-} from './config.js';
+} from './config';
 
 // Context utilities
 export {
@@ -27,10 +27,10 @@ export {
   withCorrelationId,
   generateCorrelationId,
   getActiveSpan,
-} from './utils/context.js';
+} from './utils/context';
 
 // Logger with telemetry
-export { createLogger, type TelemetryLoggerOptions } from './utils/logging.js';
+export { createLogger, type TelemetryLoggerOptions } from './utils/logging';
 
 // Metric helpers (OTel v2 - easy metric recording)
 export {
@@ -39,15 +39,15 @@ export {
   recordGauge,
   createObservableGauge,
   startTimer,
-} from './utils/metrics.js';
+} from './utils/metrics';
 
 // Fastify plugin
 export {
   fastifyTelemetry,
   type FastifyTelemetryOptions,
-} from './plugins/fastify-telemetry.plugin.js';
+} from './plugins/fastify-telemetry.plugin';
 
 // Sentry integration
-export { initSentry, getSentry, closeSentry, Sentry } from './sentry/index.js';
-export type { SentryConfig } from './sentry/config.js';
-export { DEFAULT_SENTRY_CONFIG } from './sentry/config.js';
+export { initSentry, getSentry, closeSentry, Sentry } from './sentry/index';
+export type { SentryConfig } from './sentry/config';
+export { DEFAULT_SENTRY_CONFIG } from './sentry/config';

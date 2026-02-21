@@ -7,8 +7,8 @@ import { resourceFromAttributes } from '@opentelemetry/resources';
 import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
 import { trace, type Tracer, metrics, type Meter, SpanStatusCode } from '@opentelemetry/api';
 import type { Instrumentation } from '@opentelemetry/instrumentation';
-import type { TelemetryConfig } from './config.js';
-import { DEFAULT_CONFIG } from './config.js';
+import type { TelemetryConfig } from './config';
+import { DEFAULT_CONFIG } from './config';
 
 let sdk: NodeSDK | null = null;
 let isInitialized = false;

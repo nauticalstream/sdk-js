@@ -1,15 +1,12 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.shouldRetry = shouldRetry;
-const errors_1 = require("../../errors");
+import { SystemException } from '../../errors';
 /**
  * Determine if an error should trigger a retry
  * Only SystemException (infrastructure errors) are retried
  * DomainException and unknown errors that aren't SystemException are not retried
  */
-function shouldRetry(logger, error) {
+export function shouldRetry(logger, error) {
     // Non-SystemException errors should not be retried
-    if (!(error instanceof errors_1.SystemException)) {
+    if (!(error instanceof SystemException)) {
         if (error instanceof Error) {
             logger.warn({ error: error.message, errorType: error.constructor.name }, 'Non-retryable error: giving up without retry');
         }

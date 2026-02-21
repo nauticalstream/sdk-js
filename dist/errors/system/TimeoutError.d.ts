@@ -38,7 +38,7 @@ export declare class TimeoutError extends SystemException {
         name: string;
         message: string;
         errorCode: ErrorCode;
-        severity: import("@nauticalstream/proto/error/v1/codes_pb", { with: { "resolution-mode": "import" } }).ErrorSeverity;
+        severity: import("@nauticalstream/proto/error/v1/codes_pb").ErrorSeverity;
         httpStatus: number;
         graphqlCode: string;
         isRetryable: boolean;

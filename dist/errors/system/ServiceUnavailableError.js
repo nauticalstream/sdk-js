@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ServiceUnavailableError = void 0;
-const codes_pb_1 = require("@nauticalstream/proto/error/v1/codes_pb");
-const SystemException_1 = require("../base/SystemException");
+import { ErrorCode } from '@nauticalstream/proto/error/v1/codes_pb';
+import { SystemException } from '../base/SystemException';
 /**
  * ServiceUnavailableError
  *
@@ -27,12 +24,13 @@ const SystemException_1 = require("../base/SystemException");
  * }
  * ```
  */
-class ServiceUnavailableError extends SystemException_1.SystemException {
+export class ServiceUnavailableError extends SystemException {
+    serviceName;
+    errorCode = ErrorCode.SERVICE_UNAVAILABLE;
+    httpStatus = 503;
     constructor(message, serviceName) {
         super(message);
         this.serviceName = serviceName;
-        this.errorCode = codes_pb_1.ErrorCode.SERVICE_UNAVAILABLE;
-        this.httpStatus = 503;
     }
     toJSON() {
         return {
@@ -41,5 +39,4 @@ class ServiceUnavailableError extends SystemException_1.SystemException {
         };
     }
 }
-exports.ServiceUnavailableError = ServiceUnavailableError;
 //# sourceMappingURL=ServiceUnavailableError.js.map

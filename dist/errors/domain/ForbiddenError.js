@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ForbiddenError = void 0;
-const codes_pb_1 = require("@nauticalstream/proto/error/v1/codes_pb");
-const DomainException_1 = require("../base/DomainException");
+import { ErrorCode, ErrorSeverity } from '@nauticalstream/proto/error/v1/codes_pb';
+import { DomainException } from '../base/DomainException';
 /**
  * ForbiddenError
  *
@@ -24,14 +21,13 @@ const DomainException_1 = require("../base/DomainException");
  * }
  * ```
  */
-class ForbiddenError extends DomainException_1.DomainException {
+export class ForbiddenError extends DomainException {
+    errorCode = ErrorCode.PERMISSION_DENIED;
+    severity = ErrorSeverity.CLIENT_ERROR;
+    httpStatus = 403;
+    graphqlCode = 'FORBIDDEN';
     constructor(message = 'Forbidden') {
         super(message);
-        this.errorCode = codes_pb_1.ErrorCode.PERMISSION_DENIED;
-        this.severity = codes_pb_1.ErrorSeverity.CLIENT_ERROR;
-        this.httpStatus = 403;
-        this.graphqlCode = 'FORBIDDEN';
     }
 }
-exports.ForbiddenError = ForbiddenError;
 //# sourceMappingURL=ForbiddenError.js.map

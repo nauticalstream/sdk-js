@@ -1,16 +1,13 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.fromProtoError = fromProtoError;
-const codes_pb_1 = require("@nauticalstream/proto/error/v1/codes_pb");
-const NotFoundError_1 = require("../domain/NotFoundError");
-const UnauthorizedError_1 = require("../domain/UnauthorizedError");
-const ForbiddenError_1 = require("../domain/ForbiddenError");
-const ValidationError_1 = require("../domain/ValidationError");
-const ConflictError_1 = require("../domain/ConflictError");
-const OperationError_1 = require("../domain/OperationError");
-const DatabaseError_1 = require("../system/DatabaseError");
-const ServiceUnavailableError_1 = require("../system/ServiceUnavailableError");
-const TimeoutError_1 = require("../system/TimeoutError");
+import { ErrorCode, ErrorSeverity } from '@nauticalstream/proto/error/v1/codes_pb';
+import { NotFoundError } from '../domain/NotFoundError';
+import { UnauthorizedError } from '../domain/UnauthorizedError';
+import { ForbiddenError } from '../domain/ForbiddenError';
+import { ValidationError } from '../domain/ValidationError';
+import { ConflictError } from '../domain/ConflictError';
+import { OperationError } from '../domain/OperationError';
+import { DatabaseError } from '../system/DatabaseError';
+import { ServiceUnavailableError } from '../system/ServiceUnavailableError';
+import { TimeoutError } from '../system/TimeoutError';
 /**
  * Convert Proto Error message back to DomainException or SystemException
  *
@@ -36,46 +33,46 @@ const TimeoutError_1 = require("../system/TimeoutError");
  * });
  * ```
  */
-function fromProtoError(protoError) {
+export function fromProtoError(protoError) {
     // Map proto error code to concrete exception class
     switch (protoError.code) {
-        case codes_pb_1.ErrorCode.NOT_FOUND:
-            return new NotFoundError_1.NotFoundError(protoError.resourceType.toString(), protoError.resourceId);
-        case codes_pb_1.ErrorCode.UNAUTHORIZED:
-            return new UnauthorizedError_1.UnauthorizedError(protoError.message);
-        case codes_pb_1.ErrorCode.PERMISSION_DENIED:
-        case codes_pb_1.ErrorCode.NOT_PARTICIPANT:
-        case codes_pb_1.ErrorCode.INSUFFICIENT_PERMISSIONS:
-            return new ForbiddenError_1.ForbiddenError(protoError.message);
-        case codes_pb_1.ErrorCode.VALIDATION_ERROR:
-        case codes_pb_1.ErrorCode.INVALID_FIELD:
-        case codes_pb_1.ErrorCode.MISSING_FIELD:
-        case codes_pb_1.ErrorCode.CONSTRAINT_VIOLATION:
-            return new ValidationError_1.ValidationError(protoError.message);
-        case codes_pb_1.ErrorCode.CONFLICT:
-        case codes_pb_1.ErrorCode.ALREADY_EXISTS:
-        case codes_pb_1.ErrorCode.RESOURCE_DELETED:
-            return new ConflictError_1.ConflictError(protoError.message);
-        case codes_pb_1.ErrorCode.SERVICE_UNAVAILABLE:
-            return new ServiceUnavailableError_1.ServiceUnavailableError(protoError.message);
-        case codes_pb_1.ErrorCode.DEADLINE_EXCEEDED:
-            return new TimeoutError_1.TimeoutError(protoError.message);
-        case codes_pb_1.ErrorCode.INTERNAL_ERROR:
-        case codes_pb_1.ErrorCode.DEPENDENCY_FAILED:
+        case ErrorCode.NOT_FOUND:
+            return new NotFoundError(protoError.resourceType.toString(), protoError.resourceId);
+        case ErrorCode.UNAUTHORIZED:
+            return new UnauthorizedError(protoError.message);
+        case ErrorCode.PERMISSION_DENIED:
+        case ErrorCode.NOT_PARTICIPANT:
+        case ErrorCode.INSUFFICIENT_PERMISSIONS:
+            return new ForbiddenError(protoError.message);
+        case ErrorCode.VALIDATION_ERROR:
+        case ErrorCode.INVALID_FIELD:
+        case ErrorCode.MISSING_FIELD:
+        case ErrorCode.CONSTRAINT_VIOLATION:
+            return new ValidationError(protoError.message);
+        case ErrorCode.CONFLICT:
+        case ErrorCode.ALREADY_EXISTS:
+        case ErrorCode.RESOURCE_DELETED:
+            return new ConflictError(protoError.message);
+        case ErrorCode.SERVICE_UNAVAILABLE:
+            return new ServiceUnavailableError(protoError.message);
+        case ErrorCode.DEADLINE_EXCEEDED:
+            return new TimeoutError(protoError.message);
+        case ErrorCode.INTERNAL_ERROR:
+        case ErrorCode.DEPENDENCY_FAILED:
             // Check severity to determine if DatabaseError or OperationError
-            if (protoError.severity === codes_pb_1.ErrorSeverity.RETRYABLE) {
-                return new DatabaseError_1.DatabaseError(protoError.message);
+            if (protoError.severity === ErrorSeverity.RETRYABLE) {
+                return new DatabaseError(protoError.message);
             }
             else {
-                return new OperationError_1.OperationError(protoError.message);
+                return new OperationError(protoError.message);
             }
-        case codes_pb_1.ErrorCode.RATE_LIMIT_EXCEEDED:
-        case codes_pb_1.ErrorCode.QUOTA_EXCEEDED:
-        case codes_pb_1.ErrorCode.THROTTLED:
+        case ErrorCode.RATE_LIMIT_EXCEEDED:
+        case ErrorCode.QUOTA_EXCEEDED:
+        case ErrorCode.THROTTLED:
             // These don't have dedicated exception classes yet
             // Return generic Error for now
             return new Error(protoError.message);
-        case codes_pb_1.ErrorCode.UNSPECIFIED:
+        case ErrorCode.UNSPECIFIED:
         default:
             // Unknown error code - return generic Error
             return new Error(protoError.message || 'Unknown error');

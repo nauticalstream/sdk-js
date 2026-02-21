@@ -4,7 +4,7 @@ import {
   setCorrelationId,
   generateCorrelationId,
   getCorrelationId,
-} from '../utils/context.js';
+} from '../utils/context';
 
 export interface FastifyTelemetryOptions {
   correlationIdHeader?: string;

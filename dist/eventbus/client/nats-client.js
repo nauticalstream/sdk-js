@@ -1,18 +1,17 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.NatsClient = void 0;
-const nats_1 = require("nats");
+import { connect, StringCodec } from 'nats';
 /**
  * NATS JetStream client wrapper
  * Manages connection, reconnection, and provides access to JetStream
  */
-class NatsClient {
+export class NatsClient {
+    connection = null;
+    jetstream = null;
+    codec;
+    isConnected = false;
+    config;
     constructor(config) {
-        this.connection = null;
-        this.jetstream = null;
-        this.isConnected = false;
         this.config = config;
-        this.codec = (0, nats_1.StringCodec)();
+        this.codec = StringCodec();
     }
     /**
      * Connect to NATS server
@@ -20,7 +19,7 @@ class NatsClient {
     async connect() {
         try {
             this.config.logger.info({ servers: this.config.servers }, 'Connecting to NATS server...');
-            this.connection = await (0, nats_1.connect)({
+            this.connection = await connect({
                 servers: this.config.servers,
                 name: this.config.name,
                 maxReconnectAttempts: -1, // Infinite reconnect attempts
@@ -106,5 +105,4 @@ class NatsClient {
         return this.isConnected;
     }
 }
-exports.NatsClient = NatsClient;
 //# sourceMappingURL=nats-client.js.map
