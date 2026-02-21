@@ -37,6 +37,10 @@
     "./resilience": {
       "types": "./dist/resilience/index.d.ts",
       "default": "./dist/resilience/index.js"
+    },
+    "./server/fastify": {
+      "types": "./dist/server/fastify/index.d.ts",
+      "default": "./dist/server/fastify/index.js"
     }
   },
   "files": [
@@ -101,6 +105,9 @@
     "fastify": "^5.0.0"
   },
   "devDependencies": {
+    "@fastify/cors": "^11.2.0",
+    "@graphql-tools/schema": "^10.0.31",
+    "@mercuriusjs/federation": "^5.0.0",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
     "@types/node": "^22.19.11",

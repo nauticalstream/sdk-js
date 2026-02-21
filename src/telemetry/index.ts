@@ -41,12 +41,6 @@ export {
   startTimer,
 } from './utils/metrics';
 
-// Fastify plugin
-export {
-  fastifyTelemetry,
-  type FastifyTelemetryOptions,
-} from './plugins/fastify-telemetry.plugin';
-
 // Sentry integration
 export { initSentry, getSentry, closeSentry, Sentry } from './sentry/index';
 export type { SentryConfig } from './sentry/config';

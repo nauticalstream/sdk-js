@@ -5,7 +5,7 @@ import {
   setCorrelationId,
   generateCorrelationId,
   getCorrelationId,
-} from '../utils/context';
+} from '../../../telemetry/utils/context';
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -24,11 +24,9 @@ const DEFAULT_OPTIONS: FastifyTelemetryOptions = {
 };
 
 /**
- * Fastify plugin for correlation ID extraction and OTel context propagation.
- *
- * Uses onRoute to wrap handlers at registration time — this ensures the handler
- * executes inside the correct OTel context even though Fastify starts handlers
- * in a new async scope after hooks resolve.
+ * Extracts/generates a correlation ID per request and propagates it through OTel context.
+ * Uses `onRoute` to wrap handlers at registration time, ensuring the handler runs
+ * inside the correct async context even after Fastify starts a new async scope.
  */
 const fastifyTelemetryPlugin: FastifyPluginAsync<FastifyTelemetryOptions> = async (
   fastify,

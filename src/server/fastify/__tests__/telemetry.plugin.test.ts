@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeAll, afterEach } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { context } from '@opentelemetry/api';
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks';
-import { fastifyTelemetry } from '../plugins/fastify-telemetry.plugin';
-import { getCorrelationId } from '../utils/context';
+import { fastifyTelemetry } from '../plugins/telemetry.plugin';
+import { getCorrelationId } from '../../../telemetry/utils/context';
 
 // Register a real async context manager so OTel context.with() propagates
 // through await boundaries — same setup as context.test.ts
