@@ -177,6 +177,38 @@ describe('createGraphQLErrorFormatter', () => {
     });
   });
 
+  it('uses correlationId from Mercurius context over OTel context', async () => {
+    // This is the key regression test: Mercurius errorFormatter is called outside the
+    // request's OTel AsyncLocalStorage scope, so getCorrelationId() may return a stale
+    // or empty value. The formatter must prefer _context.correlationId from the
+    // GraphQL context object (populated by createContext(request)) instead.
+    const formatter = createGraphQLErrorFormatter();
+    const error = new GraphQLError('Test error');
+
+    const mercuriusContext = { correlationId: 'from-request-header-xyz' };
+
+    // Deliberately set a DIFFERENT correlationId in OTel context to prove
+    // the formatter does not use it when the Mercurius context has one
+    const ctx = setCorrelationId('otel-context-should-not-win');
+
+    await context.with(ctx, () => {
+      const result = formatter({ errors: [error] }, mercuriusContext);
+      expect(result.response.errors![0].extensions?.correlationId).toBe('from-request-header-xyz');
+    });
+  });
+
+  it('falls back to OTel correlationId when Mercurius context has none', async () => {
+    const formatter = createGraphQLErrorFormatter();
+    const error = new GraphQLError('Test error');
+
+    const ctx = setCorrelationId('otel-fallback-id');
+
+    await context.with(ctx, () => {
+      const result = formatter({ errors: [error] }, {} as any);
+      expect(result.response.errors![0].extensions?.correlationId).toBe('otel-fallback-id');
+    });
+  });
+
   it('preserves error path information', async () => {
     const formatter = createGraphQLErrorFormatter();
     const error = new GraphQLError('Field error', {

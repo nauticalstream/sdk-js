@@ -32,8 +32,14 @@ export function createGraphQLErrorFormatter() {
         errors: execution.errors?.map((err: any) => {
           const formatted = formatGraphQLError(err);
           
-          const existingCorrelationId = formatted.extensions?.correlationId;
-          const correlationId = existingCorrelationId || getCorrelationId() || generateCorrelationId();
+          // Prefer the correlationId from the Mercurius request context (set by createContext),
+          // which is always correct even when Mercurius calls errorFormatter outside the OTel
+          // AsyncLocalStorage scope. Fall back through OTel context and finally generate one.
+          const correlationId =
+            _context?.correlationId ||
+            formatted.extensions?.correlationId ||
+            getCorrelationId() ||
+            generateCorrelationId();
           
           return {
             ...formatted,
