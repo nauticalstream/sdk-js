@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/nauticalstream/sdk-js/compare/v1.3.0...v1.3.1) (2026-02-21)
+
+
+### Bug Fixes
+
+* fastify server module with telemetry logger, clean server folder ([de52bdb](https://github.com/nauticalstream/sdk-js/commit/de52bdbccef60c2c79d9df16c619d05be8bb044a))
+
 # [1.3.0](https://github.com/nauticalstream/sdk-js/compare/v1.2.0...v1.3.0) (2026-02-21)
 
 
