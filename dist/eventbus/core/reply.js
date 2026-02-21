@@ -1,18 +1,24 @@
 import { fromBinary, toBinary, create } from '@bufbuild/protobuf';
 import { EventSchema } from '@nauticalstream/proto/platform/v1/event_pb';
+import { deriveSubject } from '../utils/derive-subject';
 /**
  * Subscribe to a request/reply subject (RPC server side)
  * Inbound binary is decoded as platform.v1.Event.
  * Response is re-wrapped in a new Event echoing the inbound correlationId.
  * Core NATS - synchronous RPC pattern (server side)
+ *
+ * The NATS subject is automatically derived from the request schema's typeName.
+ * For example, "user.v1.GetUserRequest" becomes subject "user.v1.get-user-request"
+ *
+ * @throws Error if NATS is not connected or schema is invalid
  */
 export async function reply(client, logger, config) {
-    const { subject, source, reqSchema, respSchema, handler } = config;
+    const { source, reqSchema, respSchema, handler } = config;
+    const subject = deriveSubject(reqSchema.typeName);
+    if (!client.connected) {
+        throw new Error('NATS not connected - cannot subscribe to requests');
+    }
     try {
-        if (!client.connected) {
-            logger.warn({ subject }, 'NATS not connected - cannot subscribe to requests');
-            return async () => { };
-        }
         const connection = client.getConnection();
         logger.info({ subject }, 'Subscribing to request/reply subject');
         const subscription = connection.subscribe(subject, {
@@ -40,7 +46,9 @@ export async function reply(client, logger, config) {
                 }
                 catch (error) {
                     logger.error({ error, subject }, 'Request handler failed');
-                    // Respond with an empty-payload envelope so the caller can detect the error
+                    // Error Signaling: Send empty payload envelope to indicate handler failure
+                    // This allows caller to fail fast instead of waiting for timeout
+                    // Caller checks payload.length === 0 to detect error and throw
                     const errorEnvelope = create(EventSchema, {
                         type: `${subject}.error`,
                         source,
@@ -53,19 +61,14 @@ export async function reply(client, logger, config) {
         });
         logger.info({ subject }, 'Request/reply subscription established');
         // Cleanup function
-        return async () => {
-            try {
-                subscription.unsubscribe();
-                logger.info({ subject }, 'Request/reply subscription closed');
-            }
-            catch (err) {
-                logger.error({ err, subject }, 'Error during request subscription shutdown');
-            }
+        return () => {
+            subscription.unsubscribe();
+            logger.info({ subject }, 'Request/reply subscription closed');
         };
     }
     catch (err) {
         logger.error({ err, subject }, 'Failed to subscribe to request/reply subject');
-        return async () => { };
+        throw new Error(`Failed to subscribe to request/reply subject ${subject}: ${err}`);
     }
 }
 //# sourceMappingURL=reply.js.map

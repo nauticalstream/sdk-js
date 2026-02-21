@@ -19,9 +19,10 @@ export class JetStreamAPI {
     /**
      * Publish to JetStream (persistent)
      * Payload is automatically wrapped in a platform.v1.Event envelope.
+     * Subject is auto-derived from schema.typeName unless overridden in options.
      */
-    async publish(subject, schema, data, correlationId) {
-        return jsPublish(this.client, this.logger, this.source, subject, schema, data, correlationId);
+    async publish(schema, data, options) {
+        return jsPublish(this.client, this.logger, this.source, schema, data, options);
     }
     /**
      * Subscribe to JetStream with durable consumer.

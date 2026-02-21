@@ -3,6 +3,14 @@ import type { Logger } from 'pino';
 import type { Message } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
 import { type RetryConfig } from '../core/config';
+export interface JetStreamPublishOptions {
+    /** Optional correlation ID for tracing */
+    correlationId?: string;
+    /** Override auto-derived subject (useful for wildcard subjects or custom routing) */
+    subject?: string;
+    /** Retry configuration (uses defaults if not provided) */
+    retryConfig?: RetryConfig;
+}
 /**
  * Publish to JetStream (persistent)
  * Safe publisher — returns { ok: true } on success or { ok: false, error: true } on failure.
@@ -10,9 +18,9 @@ import { type RetryConfig } from '../core/config';
  * Implements smart retry logic that distinguishes infrastructure errors from application errors.
  * Uses circuit breaker to prevent cascading failures when NATS cluster is unhealthy.
  *
- * @param retryConfig - Retry configuration. Uses defaults if not provided.
+ * Subject is auto-derived from schema.typeName unless overridden in options.
  */
-export declare function publish<T extends Message>(client: NatsClient, logger: Logger, source: string, subject: string, schema: GenMessage<T>, data: T, correlationId?: string, retryConfig?: RetryConfig): Promise<{
+export declare function publish<T extends Message>(client: NatsClient, logger: Logger, source: string, schema: GenMessage<T>, data: T, options?: JetStreamPublishOptions): Promise<{
     ok: boolean;
     error?: boolean;
 }>;

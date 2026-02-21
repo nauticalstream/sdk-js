@@ -8,4 +8,8 @@ export const DEFAULT_RETRY_CONFIG = {
     backoffFactor: 2,
     operationTimeout: 5000,
 };
+/**
+ * Default timeout for request/reply RPC calls in milliseconds
+ */
+export const DEFAULT_REQUEST_TIMEOUT_MS = 5000;
 //# sourceMappingURL=config.js.map

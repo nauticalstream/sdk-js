@@ -63,37 +63,61 @@ export class EventBus {
     /**
      * Publish message (ephemeral, fire-and-forget)
      * Payload is automatically wrapped in a platform.v1.Event envelope.
+     * Subject is automatically derived from schema.typeName.
+     *
+     * @throws Error if NATS is not connected
      */
-    async publish(subject, schema, data, correlationId) {
-        return corePublish.publish(this.client, this.logger, this.source, subject, schema, data, correlationId);
+    async publish(schema, data, options) {
+        return corePublish.publish(this.client, this.logger, this.source, schema, data, options);
     }
     /**
      * Subscribe to subject (ephemeral)
      * Handler receives the deserialized payload and the full Event envelope.
+     * Subject is automatically derived from schema.typeName.
+     *
+     * @throws Error if NATS is not connected
+     * @returns Cleanup function to unsubscribe
      */
-    async subscribe(subject, schema, handler) {
-        return coreSubscribe.subscribe(this.client, this.logger, subject, schema, handler);
+    async subscribe(schema, handler) {
+        return coreSubscribe.subscribe(this.client, this.logger, schema, handler);
     }
     /**
      * Subscribe with queue group (load balancing)
      * Handler receives the deserialized payload and the full Event envelope.
+     * Subject is automatically derived from schema.typeName.
+     *
+     * @throws Error if NATS is not connected
+     * @returns Cleanup function to unsubscribe
      */
-    async queueGroup(subject, queueGroupName, schema, handler) {
-        return coreQueueGroup.queueGroup(this.client, this.logger, subject, queueGroupName, schema, handler);
+    async queueGroup(schema, handler, options) {
+        return coreQueueGroup.queueGroup(this.client, this.logger, schema, handler, options);
     }
     /**
      * Request/reply (synchronous RPC)
      * Both request and response are wrapped in Event envelopes.
+     * Subject is automatically derived from reqSchema.typeName.
+     *
+     * @throws Error if NATS is not connected, request times out, or receives error response
      */
-    async request(subject, reqSchema, respSchema, data, timeoutMs = 5000) {
-        return coreRequest.request(this.client, this.logger, this.source, subject, reqSchema, respSchema, data, timeoutMs);
+    async request(reqSchema, respSchema, data, options) {
+        return coreRequest.request(this.client, this.logger, this.source, reqSchema, respSchema, data, options);
     }
     /**
      * Handle requests (reply handler)
      * Handler receives the deserialized request and Event envelope; return value is re-wrapped in an Event echoing the inbound correlationId.
+     * Subject is automatically derived from reqSchema.typeName.
+     *
+     * @throws Error if NATS is not connected
+     * @returns Cleanup function to unsubscribe
      */
-    async reply(subject, reqSchema, respSchema, handler) {
-        return coreReply.reply(this.client, this.logger, { subject, source: this.source, reqSchema, respSchema, handler });
+    async reply(reqSchema, respSchema, handler, options) {
+        return coreReply.reply(this.client, this.logger, {
+            source: this.source,
+            reqSchema,
+            respSchema,
+            handler,
+            options
+        });
     }
 }
 //# sourceMappingURL=eventbus.js.map

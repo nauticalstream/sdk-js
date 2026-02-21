@@ -2,8 +2,19 @@
 export { EventBus } from './core/eventbus';
 export type { EventBusConfig } from './core/eventbus';
 
+// Options types
+export type { 
+  PublishOptions, 
+  SubscribeOptions, 
+  QueueGroupOptions, 
+  RequestOptions, 
+  ReplyOptions,
+  Unsubscribe 
+} from './core/types';
+
 // Configuration
 export type { RetryConfig } from './core/config';
+export { DEFAULT_RETRY_CONFIG, DEFAULT_REQUEST_TIMEOUT_MS } from './core/config';
 
 // Envelope utility (exposed for advanced use — services normally don't need this)
 export type { Envelope } from './core/envelope';
@@ -25,13 +36,13 @@ export type { ReplyHandlerConfig } from './core/reply';
 
 // JetStream patterns
 export { publish as jetStreamPublish } from './jetstream/publish';
+export type { JetStreamPublishOptions } from './jetstream/publish';
 export { subscribe as jetStreamSubscribe } from './jetstream/subscribe';
 export type { SubscriberConfig, ErrorAction, ErrorClassifier } from './jetstream/subscribe';
 export { defaultErrorClassifier } from './jetstream/subscribe';
 
-// Subjects
-export { SUBJECTS } from './subjects';
-export type { Subject, ChatSubject, UserSubject, WorkspaceSubject, SocialSubject, PostSubject, PlacesSubject, StorageSubject, PlatformSubject } from './subjects';
+// Subject derivation utility
+export { deriveSubject } from './utils/derive-subject';
 
 // Circuit Breaker (for operational management)
 export { resetBreaker } from './core/circuit-breaker';

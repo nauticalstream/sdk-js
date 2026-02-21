@@ -1,16 +1,23 @@
 import { fromBinary } from '@bufbuild/protobuf';
 import { EventSchema } from '@nauticalstream/proto/platform/v1/event_pb';
 import { withSubscribeSpan } from './telemetry';
+import { deriveSubject } from '../utils/derive-subject';
 /**
  * Subscribe with queue group (load balancing)
  * Only one member of the queue group receives each message.
  * Incoming binary is decoded as platform.v1.Event; payload is deserialized using the provided schema.
  * Core NATS - fast, ephemeral, load-balanced
+ *
+ * The NATS subject is automatically derived from the schema's typeName.
+ * For example, "user.v1.UserCreated" becomes subject "user.v1.user-created"
+ *
+ * @throws Error if NATS is not connected or schema is invalid
  */
-export async function queueGroup(client, logger, subject, queueGroupName, schema, handler) {
+export async function queueGroup(client, logger, schema, handler, options) {
+    const subject = deriveSubject(schema.typeName);
+    const { queueGroupName } = options;
     if (!client.connected) {
-        logger.warn({ subject, queueGroup: queueGroupName }, 'NATS not connected');
-        return () => { };
+        throw new Error('NATS not connected - cannot subscribe to queue group');
     }
     const connection = client.getConnection();
     logger.info({ subject, queueGroup: queueGroupName }, 'Subscribing to queue group');

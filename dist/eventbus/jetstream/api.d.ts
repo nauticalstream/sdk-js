@@ -4,6 +4,7 @@ import type { KV, ObjectStore } from 'nats';
 import { type Message } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
 import { type Event } from '@nauticalstream/proto/platform/v1/event_pb';
+import { type JetStreamPublishOptions } from './publish';
 import type { ErrorClassifier } from './subscribe';
 /**
  * JetStream API - persistent, reliable, durable operations
@@ -16,8 +17,9 @@ export declare class JetStreamAPI {
     /**
      * Publish to JetStream (persistent)
      * Payload is automatically wrapped in a platform.v1.Event envelope.
+     * Subject is auto-derived from schema.typeName unless overridden in options.
      */
-    publish<T extends Message>(subject: string, schema: GenMessage<T>, data: T, correlationId?: string): Promise<{
+    publish<T extends Message>(schema: GenMessage<T>, data: T, options?: JetStreamPublishOptions): Promise<{
         ok: boolean;
         error?: boolean;
     }>;

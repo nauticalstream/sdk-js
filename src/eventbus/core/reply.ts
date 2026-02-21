@@ -5,13 +5,15 @@ import type { Message } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
 import { fromBinary, toBinary, create } from '@bufbuild/protobuf';
 import { EventSchema, type Event } from '@nauticalstream/proto/platform/v1/event_pb';
+import { deriveSubject } from '../utils/derive-subject';
+import type { ReplyOptions, Unsubscribe } from './types';
 
-export interface ReplyHandlerConfig<TRequest extends Message = any, TResponse extends Message = any> {
-  subject: string;
+export interface ReplyHandlerConfig<TRequest extends Message, TResponse extends Message> {
   source: string;
   reqSchema: GenMessage<TRequest>;
   respSchema: GenMessage<TResponse>;
   handler: (data: TRequest, envelope: Event) => Promise<TResponse>;
+  options?: ReplyOptions;
 }
 
 /**
@@ -19,19 +21,25 @@ export interface ReplyHandlerConfig<TRequest extends Message = any, TResponse ex
  * Inbound binary is decoded as platform.v1.Event.
  * Response is re-wrapped in a new Event echoing the inbound correlationId.
  * Core NATS - synchronous RPC pattern (server side)
+ * 
+ * The NATS subject is automatically derived from the request schema's typeName.
+ * For example, "user.v1.GetUserRequest" becomes subject "user.v1.get-user-request"
+ * 
+ * @throws Error if NATS is not connected or schema is invalid
  */
-export async function reply<TRequest extends Message = any, TResponse extends Message = any>(
+export async function reply<TRequest extends Message, TResponse extends Message>(
   client: NatsClient,
   logger: Logger,
   config: ReplyHandlerConfig<TRequest, TResponse>
-): Promise<() => Promise<void>> {
-  const { subject, source, reqSchema, respSchema, handler } = config;
+): Promise<Unsubscribe> {
+  const { source, reqSchema, respSchema, handler } = config;
+  const subject = deriveSubject(reqSchema.typeName);
+
+  if (!client.connected) {
+    throw new Error('NATS not connected - cannot subscribe to requests');
+  }
 
   try {
-    if (!client.connected) {
-      logger.warn({ subject }, 'NATS not connected - cannot subscribe to requests');
-      return async () => {};
-    }
 
     const connection = client.getConnection();
 
@@ -65,7 +73,9 @@ export async function reply<TRequest extends Message = any, TResponse extends Me
           msg.respond(toBinary(EventSchema, responseEnvelope));
         } catch (error) {
           logger.error({ error, subject }, 'Request handler failed');
-          // Respond with an empty-payload envelope so the caller can detect the error
+          // Error Signaling: Send empty payload envelope to indicate handler failure
+          // This allows caller to fail fast instead of waiting for timeout
+          // Caller checks payload.length === 0 to detect error and throw
           const errorEnvelope = create(EventSchema, {
             type: `${subject}.error`,
             source,
@@ -80,16 +90,12 @@ export async function reply<TRequest extends Message = any, TResponse extends Me
     logger.info({ subject }, 'Request/reply subscription established');
 
     // Cleanup function
-    return async () => {
-      try {
-        subscription.unsubscribe();
-        logger.info({ subject }, 'Request/reply subscription closed');
-      } catch (err) {
-        logger.error({ err, subject }, 'Error during request subscription shutdown');
-      }
+    return () => {
+      subscription.unsubscribe();
+      logger.info({ subject }, 'Request/reply subscription closed');
     };
   } catch (err) {
     logger.error({ err, subject }, 'Failed to subscribe to request/reply subject');
-    return async () => {};
+    throw new Error(`Failed to subscribe to request/reply subject ${subject}: ${err}`);
   }
 }

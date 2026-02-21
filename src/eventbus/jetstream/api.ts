@@ -5,7 +5,7 @@ import { AckPolicy, DeliverPolicy } from 'nats';
 import { fromBinary, type Message } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
 import { EventSchema, type Event } from '@nauticalstream/proto/platform/v1/event_pb';
-import { publish as jsPublish } from './publish';
+import { publish as jsPublish, type JetStreamPublishOptions } from './publish';
 import { withSubscribeSpan } from '../core/telemetry';
 import type { ErrorClassifier } from './subscribe';
 import { defaultErrorClassifier } from './subscribe';
@@ -23,14 +23,14 @@ export class JetStreamAPI {
   /**
    * Publish to JetStream (persistent)
    * Payload is automatically wrapped in a platform.v1.Event envelope.
+   * Subject is auto-derived from schema.typeName unless overridden in options.
    */
   async publish<T extends Message>(
-    subject: string,
     schema: GenMessage<T>,
     data: T,
-    correlationId?: string
+    options?: JetStreamPublishOptions
   ): Promise<{ ok: boolean; error?: boolean }> {
-    return jsPublish(this.client, this.logger, this.source, subject, schema, data, correlationId);
+    return jsPublish(this.client, this.logger, this.source, schema, data, options);
   }
 
   /**

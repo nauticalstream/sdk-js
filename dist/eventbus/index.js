@@ -1,5 +1,6 @@
 // Main EventBus API
 export { EventBus } from './core/eventbus';
+export { DEFAULT_RETRY_CONFIG, DEFAULT_REQUEST_TIMEOUT_MS } from './core/config';
 // JetStream API
 export { JetStreamAPI } from './jetstream/api';
 // Client
@@ -14,8 +15,8 @@ export { reply } from './core/reply';
 export { publish as jetStreamPublish } from './jetstream/publish';
 export { subscribe as jetStreamSubscribe } from './jetstream/subscribe';
 export { defaultErrorClassifier } from './jetstream/subscribe';
-// Subjects
-export { SUBJECTS } from './subjects';
+// Subject derivation utility
+export { deriveSubject } from './utils/derive-subject';
 // Circuit Breaker (for operational management)
 export { resetBreaker } from './core/circuit-breaker';
 // Metrics (for observability and monitoring)

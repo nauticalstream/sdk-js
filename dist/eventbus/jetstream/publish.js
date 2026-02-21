@@ -4,6 +4,7 @@ import { buildEnvelope } from '../core/envelope';
 import { jetstreamPublishLatency, jetstreamPublishSuccess, jetstreamPublishAttempts, jetstreamRetryAttempts, jetstreamPublishErrors } from '../core/metrics';
 import { getOrCreateBreaker, isBreakerOpen } from '../core/circuit-breaker';
 import { DEFAULT_RETRY_CONFIG } from '../core/config';
+import { deriveSubject } from '../utils/derive-subject';
 /**
  * Publish to JetStream (persistent)
  * Safe publisher — returns { ok: true } on success or { ok: false, error: true } on failure.
@@ -11,12 +12,17 @@ import { DEFAULT_RETRY_CONFIG } from '../core/config';
  * Implements smart retry logic that distinguishes infrastructure errors from application errors.
  * Uses circuit breaker to prevent cascading failures when NATS cluster is unhealthy.
  *
- * @param retryConfig - Retry configuration. Uses defaults if not provided.
+ * Subject is auto-derived from schema.typeName unless overridden in options.
  */
-export async function publish(client, logger, source, subject, schema, data, correlationId, retryConfig) {
+export async function publish(client, logger, source, schema, data, options) {
+    const subject = options?.subject ?? deriveSubject(schema.typeName);
+    const correlationId = options?.correlationId;
+    const retryConfig = options?.retryConfig;
     const startTime = Date.now();
     jetstreamPublishAttempts.add(1, { subject });
-    // Fast-fail if NATS cluster circuit breaker is open (known degradation)
+    // Circuit Breaker Pattern: Fast-fail if NATS cluster is experiencing issues
+    // Prevents cascading failures by rejecting requests when error threshold is exceeded
+    // Breaker automatically resets after cooldown period to test recovery
     const serverCluster = 'nats-default';
     if (isBreakerOpen(serverCluster)) {
         jetstreamPublishErrors.add(1, {
@@ -35,8 +41,9 @@ export async function publish(client, logger, source, subject, schema, data, cor
         const abortController = new AbortController();
         const timeoutId = setTimeout(() => abortController.abort(), config.operationTimeout);
         try {
-            // Publish with automatic retry on transient connection failures
-            // Wrapped in circuit breaker to track failures and open on threshold
+            // Retry Pattern: Automatically retry transient failures with exponential backoff
+            // Circuit Breaker: Track failure rate and open breaker if threshold exceeded
+            // Flow: pRetry handles backoff → breaker tracks success/failure → opens on threshold
             await breaker.fire(async () => {
                 return pRetry(() => js.publish(subject, binary, { headers }), {
                     retries: config.maxRetries,

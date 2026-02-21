@@ -12,7 +12,6 @@ jobs:
       contents: write  # Required to push commits and tags
       issues: write    # Required to comment on issues
       pull-requests: write  # Required to comment on PRs
-      id-token: write  # Required for npm provenance
     steps:
       - uses: actions/checkout@v4
         with:
