@@ -1,3 +1,10 @@
+## [1.0.4](https://github.com/nauticalstream/sdk-js/compare/v1.0.3...v1.0.4) (2026-02-21)
+
+
+### Bug Fixes
+
+* **build:** migrate to Bundler moduleResolution and remove .js extensions ([0a09197](https://github.com/nauticalstream/sdk-js/commit/0a091972904cec56bceb4c2fb7ea68cec4ef723f))
+
 ## [1.0.3](https://github.com/nauticalstream/sdk-js/compare/v1.0.2...v1.0.3) (2026-02-21)
 
 
