@@ -1,3 +1,10 @@
+## [1.3.4](https://github.com/nauticalstream/sdk-js/compare/v1.3.3...v1.3.4) (2026-02-21)
+
+
+### Bug Fixes
+
+* restore request logging plugin for consistent correlationId in all log lines ([9734aef](https://github.com/nauticalstream/sdk-js/commit/9734aef99a8d01d6265078959046fb90109920dc))
+
 ## [1.3.3](https://github.com/nauticalstream/sdk-js/compare/v1.3.2...v1.3.3) (2026-02-21)
 
 

@@ -1,6 +1,6 @@
 {
   "name": "@nauticalstream/sdk",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "description": "Nauticalstream SDK for JavaScript",
   "type": "module",
   "main": "./dist/index.js",
