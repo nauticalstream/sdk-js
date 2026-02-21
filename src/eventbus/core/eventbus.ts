@@ -24,24 +24,7 @@ export interface EventBusConfig {
   logger?: Logger;
 }
 
-/**
- * EventBus - Unified API for NATS messaging patterns
- * 
- * Core NATS (ephemeral):
- *   - bus.publish()
- *   - bus.subscribe()
- *   - bus.queueGroup()
- *   - bus.request()
- *   - bus.reply()
- * 
- * JetStream (persistent):
- *   - bus.jetstream.publish()
- *   - bus.jetstream.subscribe()
- *   - bus.jetstream.workQueue()
- *   - bus.jetstream.replay()
- *   - bus.jetstream.kv()
- *   - bus.jetstream.objectStore()
- */
+/** EventBus - NATS messaging with ephemeral and persistent patterns */
 export class EventBus {
   private client: NatsClient;
   private logger: Logger;
@@ -59,38 +42,22 @@ export class EventBus {
     this.jetstream = new JetStreamAPI(this.client, this.logger, this.source);
   }
 
-  /**
-   * Connect to NATS server
-   */
+  /** Connect to NATS server */
   async connect(): Promise<void> {
     await this.client.connect();
   }
 
-  /**
-   * Disconnect from NATS server
-   */
+  /** Disconnect from NATS server */
   async disconnect(): Promise<void> {
     await this.client.disconnect();
   }
 
-  /**
-   * Check connection status
-   */
+  /** Check connection status */
   get connected(): boolean {
     return this.client.connected;
   }
 
-  // ============================================
-  // CORE NATS PATTERNS (Ephemeral)
-  // ============================================
-
-  /**
-   * Publish message (ephemeral, fire-and-forget)
-   * Payload is automatically wrapped in a platform.v1.Event envelope.
-   * Subject is automatically derived from schema.typeName.
-   * 
-   * @throws Error if NATS is not connected
-   */
+  /** Publish message (ephemeral, fire-and-forget) */
   async publish<T extends Message>(
     schema: GenMessage<T>,
     data: MessageInitShape<GenMessage<T>>,
@@ -99,14 +66,7 @@ export class EventBus {
     return corePublish.publish(this.client, this.logger, this.source, schema, data, options);
   }
 
-  /**
-   * Subscribe to subject (ephemeral)
-   * Handler receives the deserialized payload and the full Event envelope.
-   * Subject is automatically derived from schema.typeName.
-   * 
-   * @throws Error if NATS is not connected
-   * @returns Cleanup function to unsubscribe
-   */
+  /** Subscribe to subject (ephemeral) */
   async subscribe<T extends Message>(
     schema: GenMessage<T>,
     handler: (data: T, envelope: Event) => Promise<void>
@@ -114,14 +74,7 @@ export class EventBus {
     return coreSubscribe.subscribe(this.client, this.logger, schema, handler);
   }
 
-  /**
-   * Subscribe with queue group (load balancing)
-   * Handler receives the deserialized payload and the full Event envelope.
-   * Subject is automatically derived from schema.typeName.
-   * 
-   * @throws Error if NATS is not connected
-   * @returns Cleanup function to unsubscribe
-   */
+  /** Subscribe with queue group (load balancing) */
   async queueGroup<T extends Message>(
     schema: GenMessage<T>,
     handler: (data: T, envelope: Event) => Promise<void>,
@@ -130,13 +83,7 @@ export class EventBus {
     return coreQueueGroup.queueGroup(this.client, this.logger, schema, handler, options);
   }
 
-  /**
-   * Request/reply (synchronous RPC)
-   * Both request and response are wrapped in Event envelopes.
-   * Subject is automatically derived from reqSchema.typeName.
-   * 
-   * @throws Error if NATS is not connected, request times out, or receives error response
-   */
+  /** Request/reply (synchronous RPC) */
   async request<TRequest extends Message, TResponse extends Message>(
     reqSchema: GenMessage<TRequest>,
     respSchema: GenMessage<TResponse>,
@@ -146,14 +93,7 @@ export class EventBus {
     return coreRequest.request(this.client, this.logger, this.source, reqSchema, respSchema, data, options);
   }
 
-  /**
-   * Handle requests (reply handler)
-   * Handler receives the deserialized request and Event envelope; return value is re-wrapped in an Event echoing the inbound correlationId.
-   * Subject is automatically derived from reqSchema.typeName.
-   * 
-   * @throws Error if NATS is not connected
-   * @returns Cleanup function to unsubscribe
-   */
+  /** Handle requests (reply handler) */
   async reply<TRequest extends Message, TResponse extends Message>(
     reqSchema: GenMessage<TRequest>,
     respSchema: GenMessage<TResponse>,

@@ -4,6 +4,7 @@ import type { Subscription } from 'nats';
 import { type Message, type MessageInitShape, fromBinary, toBinary, create } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
 import { EventSchema, type Event } from '@nauticalstream/proto/platform/v1/event_pb';
+import { withCorrelationId, generateCorrelationId } from '../../telemetry/utils/context';
 import { deriveSubject } from '../utils/derive-subject';
 import type { ReplyOptions, Unsubscribe } from './types';
 
@@ -59,7 +60,10 @@ export async function reply<TRequest extends Message, TResponse extends Message>
           const data = fromBinary(reqSchema, inboundEnvelope.payload) as TRequest;
 
           logger.debug({ subject, correlationId: inboundCorrelationId }, 'Processing request');
-          const responseData = await handler(data, inboundEnvelope);
+          const responseData = await withCorrelationId(
+            inboundCorrelationId ?? generateCorrelationId(),
+            () => handler(data, inboundEnvelope)
+          );
           const response = create(respSchema, responseData);
 
           // Echo the inbound correlationId so callers can correlate the pair
@@ -79,7 +83,7 @@ export async function reply<TRequest extends Message, TResponse extends Message>
           const errorEnvelope = create(EventSchema, {
             type: `${subject}.error`,
             source,
-            correlationId: inboundCorrelationId ?? crypto.randomUUID(),
+            correlationId: inboundCorrelationId ?? generateCorrelationId(),
             timestamp: new Date().toISOString(),
           });
           msg.respond(toBinary(EventSchema, errorEnvelope));

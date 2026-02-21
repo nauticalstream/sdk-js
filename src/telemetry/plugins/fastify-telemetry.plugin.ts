@@ -1,10 +1,17 @@
 import type { FastifyPluginAsync, FastifyRequest, FastifyReply } from 'fastify';
+import fp from 'fastify-plugin';
 import { context } from '@opentelemetry/api';
 import {
   setCorrelationId,
   generateCorrelationId,
   getCorrelationId,
 } from '../utils/context';
+
+declare module 'fastify' {
+  interface FastifyRequest {
+    correlationId: string | null;
+  }
+}
 
 export interface FastifyTelemetryOptions {
   correlationIdHeader?: string;
@@ -17,73 +24,56 @@ const DEFAULT_OPTIONS: FastifyTelemetryOptions = {
 };
 
 /**
- * Fastify plugin for correlation ID extraction and propagation
- * OTel v2 optimized: Properly handles context lifecycle across async request handlers
+ * Fastify plugin for correlation ID extraction and OTel context propagation.
+ *
+ * Uses onRoute to wrap handlers at registration time — this ensures the handler
+ * executes inside the correct OTel context even though Fastify starts handlers
+ * in a new async scope after hooks resolve.
  */
-export const fastifyTelemetry: FastifyPluginAsync<FastifyTelemetryOptions> = async (
+const fastifyTelemetryPlugin: FastifyPluginAsync<FastifyTelemetryOptions> = async (
   fastify,
   opts
 ) => {
   const options = { ...DEFAULT_OPTIONS, ...opts };
   const headerName = options.correlationIdHeader!.toLowerCase();
 
-  /**
-   * onRequest hook: Extract and set correlation ID
-   * This runs at the beginning of request processing
-   */
+  fastify.decorateRequest('correlationId', null);
+
   fastify.addHook('onRequest', async (request: FastifyRequest) => {
-    // Extract correlation ID from incoming request headers
-    let correlationId = request.headers[headerName] as string | undefined;
-
-    // Generate new one if missing and configured to do so
-    if (!correlationId && options.generateIfMissing) {
-      correlationId = generateCorrelationId();
-    }
-
-    // Store correlation ID on request object for access throughout lifecycle
-    (request as any).correlationId = correlationId;
-
-    // Set in OpenTelemetry context for this request's async context
-    // OTel v2 automatically maintains async context through the request
-    if (correlationId) {
-      const ctx = setCorrelationId(correlationId);
-      // Execute the rest of the request within this context
-      await context.with(ctx, async () => {
-        // Handler execution continues in this context
-        return Promise.resolve();
-      });
-    }
+    const fromHeader = request.headers[headerName] as string | undefined;
+    request.correlationId = fromHeader ?? (options.generateIfMissing ? generateCorrelationId() : null);
   });
 
-  /**
-   * onSend hook: Add correlation ID to response headers
-   * This runs when the response is being sent
-   */
+  fastify.addHook('onRoute', (routeOptions) => {
+    const originalHandler = routeOptions.handler;
+
+    routeOptions.handler = async function wrappedHandler(
+      request: FastifyRequest,
+      reply: FastifyReply
+    ) {
+      const correlationId = request.correlationId;
+
+      if (correlationId) {
+        const ctx = setCorrelationId(correlationId);
+        return context.with(ctx, () => originalHandler.call(this, request, reply));
+      }
+
+      return originalHandler.call(this, request, reply);
+    };
+  });
+
   fastify.addHook('onSend', async (request: FastifyRequest, reply: FastifyReply) => {
-    // Get correlation ID from request (set in onRequest)
-    const correlationId = (request as any).correlationId || getCorrelationId();
-    
-    // Add to response headers if not already present
+    const correlationId = request.correlationId ?? getCorrelationId();
+
     if (correlationId && !reply.hasHeader(headerName)) {
       reply.header(headerName, correlationId);
     }
   });
-
-  /**
-   * Decorate request with correlationId property for easy access in handlers
-   * @example
-   * ```typescript
-   * // In a route handler:
-   * fastify.get('/', (request, reply) => {
-   *   const correlationId = request.correlationId;
-   * });
-   * ```
-   */
-  fastify.decorateRequest('correlationId', {
-    getter() {
-      return (this as any).correlationId;
-    },
-  });
 };
+
+export const fastifyTelemetry = fp(fastifyTelemetryPlugin, {
+  name: 'fastify-telemetry',
+  fastify: '5.x',
+});
 
 export default fastifyTelemetry;

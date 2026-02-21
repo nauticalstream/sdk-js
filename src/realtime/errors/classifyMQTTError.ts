@@ -5,13 +5,18 @@ import { NetworkError, TimeoutError, ServiceUnavailableError, ValidationError, U
  * Only infrastructure errors (transient) inherit from SystemException
  * Domain errors (permanent) inherit from DomainException and should not retry
  */
-export function classifyMQTTError(error: Error & { code?: number }): Error {
+export function classifyMQTTError(error: unknown): Error {
   // Already classified error
   if (error instanceof SystemException || error instanceof DomainException) {
     return error;
   }
 
-  const code = error.code;
+  // Non-error objects
+  if (!(error instanceof Error)) {
+    return new ServiceUnavailableError('Unknown MQTT error');
+  }
+
+  const code = (error as any).code as number | undefined;
   const message = error.message || '';
 
   // MQTT-specific error codes (RFC 3749)

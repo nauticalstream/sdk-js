@@ -6,6 +6,7 @@ import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
 import { fromBinary } from '@bufbuild/protobuf';
 import { EventSchema, type Event } from '@nauticalstream/proto/platform/v1/event_pb';
 import { withSubscribeSpan } from './telemetry';
+import { withCorrelationId, generateCorrelationId } from '../../telemetry/utils/context';
 import { deriveSubject } from '../utils/derive-subject';
 import type { Unsubscribe } from './types';
 
@@ -46,7 +47,9 @@ export async function subscribe<T extends Message>(
       try {
         const envelope = fromBinary(EventSchema, msg.data) as Event;
         const data = fromBinary(schema, envelope.payload) as T;
-        await withSubscribeSpan(subject, msg.headers ?? undefined, () => handler(data, envelope));
+        await withSubscribeSpan(subject, msg.headers ?? undefined, () =>
+          withCorrelationId(envelope.correlationId || generateCorrelationId(), () => handler(data, envelope))
+        );
       } catch (error) {
         logger.error({ error, subject }, 'Handler failed');
       }

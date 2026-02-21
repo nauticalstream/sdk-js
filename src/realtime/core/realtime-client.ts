@@ -1,55 +1,34 @@
 import { MQTTClientManager } from '../client/mqtt-client';
 import { serializeProto } from '../utils/serialization';
 import { createPublishProperties, withPublishSpan, withMessageSpan } from './telemetry';
-import { classifyMQTTError, shouldRetry } from '../errors';
+import { classifyMQTTError } from '../errors';
 import { publishLatency, publishSuccess, publishAttempts, retryAttempts, publishErrorsByType } from './metrics';
-import { getOrCreateBreaker, isBreakerOpen } from './circuit-breaker';
+import { resilientOperation, getOrCreateCircuitBreaker, shouldRetry, type ResilientCircuitBreaker } from '../../resilience';
 import { DEFAULT_RETRY_CONFIG, type RetryConfig, type RealtimeClientConfig, type PublishOptions, type QoS } from './config';
-import { ServiceUnavailableError } from '../../errors';
 import { defaultLogger } from '../utils/logger';
-import pRetry from 'p-retry';
 import type { Message } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
 import type { Logger } from 'pino';
 import type { IClientPublishOptions } from 'mqtt';
-import type CircuitBreaker from 'opossum';
 
 /**
- * RealtimeClient provides a clean, singleton-style MQTT client for NauticalStream services.
- * 
- * Features:
- * - Proto-based message serialization
- * - Automatic connection management
- * - Type-safe topic publishing
- * - Singleton pattern per service
- * 
- * Usage:
- * ```typescript
- * import { realtime } from '@src/shared/realtime';
- * import { TOPICS } from '@nauticalstream/realtime';
- * 
- * await realtime.publish(
- *   [TOPICS.CHAT.user('123'), TOPICS.CHAT.conversation('456')],
- *   ChatMessageSchema,
- *   message
- * );
- * ```
+ * RealtimeClient - MQTT client with proto serialization and resilience
  */
 export class RealtimeClient {
   private mqttClient: MQTTClientManager;
   private logger: Logger;
   private name: string;
   private brokerUrl: string;
-  private breaker: CircuitBreaker<any>;
+  private breaker: ResilientCircuitBreaker;
   private connected = false;
-  private retryConfig: Required<RetryConfig>;
+  private retryConfig: RetryConfig & { operationTimeout: number };
 
   constructor(config: RealtimeClientConfig) {
     this.name = config.name;
     this.brokerUrl = config.brokerUrl;
     this.logger = config.logger || defaultLogger.child({ service: config.name });
-    this.retryConfig = { ...DEFAULT_RETRY_CONFIG, ...config.retryConfig };
-    this.breaker = getOrCreateBreaker(this.brokerUrl, this.logger);
+    this.retryConfig = { ...DEFAULT_RETRY_CONFIG, ...config.retryConfig } as RetryConfig & { operationTimeout: number };
+    this.breaker = getOrCreateCircuitBreaker(this.brokerUrl);
     this.mqttClient = new MQTTClientManager({
       brokerUrl: config.brokerUrl,
       clientId: config.clientId,
@@ -63,9 +42,7 @@ export class RealtimeClient {
     });
   }
 
-  /**
-   * Connect to MQTT broker
-   */
+  /** Connect to MQTT broker */
   async connect(): Promise<void> {
     if (this.connected) {
       return;
@@ -81,23 +58,7 @@ export class RealtimeClient {
     }
   }
 
-  /**
-   * Publish a protobuf message to one or more MQTT topics
-   * 
-   * Features:
-   * - Circuit breaker protection (fast-fail when broker unhealthy)
-   * - Automatic retry with exponential backoff
-   * - Timeout enforcement (configurable via retryConfig.operationTimeout)
-   * - Full OpenTelemetry metrics and tracing
-   * 
-   * @param topics - Single topic or array of topics
-   * @param schema - Protobuf message schema
-   * @param message - Message instance to publish
-   * @param options - Publish options (QoS, retain, correlationId)
-   * @throws {ServiceUnavailableError} Circuit breaker open
-   * @throws {ResourceExhaustedError} All retries exhausted
-   * @throws {OperationTimeoutError} Operation timeout exceeded
-   */
+  /** Publish a protobuf message to one or more MQTT topics */
   async publish<T extends Message>(
     topics: string | string[],
     schema: GenMessage<T>,
@@ -108,22 +69,7 @@ export class RealtimeClient {
     return this._publishInternal(topics, payload, options, 'protobuf');
   }
 
-  /**
-   * Publish a JSON-serializable object to one or more MQTT topics
-   * 
-   * Features:
-   * - Circuit breaker protection (fast-fail when broker unhealthy)
-   * - Automatic retry with exponential backoff
-   * - Timeout enforcement (configurable via retryConfig.operationTimeout)
-   * - Full OpenTelemetry metrics and tracing
-   * 
-   * @param topics - Single topic or array of topics
-   * @param message - JavaScript object to serialize and publish
-   * @param options - Publish options (QoS, retain, correlationId)
-   * @throws {ServiceUnavailableError} Circuit breaker open
-   * @throws {ResourceExhaustedError} All retries exhausted
-   * @throws {OperationTimeoutError} Operation timeout exceeded
-   */
+  /** Publish a JSON-serializable object to one or more MQTT topics */
   async publishJSON(
     topics: string | string[],
     message: any,
@@ -133,32 +79,13 @@ export class RealtimeClient {
     return this._publishInternal(topics, payload, options, 'json');
   }
 
-  /**
-   * Internal publish implementation shared by publish() and publishJSON()
-   * Handles circuit breaker, retries, timeouts, and metrics
-   * 
-   * @private
-   */
+  /** Internal publish implementation with retry + circuit breaker */
   private async _publishInternal(
     topics: string | string[],
     payload: Buffer | string,
     options: PublishOptions,
     messageType: 'protobuf' | 'json'
   ): Promise<void> {
-    // Fast-fail if circuit breaker is open (before any work)
-    if (isBreakerOpen(this.brokerUrl)) {
-      const topicArray = Array.isArray(topics) ? topics : [topics];
-      topicArray.forEach((topic) => {
-        publishErrorsByType.add(1, { topic, errorType: 'CircuitBreakerOpenError' });
-      });
-      this.logger.error(
-        { broker: this.brokerUrl, topics: topicArray, messageType },
-        'MQTT broker circuit breaker is open - broker unhealthy'
-      );
-      throw new ServiceUnavailableError('MQTT broker circuit breaker is open');
-    }
-
-    // Ensure connected
     if (!this.connected) {
       await this.connect();
     }
@@ -177,105 +104,52 @@ export class RealtimeClient {
     const client = this.mqttClient.getClient();
     const payloadSize = Buffer.isBuffer(payload) ? payload.length : Buffer.byteLength(payload);
 
-    try {
-      const startTime = Date.now();
+    topicArray.forEach((topic) => {
+      publishAttempts.add(1, { topic });
+    });
 
-      // Record publish attempt for each topic
-      topicArray.forEach((topic) => {
-        publishAttempts.add(1, { topic });
+    const publishToTopic = (topic: string): Promise<void> =>
+      new Promise<void>((resolve, reject) => {
+        client.publish(topic, payload, publishOptions, (error) => {
+          if (error) {
+            const classified = classifyMQTTError(error);
+            publishErrorsByType.add(1, {
+              topic,
+              errorType: classified.constructor.name,
+            });
+            reject(classified);
+          } else {
+            publishSuccess.add(1, { topic });
+            this.logger.debug(
+              { topic, correlationId, service: this.name, messageType },
+              `Published ${messageType} to topic`
+            );
+            resolve();
+          }
+        });
       });
 
-      // Create abort controller for operation timeout
-      const abortController = new AbortController();
-      const timeoutId = setTimeout(() => abortController.abort(), this.retryConfig.operationTimeout);
-
-      try {
-        // Publish with automatic retry on transient failures
-        // Wrap pRetry with circuit breaker to fail fast if broker is unhealthy
-        await this.breaker.fire(async () => {
-          return pRetry(
-            () => Promise.all(
-              topicArray.map((topic) =>
-                withPublishSpan(topic, payloadSize, () =>
-                  new Promise<void>((resolve, reject) => {
-                    client.publish(topic, payload, publishOptions, (error) => {
-                      const duration = Date.now() - startTime;
-                      publishLatency.record(duration, { topic });
-
-                      if (error) {
-                        const classified = classifyMQTTError(error);
-                        publishErrorsByType.add(1, {
-                          topic,
-                          errorType: classified.constructor.name,
-                        });
-                        this.logger.error(
-                          { error: error.message, topic, correlationId, service: this.name, messageType },
-                          `Failed to publish ${messageType} to topic`
-                        );
-                        reject(classified);
-                      } else {
-                        publishSuccess.add(1, { topic });
-                        this.logger.debug(
-                          { topic, correlationId, service: this.name, messageType },
-                          `Published ${messageType} to topic`
-                        );
-                        resolve();
-                      }
-                    });
-                  })
-                )
-              )
-            ),
-            {
-              retries: this.retryConfig.maxRetries,
-              minTimeout: this.retryConfig.initialDelayMs,
-              maxTimeout: this.retryConfig.maxDelayMs,
-              factor: this.retryConfig.backoffFactor,
-              signal: abortController.signal,
-              shouldRetry: (error) => shouldRetry(this.logger, error),
-              onFailedAttempt: (error: any) => {
-                topicArray.forEach((topic) => {
-                  retryAttempts.add(1, {
-                    topic,
-                    attempt: error.attemptNumber,
-                    errorType: error instanceof Error ? error.constructor.name : 'unknown',
-                  });
-                });
-                this.logger.warn({
-                  attempt: error.attemptNumber,
-                  retriesLeft: error.retriesLeft,
-                  error: error.message || String(error),
-                  messageType,
-                }, `MQTT publish ${messageType} failed, retrying`);
-              }
-            }
-          );
-        });
-      } finally {
-        clearTimeout(timeoutId);
-      }
-    } catch (error) {
-      this.logger.error(
-        { 
-          error, 
-          topics: topicArray, 
-          correlationId, 
-          service: this.name, 
-          messageType,
-          retries: this.retryConfig.maxRetries 
+    // Publish to all topics with resilience
+    await resilientOperation(
+      () => Promise.all(topicArray.map((topic) => withPublishSpan(topic, payloadSize, () => publishToTopic(topic)))),
+      {
+        operation: `mqtt.publish.${messageType}`,
+        logger: this.logger,
+        classifier: classifyMQTTError,
+        shouldRetry,
+        retry: this.retryConfig,
+        breaker: this.breaker,
+        timeoutMs: this.retryConfig.operationTimeout,
+        metrics: {
+          latency: publishLatency,
+          retries: retryAttempts,
         },
-        `Failed to publish ${messageType} message after ${this.retryConfig.maxRetries} retries`
-      );
-      throw error;
-    }
+        labels: { topics: topicArray.join(',') },
+      }
+    );
   }
 
-  /**
-   * Subscribe to MQTT topic(s)
-   * 
-   * @param topics - Single topic or array of topics
-   * @param qos - Quality of Service level
-   */
+  /** Subscribe to MQTT topic(s) */
   async subscribe(topics: string | string[], qos: QoS = 1): Promise<void> {
     if (!this.connected) {
       await this.connect();
@@ -303,9 +177,7 @@ export class RealtimeClient {
     });
   }
 
-  /**
-   * Unsubscribe from MQTT topic(s)
-   */
+  /** Unsubscribe from MQTT topic(s) */
   async unsubscribe(topics: string | string[]): Promise<void> {
     const topicArray = Array.isArray(topics) ? topics : [topics];
     const client = this.mqttClient.getClient();

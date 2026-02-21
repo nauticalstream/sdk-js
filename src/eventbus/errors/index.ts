@@ -3,4 +3,3 @@
  */
 
 export { classifyNatsError } from './classifyNatsError';
-export { shouldRetry } from './shouldRetry';

@@ -3,6 +3,7 @@ import type { Message } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
 import { EventSchema, type Event } from '@nauticalstream/proto/platform/v1/event_pb';
 import { createPublishHeaders } from './telemetry';
+import { getCorrelationId } from '../../telemetry/utils/context';
 import type { MsgHdrs } from 'nats';
 
 export interface Envelope {
@@ -27,7 +28,7 @@ export function buildEnvelope<T extends Message>(
   data: T,
   correlationId?: string
 ): Envelope {
-  const resolvedCorrelationId = correlationId ?? crypto.randomUUID();
+  const resolvedCorrelationId = correlationId ?? getCorrelationId();
   const event = create(EventSchema, {
     type: subject,
     source,

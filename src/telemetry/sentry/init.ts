@@ -119,5 +119,7 @@ export async function closeSentry(): Promise<boolean> {
     return true;
   }
   console.log('[Sentry] Closing...');
-  return Sentry.close(2000);
+  const result = await Sentry.close(2000);
+  sentryInitialized = false;
+  return result;
 }

@@ -3,4 +3,3 @@
  */
 
 export { classifyMQTTError } from './classifyMQTTError';
-export { shouldRetry } from './shouldRetry';
