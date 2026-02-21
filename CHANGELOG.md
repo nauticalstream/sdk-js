@@ -1,3 +1,10 @@
+## [1.3.3](https://github.com/nauticalstream/sdk-js/compare/v1.3.2...v1.3.3) (2026-02-21)
+
+
+### Bug Fixes
+
+* add @fastify/cors and @mercuriusjs/federation as dependencies to prevent runtime errors ([c1f2dfd](https://github.com/nauticalstream/sdk-js/commit/c1f2dfd9ef72e6d25ee533486e29e009552a4989))
+
 ## [1.3.2](https://github.com/nauticalstream/sdk-js/compare/v1.3.1...v1.3.2) (2026-02-21)
 
 
