@@ -1,3 +1,10 @@
+## [1.0.5](https://github.com/nauticalstream/sdk-js/compare/v1.0.4...v1.0.5) (2026-02-21)
+
+
+### Bug Fixes
+
+* eventbus auto-derivation and code quality improvements ([a2d5fce](https://github.com/nauticalstream/sdk-js/commit/a2d5fce456a39f503782aba07351d7dd62908731))
+
 ## [1.0.4](https://github.com/nauticalstream/sdk-js/compare/v1.0.3...v1.0.4) (2026-02-21)
 
 
