@@ -1,3 +1,10 @@
+## [1.3.5](https://github.com/nauticalstream/sdk-js/compare/v1.3.4...v1.3.5) (2026-02-21)
+
+
+### Bug Fixes
+
+* use Mercurius context correlationId in error formatter ([7cce094](https://github.com/nauticalstream/sdk-js/commit/7cce09409373e58dc9b5070a700ff0bc16254bd6))
+
 ## [1.3.4](https://github.com/nauticalstream/sdk-js/compare/v1.3.3...v1.3.4) (2026-02-21)
 
 
