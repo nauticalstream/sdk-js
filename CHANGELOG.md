@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/nauticalstream/sdk-js/compare/v1.2.0...v1.3.0) (2026-02-21)
+
+
+### Features
+
+* complete correlation ID propagation and add comprehensive test coverage ([d2a6883](https://github.com/nauticalstream/sdk-js/commit/d2a68833a9227ac3685c9da29610f33ee6f4d42c))
+
 # [1.2.0](https://github.com/nauticalstream/sdk-js/compare/v1.1.0...v1.2.0) (2026-02-21)
 
 
