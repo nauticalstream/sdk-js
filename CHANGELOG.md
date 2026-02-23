@@ -1,3 +1,10 @@
+## [2.0.2](https://github.com/nauticalstream/sdk-js/compare/v2.0.1...v2.0.2) (2026-02-23)
+
+
+### Bug Fixes
+
+* **permissions:** remove health check, probe methods, and stale bootstrap logger ([caa2c7e](https://github.com/nauticalstream/sdk-js/commit/caa2c7e5f3bd51940d006c6f2689cfd6d2342090))
+
 ## [2.0.1](https://github.com/nauticalstream/sdk-js/compare/v2.0.0...v2.0.1) (2026-02-23)
 
 
