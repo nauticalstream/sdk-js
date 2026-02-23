@@ -10,7 +10,7 @@
  * const permissions = new Permissions({ url: 'http://localhost:4467' });
  * 
  * // Bootstrap namespace configuration on startup
- * await permissions.bootstrap();
+ * // No bootstrap needed - just instantiate and use
  * 
  * // Platform permissions
  * const isAdmin = await permissions.platform.hasAdmin(userId);
@@ -72,8 +72,6 @@ export * as workspace from './core/workspace';
 export * as resource from './core/resource';
 
 // Production features - Observability & Resilience
-export type { HealthStatus } from './core/health';
-export { checkHealth } from './core/health';
 export type { RetryConfig, CircuitBreakerConfig } from './core/config';
 export { DEFAULT_RETRY_CONFIG, DEFAULT_CIRCUIT_BREAKER_CONFIG } from './core/config';
 export { 

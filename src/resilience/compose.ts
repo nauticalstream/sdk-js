@@ -28,6 +28,8 @@ export interface ResilienceConfig<E extends Error = Error> {
   timeoutMs?: number;
   metrics?: ResilienceMetrics;
   labels?: Record<string, string | number>;
+  /** Log level used when an error is caught. Defaults to 'error'. Use 'debug' for health probes. */
+  errorLogLevel?: 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace';
 }
 
 // Execute with all resilience layers applied
@@ -36,7 +38,7 @@ export async function resilientOperation<T, E extends Error = Error>(
   config: ResilienceConfig<E>
 ): Promise<T> {
   const start = Date.now();
-  const { operation, logger, classifier, shouldRetry, retry, breaker, timeoutMs, metrics, labels } = config;
+  const { operation, logger, classifier, shouldRetry, retry, breaker, timeoutMs, metrics, labels, errorLogLevel = 'error' } = config;
   
   // Build wrapped function: timeout (innermost) → retry
   const buildResilientFn = (): (() => Promise<T>) => {
@@ -91,7 +93,7 @@ export async function resilientOperation<T, E extends Error = Error>(
     
     metrics?.latency?.record(latency, labels);
     metrics?.errors?.add(1, { ...labels, errorType });
-    logger?.error({ operation, error: classified.message, errorType, latencyMs: latency, ...labels }, 'Failed');
+    logger?.[errorLogLevel]({ operation, error: classified.message, errorType, latencyMs: latency, ...labels }, 'Failed');
     
     throw classified;
   }

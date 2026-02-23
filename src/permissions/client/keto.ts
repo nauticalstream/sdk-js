@@ -169,7 +169,7 @@ export class KetoClient {
     ) as Promise<{ data: Relationships }>;
   }
 
-  /** Validate OPL syntax (used during bootstrap) */
+  /** Validate OPL syntax */
   async checkOplSyntax(params: RelationshipApiCheckOplSyntaxRequest): Promise<{ data: CheckOplSyntaxResult }> {
     return resilientOperation(
       () => this.relationshipApi.checkOplSyntax(params),

@@ -2,47 +2,15 @@ import { KetoClient } from '../client/keto';
 import * as platform from './platform';
 import * as workspace from './workspace';
 import * as resource from './resource';
-import { checkHealth, type HealthStatus } from './health';
 import { resetCircuitBreaker } from '../../resilience';
-import { defaultLogger } from '../utils/logger';
-import type { Logger } from 'pino';
 import type { PermissionsConfig, PlatformRole, WorkspaceRole } from '../types';
 
 /** Permissions - Ory Keto permission management */
 export class Permissions {
   private client: KetoClient;
-  private logger: Logger;
 
   constructor(config: PermissionsConfig) {
     this.client = new KetoClient(config);
-    this.logger = config.logger || defaultLogger.child({ service: 'permissions' });
-  }
-
-  /** Bootstrap permissions client (call on service startup) */
-  async bootstrap(): Promise<void> {
-    // Check Keto health (both read and write endpoints)
-    const health = await checkHealth(this.client);
-    
-    if (!health.healthy) {
-      this.logger.error(
-        { 
-          readEndpoint: health.readEndpoint,
-          writeEndpoint: health.writeEndpoint,
-          latency: health.latency 
-        },
-        'Keto health check failed'
-      );
-      throw new Error('Keto is not healthy - cannot initialize permissions');
-    }
-
-    this.logger.info(
-      { 
-        readEndpoint: health.readEndpoint,
-        writeEndpoint: health.writeEndpoint,
-        latency: health.latency 
-      },
-      'Permissions (Ory Keto) initialized'
-    );
   }
 
   /** Platform-level operations */
@@ -102,11 +70,6 @@ export class Permissions {
     cleanupResource: (namespace: string, resourceId: string) =>
       resource.cleanupResource(this.client, namespace, resourceId),
   };
-
-  /** Check health of Keto endpoints */
-  async healthCheck(): Promise<HealthStatus> {
-    return checkHealth(this.client);
-  }
 
   /** Reset circuit breaker for specific endpoint */
   resetCircuitBreaker(endpoint: 'read' | 'write'): void {
