@@ -1,5 +1,5 @@
 import { MQTTClientManager } from '../client/mqtt-client';
-import { serializeProto } from '../utils/serialization';
+import { serialize, deserialize } from '../utils/serialization';
 import { createPublishProperties, withPublishSpan, withMessageSpan } from './telemetry';
 import { classifyMQTTError } from '../errors';
 import { publishLatency, publishSuccess, publishAttempts, retryAttempts, publishErrorsByType, circuitBreakerState } from './metrics';
@@ -60,18 +60,22 @@ export class RealtimeClient {
             throw error;
         }
     }
-    /** Publish a protobuf message to one or more MQTT topics */
-    async publish(topics, schema, message, options = {}) {
-        const payload = serializeProto(schema, message);
-        return this._publishInternal(topics, payload, options, 'protobuf');
-    }
-    /** Publish a JSON-serializable object to one or more MQTT topics */
-    async publishJSON(topics, message, options = {}) {
-        const payload = typeof message === 'string' ? message : JSON.stringify(message);
-        return this._publishInternal(topics, payload, options, 'json');
+    /**
+     * Publish a message to one or more MQTT topics.
+     * The message is serialized as JSON. Use proto-generated types for full type safety.
+     *
+     * @example
+     * ```typescript
+     * import type { ChatMessage } from '@nauticalstream/proto/chat/v1/chat_pb';
+     * await client.publish<ChatMessage>(TOPICS.chat.message(roomId), { content: 'Hello', authorId: userId });
+     * ```
+     */
+    async publish(topics, message, options = {}) {
+        const payload = serialize(message);
+        return this._publishInternal(topics, payload, options);
     }
     /** Internal publish implementation with retry + circuit breaker */
-    async _publishInternal(topics, payload, options, messageType) {
+    async _publishInternal(topics, payload, options) {
         if (!this.connected) {
             await this.connect();
         }
@@ -100,14 +104,14 @@ export class RealtimeClient {
                 }
                 else {
                     publishSuccess.add(1, { topic });
-                    this.logger.debug({ topic, correlationId, service: this.name, messageType }, `Published ${messageType} to topic`);
+                    this.logger.debug({ topic, correlationId, service: this.name }, 'Published message to topic');
                     resolve();
                 }
             });
         });
         // Publish to all topics with resilience
         await resilientOperation(() => Promise.all(topicArray.map((topic) => withPublishSpan(topic, payloadSize, () => publishToTopic(topic)))), {
-            operation: `mqtt.publish.${messageType}`,
+            operation: 'mqtt.publish',
             logger: this.logger,
             classifier: classifyMQTTError,
             shouldRetry,
@@ -158,8 +162,17 @@ export class RealtimeClient {
         });
     }
     /**
-     * Register message handler for subscribed topics
-     * Automatically extracts trace context and correlation ID from MQTT v5 userProperties
+     * Register a typed message handler for subscribed topics.
+     * The JSON payload is automatically parsed — use a proto-generated type for T.
+     * Trace context and correlation ID are automatically extracted from MQTT v5 user properties.
+     *
+     * @example
+     * ```typescript
+     * import type { ChatMessage } from '@nauticalstream/proto/chat/v1/chat_pb';
+     * client.onMessage<ChatMessage>(TOPICS.chat.message(roomId), (topic, message) => {
+     *   console.log(message.content); // fully typed
+     * });
+     * ```
      */
     onMessage(handler) {
         const client = this.mqttClient.getClient();
@@ -167,7 +180,7 @@ export class RealtimeClient {
             const userProperties = packet.properties?.userProperties;
             const correlationId = userProperties?.['x-correlation-id'];
             this.logger.debug({ topic, correlationId, service: this.name }, 'Received message');
-            await withMessageSpan(topic, userProperties, () => Promise.resolve(handler(topic, payload)));
+            await withMessageSpan(topic, userProperties, () => Promise.resolve(handler(topic, deserialize(payload))));
         });
     }
     /**

@@ -15,18 +15,19 @@
  *
  * await client.connect();
  *
- * // Publish protobuf message
- * await client.publish(
- *   'chat/messages',
- *   ChatMessageSchema,
- *   { content: 'Hello' }
+ * import type { ChatMessage } from '@nauticalstream/proto/chat/v1/chat_pb';
+ *
+ * // Publish message (proto type for type safety, JSON over the wire)
+ * await client.publish<ChatMessage>(
+ *   TOPICS.CHAT.conversation(conversationId),
+ *   { content: 'Hello', authorId: userId }
  * );
  *
- * // Publish JSON
- * await client.publishJSON(
- *   'presence/status',
- *   { userId: '123', status: 'online' }
- * );
+ * // Subscribe and receive typed messages
+ * await client.subscribe(TOPICS.CHAT.conversation(conversationId));
+ * client.onMessage<ChatMessage>((topic, msg) => {
+ *   console.log(msg.content);
+ * });
  * ```
  */
 // Main API
@@ -36,7 +37,7 @@ export { MQTTClientManager } from './client/mqtt-client';
 // Topics
 export { TOPICS, chatTopics, presenceTopics, notificationTopics, workspaceTopics } from './topics';
 // Utilities
-export { serializeProto, deserializeProto } from './utils/serialization';
+export { serialize, deserialize } from './utils/serialization';
 export { createPublishProperties, withPublishSpan, withMessageSpan } from './core/telemetry';
 // Production features - Observability & Resilience
 export { resetBreaker, getBreakerMetrics } from './core/circuit-breaker';

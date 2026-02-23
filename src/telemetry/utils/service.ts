@@ -1,10 +1,13 @@
 /**
  * Service-layer span helper.
  *
- * Wraps `withSpan` with automatic `request.id` injection from `ctx.correlationId`.
- * Use at the service facade layer in place of `withInternalSpan` — eliminates
- * the `tracerName` + `request.id` boilerplate that every service would otherwise
- * duplicate on every operation.
+ * Wraps `withSpan` with automatic injection of context fields present on every
+ * request. At the service facade layer this eliminates the `tracerName` +
+ * per-attribute boilerplate that every operation would otherwise duplicate.
+ *
+ * Automatically injected (when present and non-empty):
+ *  - `correlation.id` ← ctx.correlationId  (link trace → client-propagated correlation ID)
+ *  - `workspace.id`   ← ctx.workspaceId    (filter all errors/traces for a workspace)
  *
  * Log↔trace correlation happens automatically via the pino mixin in `createLogger`
  * which reads `correlationId`, `traceId`, and `spanId` from the OTel async context
@@ -35,23 +38,27 @@ import { withSpan } from './tracing';
 
 /** Minimal context shape accepted by `withServiceSpan`. */
 export interface ServiceSpanContext {
+  /** Maps to `correlation.id` span attribute — links trace to the client-propagated correlation ID. */
   correlationId?: string | null;
+  /** Maps to `workspace.id` span attribute — enables per-workspace trace/error filtering. */
+  workspaceId?: string | null;
 }
 
 /**
  * Execute `fn` inside a named OTel span with automatic telemetry injection.
  *
- * - Auto-injects `request.id` from `ctx.correlationId` when present.
- *   This allows finding the full trace in Jaeger/Tempo from a customer-reported
- *   request ID without exposing internal trace IDs to clients.
+ * - Auto-injects `correlation.id` from `ctx.correlationId` when present.
+ * - Auto-injects `workspace.id` from `ctx.workspaceId` when present.
+ *   This lets on-call engineers filter all traces/errors for a specific workspace
+ *   in Jaeger, Tempo, or Datadog without any per-call boilerplate.
  * - `fn` receives the active `Span` for mid-execution attribute additions.
  * - Exceptions are recorded on the span and re-thrown (OTel error semantics).
  * - Pass `null` for `ctx` in background workers or handlers with no request context.
  *
  * @param name       - Span name, e.g. `'workspace.service.create'`
- * @param ctx        - Request context; only `correlationId` is read. Pass `null` if absent.
+ * @param ctx        - Request context; `correlationId` → `correlation.id` and `workspaceId` → `workspace.id`. Pass `null` if absent.
  * @param fn         - Operation body (sync or async). Receives the active Span.
- * @param attributes - Additional span attributes beyond `request.id`.
+ * @param attributes - Additional span attributes beyond the auto-injected ones.
  */
 export async function withServiceSpan<T>(
   name: string,
@@ -62,7 +69,11 @@ export async function withServiceSpan<T>(
   const attrs: Record<string, string | number | boolean | string[]> = {};
 
   if (ctx?.correlationId) {
-    attrs['request.id'] = ctx.correlationId;
+    attrs['correlation.id'] = ctx.correlationId;
+  }
+
+  if (ctx?.workspaceId) {
+    attrs['workspace.id'] = ctx.workspaceId;
   }
 
   if (attributes) {

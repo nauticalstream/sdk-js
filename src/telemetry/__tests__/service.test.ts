@@ -120,30 +120,30 @@ describe('withServiceSpan', () => {
     });
   });
 
-  describe('request.id from ctx.correlationId', () => {
-    it('injects request.id when ctx has correlationId', async () => {
+  describe('correlation.id from ctx.correlationId', () => {
+    it('injects correlation.id when ctx has correlationId', async () => {
       await withServiceSpan('op', { correlationId: 'req_abc123' }, () => null);
-      expect(lastSpan!.attrs['request.id']).toBe('req_abc123');
+      expect(lastSpan!.attrs['correlation.id']).toBe('req_abc123');
     });
 
-    it('does not inject request.id when ctx is null', async () => {
+    it('does not inject correlation.id when ctx is null', async () => {
       await withServiceSpan('op', null, () => null);
-      expect(lastSpan!.attrs['request.id']).toBeUndefined();
+      expect(lastSpan!.attrs['correlation.id']).toBeUndefined();
     });
 
-    it('does not inject request.id when correlationId is undefined', async () => {
+    it('does not inject correlation.id when correlationId is undefined', async () => {
       await withServiceSpan('op', {}, () => null);
-      expect(lastSpan!.attrs['request.id']).toBeUndefined();
+      expect(lastSpan!.attrs['correlation.id']).toBeUndefined();
     });
 
-    it('does not inject request.id when correlationId is null', async () => {
+    it('does not inject correlation.id when correlationId is null', async () => {
       await withServiceSpan('op', { correlationId: null }, () => null);
-      expect(lastSpan!.attrs['request.id']).toBeUndefined();
+      expect(lastSpan!.attrs['correlation.id']).toBeUndefined();
     });
 
-    it('does not inject request.id when correlationId is empty string', async () => {
+    it('does not inject correlation.id when correlationId is empty string', async () => {
       await withServiceSpan('op', { correlationId: '' }, () => null);
-      expect(lastSpan!.attrs['request.id']).toBeUndefined();
+      expect(lastSpan!.attrs['correlation.id']).toBeUndefined();
     });
   });
 
@@ -162,21 +162,21 @@ describe('withServiceSpan', () => {
         operation: 'delete',
         'workspace.id': 'ws_456',
       });
-      expect(lastSpan!.attrs['request.id']).toBe('req_xyz');
+      expect(lastSpan!.attrs['correlation.id']).toBe('req_xyz');
       expect(lastSpan!.attrs['operation']).toBe('delete');
       expect(lastSpan!.attrs['workspace.id']).toBe('ws_456');
     });
 
-    it('custom attributes override request.id when key conflicts', async () => {
+    it('custom attributes override correlation.id when key conflicts', async () => {
       await withServiceSpan('op', { correlationId: 'req_original' }, () => null, {
-        'request.id': 'req_override',
+        'correlation.id': 'corr_override',
       });
-      expect(lastSpan!.attrs['request.id']).toBe('req_override');
+      expect(lastSpan!.attrs['correlation.id']).toBe('corr_override');
     });
 
     it('works with no attributes argument', async () => {
       await withServiceSpan('op', { correlationId: 'req_minimal' }, () => null);
-      expect(lastSpan!.attrs['request.id']).toBe('req_minimal');
+      expect(lastSpan!.attrs['correlation.id']).toBe('req_minimal');
     });
   });
 

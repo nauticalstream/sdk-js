@@ -1,23 +1,15 @@
-import { toJsonString, fromJsonString, type Message } from '@bufbuild/protobuf';
-import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
-
 /**
- * Serialize a protobuf message to JSON string
+ * Serialize any value to a JSON string for MQTT transport.
+ * Proto-generated types are plain objects at runtime — no schema or binary encoding needed.
  */
-export function serializeProto<T extends Message>(
-  schema: GenMessage<T>,
-  message: T
-): string {
-  return toJsonString(schema, message);
+export function serialize(message: unknown): string {
+  return JSON.stringify(message);
 }
 
 /**
- * Deserialize a JSON string to protobuf message
+ * Deserialize a JSON string or Buffer from MQTT into a typed value.
  */
-export function deserializeProto<T extends Message>(
-  schema: GenMessage<T>,
-  data: string | Buffer
-): T {
-  const jsonString = typeof data === 'string' ? data : data.toString('utf-8');
-  return fromJsonString(schema, jsonString);
+export function deserialize<T>(data: string | Buffer): T {
+  const json = typeof data === 'string' ? data : data.toString('utf-8');
+  return JSON.parse(json) as T;
 }

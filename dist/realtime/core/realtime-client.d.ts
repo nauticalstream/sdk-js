@@ -1,6 +1,4 @@
 import { type RealtimeClientConfig, type PublishOptions, type QoS } from './config';
-import type { Message } from '@bufbuild/protobuf';
-import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
 /**
  * RealtimeClient - MQTT client with proto serialization and resilience
  */
@@ -16,10 +14,17 @@ export declare class RealtimeClient {
     constructor(config: RealtimeClientConfig);
     /** Connect to MQTT broker */
     connect(): Promise<void>;
-    /** Publish a protobuf message to one or more MQTT topics */
-    publish<T extends Message>(topics: string | string[], schema: GenMessage<T>, message: T, options?: PublishOptions): Promise<void>;
-    /** Publish a JSON-serializable object to one or more MQTT topics */
-    publishJSON(topics: string | string[], message: any, options?: PublishOptions): Promise<void>;
+    /**
+     * Publish a message to one or more MQTT topics.
+     * The message is serialized as JSON. Use proto-generated types for full type safety.
+     *
+     * @example
+     * ```typescript
+     * import type { ChatMessage } from '@nauticalstream/proto/chat/v1/chat_pb';
+     * await client.publish<ChatMessage>(TOPICS.chat.message(roomId), { content: 'Hello', authorId: userId });
+     * ```
+     */
+    publish<T = unknown>(topics: string | string[], message: T, options?: PublishOptions): Promise<void>;
     /** Internal publish implementation with retry + circuit breaker */
     private _publishInternal;
     /** Subscribe to MQTT topic(s) */
@@ -27,10 +32,19 @@ export declare class RealtimeClient {
     /** Unsubscribe from MQTT topic(s) */
     unsubscribe(topics: string | string[]): Promise<void>;
     /**
-     * Register message handler for subscribed topics
-     * Automatically extracts trace context and correlation ID from MQTT v5 userProperties
+     * Register a typed message handler for subscribed topics.
+     * The JSON payload is automatically parsed — use a proto-generated type for T.
+     * Trace context and correlation ID are automatically extracted from MQTT v5 user properties.
+     *
+     * @example
+     * ```typescript
+     * import type { ChatMessage } from '@nauticalstream/proto/chat/v1/chat_pb';
+     * client.onMessage<ChatMessage>(TOPICS.chat.message(roomId), (topic, message) => {
+     *   console.log(message.content); // fully typed
+     * });
+     * ```
      */
-    onMessage(handler: (topic: string, payload: Buffer) => void | Promise<void>): void;
+    onMessage<T = unknown>(handler: (topic: string, payload: T) => void | Promise<void>): void;
     /**
      * Gracefully disconnect from MQTT broker
      * Waits for pending messages to complete before closing

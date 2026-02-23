@@ -111,6 +111,60 @@ await withTracedPublish('workspace.v1.created', correlationId, async (span, head
 
 ---
 
+## Service Spans
+
+`withServiceSpan` is designed for the service facade layer. It wraps `withSpan` and automatically injects context fields so every span carries consistent identifiers without per-call boilerplate.
+
+**Auto-injected attributes (when present and non-empty):**
+
+| Field on `ctx` | Span attribute | Purpose |
+|---|---|---|
+| `ctx.correlationId` | `correlation.id` | Link trace to client-visible correlation ID |
+| `ctx.workspaceId` | `workspace.id` | Filter all traces/errors for a workspace in Jaeger/Tempo |
+
+```typescript
+import { withServiceSpan } from '@nauticalstream/sdk/telemetry';
+
+// ctx is Fastify request context — correlationId + workspaceId flow in automatically
+class WorkspaceService {
+  create(input: unknown, ctx: Context) {
+    return withServiceSpan('workspace.service.create', ctx,
+      () => this.createUseCase.execute(input, ctx),
+      { operation: 'create' },
+    );
+  }
+
+  list(ctx: Context) {
+    return withServiceSpan('workspace.service.list', ctx,
+      () => this.listUseCase.execute(ctx),
+      { operation: 'read' },
+    );
+  }
+}
+
+// Background worker / cron — no request context
+function sync(id: string) {
+  return withServiceSpan('workspace.service.sync', null,
+    () => syncWorkspace(id),
+    { 'workspace.id': id, operation: 'write' },
+  );
+}
+```
+
+`ServiceSpanContext` accepts any context object that has optional `correlationId` and/or `workspaceId` fields. Passing `null` is safe.
+
+```typescript
+import type { ServiceSpanContext } from '@nauticalstream/sdk/telemetry';
+
+// Both fields optional — pass full Context, a subset, or null
+const ctx: ServiceSpanContext = {
+  correlationId: 'req-abc123',
+  workspaceId:   'ws-xyz456',
+};
+```
+
+---
+
 ## Metrics
 
 ```typescript
