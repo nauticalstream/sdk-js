@@ -1,7 +1,12 @@
 import pino from 'pino';
-import { getCorrelationId, getTraceId, getSpanId } from './context';
+import { peekCorrelationId, getTraceId, getSpanId } from './context';
 /**
- * Create a Pino logger with automatic correlation ID and trace ID injection
+ * Create a Pino logger with automatic trace/span ID injection and — when a
+ * correlation ID is present in the active OTel context — correlation ID injection.
+ *
+ * Uses `peekCorrelationId()` (not `getCorrelationId()`) so that log lines
+ * emitted outside a request/message handler do NOT get synthetic UUIDs that
+ * would never match any trace in Grafana Loki.
  *
  * @param options - Logger options
  * @param options.name - Logger name (appears in logs and Sentry events)
@@ -23,59 +28,87 @@ import { getCorrelationId, getTraceId, getSpanId } from './context';
  */
 export function createLogger(options = {}, destination) {
     const { sentry, ...pinoOptions } = options;
+    // Capture user-supplied mixin BEFORE we overwrite it.
+    // We compose: user fields first, then telemetry fields (telemetry wins on conflict
+    // so traceId/correlationId are always present and cannot be clobbered).
+    const userMixin = pinoOptions.mixin;
     const baseOptions = {
         ...pinoOptions,
-        // Mixin to add telemetry context to every log
-        mixin() {
-            const correlationId = getCorrelationId();
+        mixin(mergeObject, level) {
+            const correlationId = peekCorrelationId();
             const traceId = getTraceId();
             const spanId = getSpanId();
-            const telemetryContext = {};
-            if (correlationId) {
-                telemetryContext.correlationId = correlationId;
-            }
-            if (traceId) {
-                telemetryContext.traceId = traceId;
-            }
-            if (spanId) {
-                telemetryContext.spanId = spanId;
-            }
-            return telemetryContext;
+            const telemetryFields = {};
+            if (correlationId)
+                telemetryFields.correlationId = correlationId;
+            if (traceId)
+                telemetryFields.traceId = traceId;
+            if (spanId)
+                telemetryFields.spanId = spanId;
+            // Merge user fields first so telemetry fields take priority on key collision.
+            const userFields = userMixin ? userMixin(mergeObject, level) : {};
+            return { ...userFields, ...telemetryFields };
         },
     };
-    // Optional: Add Sentry hook for automatic error capture
+    // Optional: Sentry hook — module resolved once at logger creation, not per-call.
     if (sentry?.enabled) {
-        // Create hook without dynamic imports (import Sentry at module level instead)
         let SentryModule = null;
+        try {
+            SentryModule = require('@sentry/node');
+        }
+        catch {
+            // @sentry/node is an optional peer dependency; skip if absent.
+        }
+        // Capture the user's existing logMethod (if any) so we can chain into it
+        // instead of replacing it. Replacing would silently drop the user's hook.
+        const userLogMethod = pinoOptions.hooks?.logMethod;
         baseOptions.hooks = {
             logMethod(inputArgs, method, level) {
                 const minLevel = sentry.minLevel === 'fatal' ? 60 : 50;
                 // Only capture error/fatal logs to Sentry
                 if (level >= minLevel) {
-                    // Lazy-load Sentry only once
-                    if (!SentryModule) {
-                        try {
-                            // NOTE: This import is wrapped in try-catch and only happens once
-                            SentryModule = require('@sentry/node');
+                    if (SentryModule) {
+                        // Normalise the various Pino call signatures to a single Error:
+                        //   logger.error(err)                  → inputArgs = [Error]
+                        //   logger.error({ err }, 'msg')        → inputArgs = [{ err }, 'msg']
+                        //   logger.error({ error }, 'msg')      → inputArgs = [{ error }, 'msg']
+                        //   logger.error('plain string')        → inputArgs = ['plain string']
+                        const firstArg = inputArgs[0];
+                        let capturedError;
+                        let logContext = firstArg;
+                        if (firstArg instanceof Error) {
+                            capturedError = firstArg;
                         }
-                        catch (err) {
-                            // Sentry not available, skip
-                            return method.apply(this, inputArgs);
+                        else if (typeof firstArg === 'object' && firstArg !== null) {
+                            const raw = firstArg.error ?? firstArg.err;
+                            const msgArg = inputArgs[1];
+                            capturedError = raw instanceof Error
+                                ? raw
+                                : new Error(typeof msgArg === 'string' ? msgArg : JSON.stringify(firstArg));
                         }
+                        else {
+                            // logger.error('plain string message')
+                            capturedError = new Error(typeof firstArg === 'string' ? firstArg : JSON.stringify(firstArg));
+                            logContext = undefined;
+                        }
+                        SentryModule.withScope((scope) => {
+                            if (logContext !== undefined)
+                                scope.setContext('log', logContext);
+                            scope.setTag('logger', options.name || 'unknown');
+                            const correlationId = peekCorrelationId();
+                            if (correlationId)
+                                scope.setTag('correlationId', correlationId);
+                            const traceId = getTraceId();
+                            if (traceId)
+                                scope.setTag('traceId', traceId);
+                            SentryModule.captureException(capturedError);
+                        });
                     }
-                    if (!SentryModule) {
-                        return method.apply(this, inputArgs);
-                    }
-                    const [obj, msg] = inputArgs;
-                    const error = obj?.error || obj?.err || new Error(typeof msg === 'string' ? msg : JSON.stringify(msg));
-                    // Use the loaded Sentry module
-                    SentryModule.withScope((scope) => {
-                        scope.setContext('log', obj);
-                        scope.setTag('logger', options.name || 'unknown');
-                        scope.setTag('correlationId', getCorrelationId() || 'none');
-                        scope.setTag('traceId', getTraceId() || 'none');
-                        SentryModule.captureException(error);
-                    });
+                }
+                // Chain into the user's logMethod if one was provided; otherwise
+                // call the underlying Pino log method directly.
+                if (userLogMethod) {
+                    return userLogMethod.call(this, inputArgs, method, level);
                 }
                 return method.apply(this, inputArgs);
             },

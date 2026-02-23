@@ -4,24 +4,25 @@
  */
 import { resetCircuitBreaker, getCircuitBreaker } from '../../resilience';
 /**
- * Reset the MQTT publish circuit breaker
- * Useful after resolving downstream broker issues
+ * Reset the circuit breaker for a specific MQTT broker.
+ * Useful after resolving downstream broker issues.
  *
- * @param brokerUrl - Optional specific broker URL, defaults to MQTT publish breaker
+ * The breaker is keyed by the broker URL you passed to `RealtimeClientConfig.brokerUrl`,
+ * so you must pass the same URL here.
+ *
+ * @param brokerUrl - Broker URL (must match the one used in RealtimeClientConfig)
  */
 export function resetBreaker(brokerUrl) {
-    const id = brokerUrl || 'mqtt-publish';
-    resetCircuitBreaker(id);
+    resetCircuitBreaker(brokerUrl);
 }
 /**
- * Get circuit breaker metrics for a specific broker
+ * Get circuit breaker metrics for a specific broker.
  *
- * @param brokerUrl - Broker URL to check, defaults to MQTT publish breaker
- * @returns Breaker metrics or undefined if breaker doesn't exist
+ * @param brokerUrl - Broker URL (must match the one used in RealtimeClientConfig)
+ * @returns Breaker metrics or undefined if no breaker exists for this URL
  */
 export function getBreakerMetrics(brokerUrl) {
-    const id = brokerUrl || 'mqtt-publish';
-    const breaker = getCircuitBreaker(id);
+    const breaker = getCircuitBreaker(brokerUrl);
     if (!breaker) {
         return undefined;
     }

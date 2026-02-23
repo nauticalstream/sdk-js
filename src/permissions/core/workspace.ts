@@ -1,8 +1,15 @@
 import type { KetoClient } from '../client/keto';
 import { WorkspaceRole } from '../types';
-import { ForbiddenError, ValidationError } from '../../errors';
+import { ForbiddenError, ValidationError, NotFoundError } from '../../errors';
 
 const NAMESPACE = 'Workspace';
+
+/** Zero-trust guard: rejects empty or whitespace-only IDs before they reach Keto */
+function assertNonEmpty(value: string, name: string): void {
+  if (!value || value.trim().length === 0) {
+    throw new ValidationError(`${name} must not be empty`);
+  }
+}
 
 /**
  * Check if user has a specific workspace role
@@ -13,6 +20,8 @@ export async function hasRole(
   userId: string,
   role: WorkspaceRole
 ): Promise<boolean> {
+  assertNonEmpty(workspaceId, 'workspaceId');
+  assertNonEmpty(userId, 'userId');
   const relation = roleToRelation(role);
   if (!relation) {
     throw new ValidationError(`Invalid workspace role: ${role}`);
@@ -53,6 +62,9 @@ export async function hasPermission(
   userId: string,
   permission: string
 ): Promise<boolean> {
+  assertNonEmpty(workspaceId, 'workspaceId');
+  assertNonEmpty(userId, 'userId');
+  assertNonEmpty(permission, 'permission');
   const result = await client.permission.checkPermission({
     namespace: NAMESPACE,
     object: workspaceId,
@@ -87,6 +99,8 @@ export async function listWorkspaces(
   userId: string,
   permission: string = 'view'
 ): Promise<string[]> {
+  assertNonEmpty(userId, 'userId');
+  assertNonEmpty(permission, 'permission');
   const result = await client.relationship.getRelationships({
     namespace: NAMESPACE,
     relation: permission,
@@ -105,9 +119,11 @@ export async function grantRole(
   userId: string,
   role: WorkspaceRole
 ): Promise<void> {
+  assertNonEmpty(workspaceId, 'workspaceId');
+  assertNonEmpty(userId, 'userId');
   const relation = roleToRelation(role);
   if (!relation) {
-    throw new Error(`Invalid workspace role: ${role}`);
+    throw new ValidationError(`Invalid workspace role: ${role}`);
   }
 
   await client.relationship.createRelationship({
@@ -150,6 +166,8 @@ export async function revokeAllRoles(
   workspaceId: string,
   userId: string
 ): Promise<void> {
+  assertNonEmpty(workspaceId, 'workspaceId');
+  assertNonEmpty(userId, 'userId');
   const roles = [
     WorkspaceRole.OWNER,
     WorkspaceRole.ADMIN,
@@ -157,13 +175,19 @@ export async function revokeAllRoles(
     WorkspaceRole.VIEWER,
   ];
 
-  for (const role of roles) {
-    try {
-      await revokeRole(client, workspaceId, userId, role);
-    } catch (error) {
-      // Ignore errors (role might not exist)
-    }
-  }
+  // Run in parallel — independent operations. Only ignore 404 (role not held);
+  // re-throw everything else so callers know the revoke was incomplete.
+  await Promise.all(
+    roles.map(async (role) => {
+      try {
+        await revokeRole(client, workspaceId, userId, role);
+      } catch (error) {
+        if (!(error instanceof NotFoundError)) {
+          throw error;
+        }
+      }
+    })
+  );
 }
 
 /**

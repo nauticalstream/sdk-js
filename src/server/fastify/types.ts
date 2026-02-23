@@ -38,6 +38,17 @@ export interface FastifyServerOptions {
    * Useful in tests to capture log output instead of writing to stdout.
    */
   destination?: DestinationStream;
+  /**
+   * Trust the X-Forwarded-For / X-Forwarded-Proto headers set by a reverse proxy (nginx,
+   * AWS ALB, Kubernetes ingress). Enable this for any service deployed behind a load
+   * balancer so that `request.ip` and `createBaseContext` record the real client IP
+   * instead of the proxy's IP.
+   *
+   * Accepts `true` (trust all proxies), a number (trust N hops), or a string/array of
+   * trusted CIDRs — passed directly to Fastify's `trustProxy` option.
+   * @default false
+   */
+  trustProxy?: boolean | number | string | string[];
 }
 
 export interface GraphQLPluginOptions {

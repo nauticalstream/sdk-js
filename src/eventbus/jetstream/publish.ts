@@ -1,31 +1,48 @@
-import type { NatsClient } from '../client/nats-client';
-import type { Logger } from 'pino';
-import { create, type Message, type MessageInitShape } from '@bufbuild/protobuf';
+import { type Message, type MessageInitShape } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
-import { classifyNatsError } from '../errors';
-import { buildEnvelope } from '../core/envelope';
-import { jetstreamPublishLatency, jetstreamPublishSuccess, jetstreamPublishAttempts, jetstreamRetryAttempts, jetstreamPublishErrors } from '../core/metrics';
-import { resilientOperation, getOrCreateCircuitBreaker, shouldRetry, type ResilientCircuitBreaker } from '../../resilience';
-import { DEFAULT_RETRY_CONFIG, type RetryConfig } from '../core/config';
+import type { Logger } from 'pino';
+import type { NatsClient } from '../client/nats-client';
+import { buildEnvelope } from '../envelope';
+import { classifyNatsError } from '../errors/classify';
+import {
+  jetstreamPublishLatency,
+  jetstreamPublishSuccess,
+  jetstreamPublishAttempts,
+  jetstreamRetryAttempts,
+  jetstreamPublishErrors,
+  jetstreamCircuitBreakerState,
+} from '../observability/metrics';
+import { resilientOperation, getOrCreateCircuitBreaker, shouldRetry, DEFAULT_CIRCUIT_BREAKER_CONFIG, type ResilientCircuitBreaker } from '../../resilience';
+import { DEFAULT_RETRY_CONFIG, type RetryConfig } from '../config';
 import { deriveSubject } from '../utils/derive-subject';
+import { resetCircuitBreaker } from '../../resilience';
 
 export interface JetStreamPublishOptions {
-  correlationId?: string;
+  /** Override the auto-derived subject. */
   subject?: string;
+  /** Correlation ID for tracing. */
+  correlationId?: string;
+  /** Override default retry configuration. */
   retryConfig?: RetryConfig;
 }
 
-// Circuit breaker shared across all JetStream publishes
-let natsBreaker: ResilientCircuitBreaker | undefined;
-
-function getNatsBreaker(): ResilientCircuitBreaker {
-  if (!natsBreaker) {
-    natsBreaker = getOrCreateCircuitBreaker('nats-default');
-  }
-  return natsBreaker;
+/**
+ * Per-domain circuit breakers for JetStream publishes.
+ * Keyed by the first subject segment (e.g. 'workspace', 'agency') so a slow
+ * stream can't trip the breaker for unrelated domains.
+ */
+function getBreaker(domain: string): ResilientCircuitBreaker {
+  return getOrCreateCircuitBreaker(`nats-${domain}`, { ...DEFAULT_CIRCUIT_BREAKER_CONFIG, stateMetric: jetstreamCircuitBreakerState });
 }
 
-/** Publish to JetStream with retry, circuit breaker and timeout */
+/**
+ * Publish a proto message to JetStream (persistent, at-least-once).
+ * Wraps the message in a platform.v1.Event envelope, then publishes with
+ * retry, circuit breaker, timeout, and OTel metrics.
+ *
+ * Returns { ok: true } on success or { ok: false, error: true } on final failure
+ * so callers can decide whether to surface the error without an uncaught exception.
+ */
 export async function publish<T extends Message>(
   client: NatsClient,
   logger: Logger,
@@ -34,16 +51,14 @@ export async function publish<T extends Message>(
   data: MessageInitShape<GenMessage<T>>,
   options?: JetStreamPublishOptions
 ): Promise<{ ok: boolean; error?: boolean }> {
-  const message = create(schema, data);
   const subject = options?.subject ?? deriveSubject(schema.typeName);
-  const correlationId = options?.correlationId;
   const config = { ...DEFAULT_RETRY_CONFIG, ...options?.retryConfig };
 
   jetstreamPublishAttempts.add(1, { subject });
 
   try {
     const js = client.getJetStream();
-    const { binary, event, headers } = buildEnvelope(source, subject, schema, message, correlationId);
+    const { binary, event, headers } = buildEnvelope(source, subject, schema, data, options?.correlationId);
 
     await resilientOperation(
       () => js.publish(subject, binary, { headers }),
@@ -53,8 +68,7 @@ export async function publish<T extends Message>(
         classifier: classifyNatsError,
         shouldRetry,
         retry: config,
-        breaker: getNatsBreaker(),
-        timeoutMs: config.operationTimeout,
+        breaker: getBreaker(subject.split('.')[0]),
         metrics: {
           latency: jetstreamPublishLatency,
           success: jetstreamPublishSuccess,
@@ -71,4 +85,14 @@ export async function publish<T extends Message>(
     logger.warn({ subject, error: err }, 'JetStream publish failed');
     return { ok: false, error: true };
   }
+}
+
+/**
+ * Reset a JetStream publish circuit breaker.
+ * @param domain - Subject domain prefix (first segment), e.g. 'workspace', 'agency'.
+ *                 Breaker key is `nats-${domain}`, so pass the full key if needed.
+ * @example resetBreaker('workspace')  // resets nats-workspace
+ */
+export function resetBreaker(domain: string): void {
+  resetCircuitBreaker(`nats-${domain}`);
 }

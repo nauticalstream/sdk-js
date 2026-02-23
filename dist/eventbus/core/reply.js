@@ -1,7 +1,9 @@
-import { fromBinary, toBinary, create } from '@bufbuild/protobuf';
+import { fromJson, create, toJsonString } from '@bufbuild/protobuf';
 import { EventSchema } from '@nauticalstream/proto/platform/v1/event_pb';
 import { withCorrelationId, generateCorrelationId } from '../../telemetry/utils/context';
 import { deriveSubject } from '../utils/derive-subject';
+import { parseEnvelope, buildEnvelope } from './envelope';
+const encoder = new TextEncoder();
 /**
  * Subscribe to a request/reply subject (RPC server side)
  * Inbound binary is decoded as platform.v1.Event.
@@ -30,34 +32,27 @@ export async function reply(client, logger, config) {
                 }
                 let inboundCorrelationId;
                 try {
-                    const inboundEnvelope = fromBinary(EventSchema, msg.data);
+                    const inboundEnvelope = parseEnvelope(msg.data);
                     inboundCorrelationId = inboundEnvelope.correlationId;
-                    const data = fromBinary(reqSchema, inboundEnvelope.payload);
+                    const data = fromJson(reqSchema, inboundEnvelope.data ?? {});
                     logger.debug({ subject, correlationId: inboundCorrelationId }, 'Processing request');
                     const responseData = await withCorrelationId(inboundCorrelationId ?? generateCorrelationId(), () => handler(data, inboundEnvelope));
                     const response = create(respSchema, responseData);
                     // Echo the inbound correlationId so callers can correlate the pair
-                    const responseEnvelope = create(EventSchema, {
-                        type: subject,
-                        source,
-                        correlationId: inboundCorrelationId,
-                        timestamp: new Date().toISOString(),
-                        payload: toBinary(respSchema, response),
-                    });
-                    msg.respond(toBinary(EventSchema, responseEnvelope));
+                    const { binary: responseBinary } = buildEnvelope(source, subject, respSchema, response, inboundCorrelationId ?? generateCorrelationId());
+                    msg.respond(responseBinary);
                 }
                 catch (error) {
                     logger.error({ error, subject }, 'Request handler failed');
-                    // Error Signaling: Send empty payload envelope to indicate handler failure
-                    // This allows caller to fail fast instead of waiting for timeout
-                    // Caller checks payload.length === 0 to detect error and throw
-                    const errorEnvelope = create(EventSchema, {
+                    // Error signaling: undefined data signals handler failure to caller
+                    const errorEvent = create(EventSchema, {
                         type: `${subject}.error`,
                         source,
                         correlationId: inboundCorrelationId ?? generateCorrelationId(),
                         timestamp: new Date().toISOString(),
+                        // data intentionally omitted — undefined signals error to request() caller
                     });
-                    msg.respond(toBinary(EventSchema, errorEnvelope));
+                    msg.respond(encoder.encode(toJsonString(EventSchema, errorEvent)));
                 }
             }
         });

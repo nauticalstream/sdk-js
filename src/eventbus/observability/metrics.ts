@@ -1,48 +1,39 @@
 import { metrics } from '@opentelemetry/api';
 
-const METER_NAME = '@nauticalstream/eventbus';
+const meter = metrics.getMeter('@nauticalstream/eventbus', '1.0.0');
 
-const meter = metrics.getMeter(METER_NAME, '1.0.0');
-
-/**
- * JetStream publish latency in milliseconds
- */
+/** End-to-end JetStream publish latency in milliseconds. */
 export const jetstreamPublishLatency = meter.createHistogram('jetstream.publish.latency.ms', {
-  description: 'JetStream publish operation latency in milliseconds',
+  description: 'JetStream publish latency in milliseconds',
   unit: 'ms',
 });
 
-/**
- * Successful JetStream publishes
- */
+/** Total successful JetStream publishes. */
 export const jetstreamPublishSuccess = meter.createCounter('jetstream.publish.success.total', {
   description: 'Total successful JetStream publishes',
+  unit: '{publish}',
 });
 
-/**
- * JetStream publish attempts
- */
+/** Total JetStream publish attempts (includes retries). */
 export const jetstreamPublishAttempts = meter.createCounter('jetstream.publish.attempts.total', {
   description: 'Total JetStream publish attempts',
+  unit: '{attempt}',
 });
 
-/**
- * JetStream retry attempts
- */
+/** Total retry attempts triggered by the resilience layer. */
 export const jetstreamRetryAttempts = meter.createCounter('jetstream.retry.attempts.total', {
   description: 'Total JetStream retry attempts',
+  unit: '{attempt}',
 });
 
-/**
- * JetStream publish errors by type
- */
+/** Total JetStream publish errors by subject. */
 export const jetstreamPublishErrors = meter.createCounter('jetstream.publish.errors.total', {
-  description: 'Total JetStream publish errors by type',
+  description: 'Total JetStream publish errors',
+  unit: '{error}',
 });
 
-/**
- * Circuit breaker state for JetStream
- */
+/** Circuit breaker state: 1 = closed (healthy), 0 = open (blocked). */
 export const jetstreamCircuitBreakerState = meter.createUpDownCounter('jetstream.circuit_breaker.state', {
   description: 'JetStream circuit breaker state (1=closed, 0=open)',
+  unit: '1',
 });

@@ -1,8 +1,8 @@
-import { fromBinary } from '@bufbuild/protobuf';
-import { EventSchema } from '@nauticalstream/proto/platform/v1/event_pb';
+import { fromJson } from '@bufbuild/protobuf';
 import { withSubscribeSpan } from './telemetry';
 import { withCorrelationId, generateCorrelationId } from '../../telemetry/utils/context';
 import { deriveSubject } from '../utils/derive-subject';
+import { parseEnvelope } from './envelope';
 /**
  * Subscribe to subject (ephemeral)
  * Core NATS - fast, no persistence
@@ -28,8 +28,8 @@ export async function subscribe(client, logger, schema, handler) {
                 return;
             }
             try {
-                const envelope = fromBinary(EventSchema, msg.data);
-                const data = fromBinary(schema, envelope.payload);
+                const envelope = parseEnvelope(msg.data);
+                const data = fromJson(schema, envelope.data ?? {});
                 await withSubscribeSpan(subject, msg.headers ?? undefined, () => withCorrelationId(envelope.correlationId || generateCorrelationId(), () => handler(data, envelope)));
             }
             catch (error) {

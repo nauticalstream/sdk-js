@@ -5,6 +5,7 @@
 
 import CircuitBreaker from 'opossum';
 import type { Options as OpossumOptions } from 'opossum';
+import type { UpDownCounter } from '@opentelemetry/api';
 
 export type BreakerState = 'CLOSED' | 'OPEN' | 'HALF_OPEN';
 
@@ -12,6 +13,12 @@ export interface CircuitBreakerConfig {
   failureThreshold: number;  // 0.5 = 50% failure rate to open
   timeoutMs: number;         // how long to stay open before half-open
   volumeThreshold: number;   // min requests before calculating rate
+  /**
+   * Optional OTel UpDownCounter updated on every state transition.
+   * Value semantics: 1 = CLOSED (healthy), 0.5 = HALF_OPEN (probing), 0 = OPEN (blocked).
+   * Enables Grafana alerts: alert when metric < 1.
+   */
+  stateMetric?: UpDownCounter;
 }
 
 export const DEFAULT_CIRCUIT_BREAKER_CONFIG: CircuitBreakerConfig = {
@@ -50,6 +57,24 @@ export class ResilientCircuitBreaker<R = any> {
   ) {
     // Breaker wraps a pass-through so the real fn is passed at execute() time
     this.breaker = new CircuitBreaker((fn: () => Promise<R>) => fn(), toOpossumOptions(config));
+
+    if (config.stateMetric) {
+      const metric = config.stateMetric;
+      const attrs = name ? { breaker: name } : {};
+      // Track current level so every event computes the exact delta needed,
+      // regardless of which state we came from. This correctly handles the
+      // HALF_OPEN → OPEN path (probe fails) where naive fixed deltas diverge.
+      // Value semantics: 1 = CLOSED, 0.5 = HALF_OPEN (probing), 0 = OPEN
+      let currentLevel = 1; // opossum always starts CLOSED
+      const setLevel = (next: number) => {
+        metric.add(next - currentLevel, attrs);
+        currentLevel = next;
+      };
+      metric.add(1, attrs); // initialise to CLOSED
+      this.breaker.on('open',     () => setLevel(0));
+      this.breaker.on('halfOpen', () => setLevel(0.5));
+      this.breaker.on('close',    () => setLevel(1));
+    }
   }
   
   async execute(fn: () => Promise<R>): Promise<R> {
@@ -94,6 +119,14 @@ export class ResilientCircuitBreaker<R = any> {
 // Global registry for named breakers
 const breakers = new Map<string, ResilientCircuitBreaker<any>>();
 
+/**
+ * Get or create a named circuit breaker from the global registry.
+ *
+ * Config is ONLY applied on first creation — subsequent calls with the
+ * same name return the existing breaker regardless of the config argument.
+ * This is intentional: a shared registry must have a single stable config
+ * per breaker. Pass `stateMetric` in config to wire OTel state tracking.
+ */
 export function getOrCreateCircuitBreaker<R = any>(
   name: string,
   config?: CircuitBreakerConfig

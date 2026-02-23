@@ -15,13 +15,18 @@ export async function executeWithTimeout<T>(
   timeoutMs: number,
   onTimeout?: () => void
 ): Promise<T> {
+  let timerId: ReturnType<typeof setTimeout>;
   const timeoutPromise = new Promise<never>((_, reject) => {
-    setTimeout(() => {
+    timerId = setTimeout(() => {
       onTimeout?.();
       reject(new TimeoutError(timeoutMs));
     }, timeoutMs);
   });
-  return Promise.race([fn(), timeoutPromise]);
+  try {
+    return await Promise.race([fn(), timeoutPromise]);
+  } finally {
+    clearTimeout(timerId!);
+  }
 }
 
 // Create AbortSignal that triggers after timeout

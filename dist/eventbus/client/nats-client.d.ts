@@ -1,52 +1,29 @@
-import { type NatsConnection, type JetStreamClient, type Codec } from 'nats';
+import { type NatsConnection, type JetStreamClient } from 'nats';
 import type { Logger } from 'pino';
 export interface NatsClientConfig {
     servers: string[];
     name: string;
     logger: Logger;
 }
-/**
- * NATS JetStream client wrapper
- * Manages connection, reconnection, and provides access to JetStream
- */
+/** Managed NATS connection — wraps connect/disconnect and exposes JetStream accessors. */
 export declare class NatsClient {
     private connection;
     private jetstream;
-    private readonly codec;
     private isConnected;
     private config;
     constructor(config: NatsClientConfig);
-    /**
-     * Connect to NATS server
-     */
+    /** Connect to NATS and initialise JetStream. Waits for the first connection. */
     connect(): Promise<void>;
-    /**
-     * Setup connection event handlers
-     */
-    private setupEventHandlers;
-    /**
-     * Disconnect from NATS server
-     */
+    /** Drain in-flight messages then close the connection. */
     disconnect(): Promise<void>;
-    /**
-     * Get JetStream client
-     */
-    getJetStream(): JetStreamClient;
-    /**
-     * Get JetStream Manager for admin operations
-     */
-    getJetStreamManager(): Promise<import("nats").JetStreamManager>;
-    /**
-     * Get NATS connection
-     */
+    /** Returns the raw NATS connection. Throws if not yet connected. */
     getConnection(): NatsConnection;
-    /**
-     * Get string codec for encoding/decoding messages
-     */
-    getCodec(): Codec<string>;
-    /**
-     * Check if connected
-     */
+    /** Returns the JetStream client. Throws if not yet connected. */
+    getJetStream(): JetStreamClient;
+    /** Returns a JetStream manager for admin operations (consumer/stream CRUD). */
+    getJetStreamManager(): Promise<import("nats").JetStreamManager>;
     get connected(): boolean;
+    /** Log reconnect/disconnect events and keep isConnected in sync. */
+    private watchStatus;
 }
 //# sourceMappingURL=nats-client.d.ts.map

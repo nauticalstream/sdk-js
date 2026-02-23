@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { classifyNatsError } from '../errors/classifyNatsError';
+import { classifyNatsError } from '../errors/classify';
 import {
   SystemException,
   DomainException,

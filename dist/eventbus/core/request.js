@@ -1,6 +1,5 @@
-import { create, fromBinary } from '@bufbuild/protobuf';
-import { EventSchema } from '@nauticalstream/proto/platform/v1/event_pb';
-import { buildEnvelope } from './envelope';
+import { create, fromJson } from '@bufbuild/protobuf';
+import { buildEnvelope, parseEnvelope } from './envelope';
 import { deriveSubject } from '../utils/derive-subject';
 import { DEFAULT_REQUEST_TIMEOUT_MS } from './config';
 /**
@@ -25,13 +24,12 @@ export async function request(client, logger, source, reqSchema, respSchema, dat
     logger.debug({ subject, correlationId: event.correlationId }, 'Making NATS request');
     try {
         const response = await connection.request(subject, binary, { timeout: timeoutMs });
-        const responseEnvelope = fromBinary(EventSchema, response.data);
-        // Empty payload means the responder signalled an error
-        if (responseEnvelope.payload.length === 0) {
+        const responseEnvelope = parseEnvelope(response.data);
+        // undefined data means the responder signalled an error
+        if (!responseEnvelope.data) {
             throw new Error(`Request to ${subject} returned error response`);
-            ;
         }
-        const result = fromBinary(respSchema, responseEnvelope.payload);
+        const result = fromJson(respSchema, responseEnvelope.data);
         logger.debug({ subject, correlationId: responseEnvelope.correlationId }, 'Request completed successfully');
         return result;
     }

@@ -1,7 +1,7 @@
-import { fromBinary } from '@bufbuild/protobuf';
-import { EventSchema } from '@nauticalstream/proto/platform/v1/event_pb';
+import { fromJson } from '@bufbuild/protobuf';
 import { withSubscribeSpan } from './telemetry';
 import { deriveSubject } from '../utils/derive-subject';
+import { parseEnvelope } from './envelope';
 /**
  * Subscribe with queue group (load balancing)
  * Only one member of the queue group receives each message.
@@ -29,8 +29,8 @@ export async function queueGroup(client, logger, schema, handler, options) {
                 return;
             }
             try {
-                const envelope = fromBinary(EventSchema, msg.data);
-                const data = fromBinary(schema, envelope.payload);
+                const envelope = parseEnvelope(msg.data);
+                const data = fromJson(schema, envelope.data ?? {});
                 await withSubscribeSpan(subject, msg.headers ?? undefined, () => handler(data, envelope));
             }
             catch (error) {

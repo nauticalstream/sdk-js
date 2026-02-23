@@ -1,34 +1,35 @@
-import { type Tracer, type Meter } from '@opentelemetry/api';
+import { SpanKind, type Tracer, type Meter, type Span } from '@opentelemetry/api';
 import type { TelemetryConfig } from './config';
-/**
- * Initialize OpenTelemetry SDK with the provided configuration
- * OTel v2 optimized initialization with BatchSpanProcessor for production
- */
+/** Initialize the OTel SDK. Call once at startup before any other code. */
 export declare function initTelemetry(config: TelemetryConfig): void;
 /**
- * Shutdown the OpenTelemetry SDK gracefully
+ * Flush pending spans/metrics and shut down the OTel SDK.
  */
 export declare function shutdownTelemetry(): Promise<void>;
 /**
- * Get the tracer for the application
+ * Register SIGTERM + SIGINT handlers that flush telemetry before exit.
+ * Call once at application startup — do NOT call inside `initTelemetry`.
  */
-export declare function getTracer(name?: string): Tracer;
+export declare function registerShutdownHooks(): void;
+/** Returns a named OTel tracer. Pass the package/module name as scope. */
+export declare function getTracer(name?: string, version?: string): Tracer;
+/** Returns a named OTel meter. Pass the package/module name as scope. */
+export declare function getMeter(name?: string, version?: string): Meter;
 /**
- * Get the meter for the application
+ * Execute `fn` inside a named OTel span.
+ *
+ * Backward-compatible positional API — delegates to the unified `withSpan`
+ * from `telemetry/utils/tracing`. For new code prefer importing span helpers
+ * directly from `@nauticalstream/sdk/telemetry`.
+ *
+ * @param name       - Span name
+ * @param fn         - Callback, receives the active Span (sync or async)
+ * @param tracerName - Instrumentation scope name
+ * @param attributes - Span attributes set before `fn` is called
+ * @param spanKind   - OTel SpanKind (defaults to INTERNAL)
  */
-export declare function getMeter(name?: string): Meter;
-/**
- * Create a span with the given name and execute a function
- * OTel v2 best practice: Use context-aware span handling with error recording
- * @param name - The span name
- * @param fn - The async function to execute within the span
- * @param tracerName - Optional tracer name (defaults to 'default')
- * @param attributes - Optional span attributes to set
- */
-export declare function withSpan<T>(name: string, fn: () => Promise<T>, tracerName?: string, attributes?: Record<string, any>): Promise<T>;
-/**
- * Export tracer and meter directly
- */
+export declare function withSpan<T>(name: string, fn: (span: Span) => T | Promise<T>, tracerName?: string, attributes?: Record<string, string | number | boolean | string[]>, spanKind?: SpanKind): Promise<T>;
+/** Module-level tracer/meter singletons for convenience. */
 export declare const tracer: Tracer;
 export declare const meter: Meter;
 //# sourceMappingURL=telemetry.d.ts.map

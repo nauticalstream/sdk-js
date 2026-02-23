@@ -1,78 +1,72 @@
+import { type ObservableGauge } from '@opentelemetry/api';
 /**
- * Record a counter metric
- * Use for: counting events (requests, errors, messages, etc.)
- *
- * @param name - Metric name (e.g., 'http_requests_total')
- * @param value - Amount to add to counter (default: 1)
- * @param attributes - Optional metric attributes for dimensions
- * @param meterName - Optional meter name
+ * Increment a counter metric.
+ * Use for monotonically increasing event counts (requests, errors, messages…).
  *
  * @example
  * recordCounter('api_calls', 1, { endpoint: '/users', status: 200 });
  */
 export declare function recordCounter(name: string, value?: number, attributes?: Record<string, string | number | boolean>, meterName?: string): void;
 /**
- * Record a histogram metric
- * Use for: measuring distributions (latency, packet size, etc.)
+ * Record a value in a histogram (distribution of measurements).
+ * Use for latency, payload sizes, queue depths, and other distributions.
  *
- * @param name - Metric name (e.g., 'http_request_duration_ms')
- * @param value - Value to record
- * @param attributes - Optional metric attributes for dimensions
- * @param meterName - Optional meter name
+ * @param unit - OTel-standard unit string used by Grafana for axis labels:
+ *               `'ms'` for milliseconds, `'bytes'`, `'{requests}'`, etc.
  *
  * @example
- * recordHistogram('db_query_duration_ms', 45.3, { table: 'users' });
+ * recordHistogram('db_query_duration', 45.3, { table: 'users' }, { unit: 'ms' });
  */
-export declare function recordHistogram(name: string, value: number, attributes?: Record<string, string | number | boolean>, meterName?: string): void;
+export declare function recordHistogram(name: string, value: number, attributes?: Record<string, string | number | boolean>, options?: {
+    unit?: string;
+    meterName?: string;
+}): void;
 /**
- * Record a gauge metric (observable gauge - current value)
- * Use for: tracking current state (memory usage, active connections, etc.)
+ * Add a delta to an UpDownCounter.
+ * Use for values that can both increase and decrease, such as the number of
+ * active connections or items currently in a queue.
  *
- * NOTE: For real-time gauges, use createObservableGauge() instead
- * This is for manual gauge updates
+ * **Important:** this tracks *deltas*, not absolute values.
+ * - To add one connection:    `addUpDownCounter('active_connections', 1)`
+ * - To remove one connection: `addUpDownCounter('active_connections', -1)`
  *
- * @param name - Metric name (e.g., 'active_connections')
- * @param value - Current value
- * @param attributes - Optional metric attributes for dimensions
- * @param meterName - Optional meter name
+ * For a metric that tracks a current absolute state (e.g. memory usage),
+ * use `createObservableGauge` with a callback instead.
+ */
+export declare function addUpDownCounter(name: string, value: number, attributes?: Record<string, string | number | boolean>, meterName?: string): void;
+/**
+ * @deprecated Use `addUpDownCounter` for delta-based resource tracking, or
+ * `createObservableGauge` for current-state metrics.
  *
- * @example
- * recordGauge('queue_length', 42, { queue: 'background_jobs' });
+ * This function uses an UpDownCounter under the hood, which means successive
+ * calls **accumulate** rather than setting an absolute value:
+ *   `recordGauge('workers', 3)` + `recordGauge('workers', 5)` = **8**, not 5.
+ *
+ * Kept for backward compatibility.
  */
 export declare function recordGauge(name: string, value: number, attributes?: Record<string, string | number | boolean>, meterName?: string): void;
 /**
- * Create an observable gauge for continuous monitoring
- * Use for: values that change over time without explicit recording
+ * Register an observable gauge for continuous monitoring.
+ * The `callback` is called periodically by the SDK and should return the
+ * current value at observation time.
  *
- * The callback is called periodically by the SDK
- *
- * @param name - Metric name (e.g., 'memory_usage_bytes')
- * @param callback - Function that returns the current value
- * @param meterName - Optional meter name
+ * Use for: heap memory, CPU usage, queue depth, open file descriptors…
  *
  * @example
- * createObservableGauge('memory_usage_bytes', () => {
- *   const usage = process.memoryUsage();
- *   return usage.heapUsed;
- * });
+ * createObservableGauge('heap_used_bytes', () => process.memoryUsage().heapUsed);
  */
-export declare function createObservableGauge(name: string, callback: () => number, meterName?: string): void;
+export declare function createObservableGauge(name: string, callback: () => number, meterName?: string): ObservableGauge;
 /**
- * Helper for measuring operation duration
- * Returns a function to call when operation completes
- *
- * @param name - Metric name for duration histogram
- * @param attributes - Optional attributes
- * @param meterName - Optional meter name
- * @returns Function to call with operation result ({success: boolean})
+ * Start a duration timer. Call the returned function when the operation
+ * finishes — it records the elapsed time as a histogram with `unit: 'ms'`.
  *
  * @example
- * const timer = startTimer('api_request_duration_ms');
+ * const stop = startTimer('db_query_duration', { table: 'users' });
  * try {
- *   await callApi();
- *   timer({ success: true });
+ *   await db.query(...);
+ *   stop({ success: true });
  * } catch (err) {
- *   timer({ success: false, error_type: err.name });
+ *   stop({ success: false, error_type: err.constructor.name });
  * }
  */
 export declare function startTimer(name: string, attributes?: Record<string, string | number | boolean>, meterName?: string): (resultAttrs?: Record<string, string | number | boolean>) => void;

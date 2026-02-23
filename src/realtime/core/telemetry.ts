@@ -4,6 +4,7 @@ import {
   trace,
   SpanKind,
   SpanStatusCode,
+  type Span,
   type TextMapGetter,
   type TextMapSetter,
 } from '@opentelemetry/api';
@@ -76,7 +77,7 @@ export function createPublishProperties(
 export async function withPublishSpan(
   topic: string,
   messageSize: number,
-  fn: () => Promise<void>
+  fn: (span: Span) => Promise<void>
 ): Promise<void> {
   const tracer = trace.getTracer(TRACER_NAME);
   const span = tracer.startSpan(`publish ${topic}`, {
@@ -84,17 +85,19 @@ export async function withPublishSpan(
     attributes: {
       'messaging.system': 'mqtt',
       'messaging.destination': topic,
+      'messaging.operation': 'publish',
       'messaging.message.payload_size_bytes': messageSize,
     },
   });
 
   return context.with(trace.setSpan(context.active(), span), async () => {
     try {
-      await fn();
-      span.setStatus({ code: SpanStatusCode.OK });
+      await fn(span);
+      // OTel spec §Span-Status: leave status UNSET on success; only set ERROR on failure
     } catch (err) {
       span.setStatus({ code: SpanStatusCode.ERROR });
       if (err instanceof Error) span.recordException(err);
+      else span.recordException(new Error(String(err)));
       throw err;
     } finally {
       span.end();
@@ -115,18 +118,20 @@ export async function withPublishSpan(
 export async function withMessageSpan(
   topic: string,
   userProperties: Record<string, string | string[]> | undefined,
-  fn: () => Promise<void>
+  fn: (span: Span) => Promise<void>
 ): Promise<void> {
   const parentCtx = propagation.extract(context.active(), userProperties, getter);
   const tracer = trace.getTracer(TRACER_NAME);
 
   const span = tracer.startSpan(
-    `receive ${topic}`,
+    `process ${topic}`,
     {
       kind: SpanKind.CONSUMER,
       attributes: {
         'messaging.system': 'mqtt',
         'messaging.destination': topic,
+        // OTel messaging semconv: 'process' for consumers that handle a received message
+        'messaging.operation': 'process',
       },
     },
     parentCtx
@@ -134,11 +139,12 @@ export async function withMessageSpan(
 
   return context.with(trace.setSpan(parentCtx, span), async () => {
     try {
-      await fn();
-      span.setStatus({ code: SpanStatusCode.OK });
+      await fn(span);
+      // OTel spec §Span-Status: leave status UNSET on success; only set ERROR on failure
     } catch (err) {
       span.setStatus({ code: SpanStatusCode.ERROR });
       if (err instanceof Error) span.recordException(err);
+      else span.recordException(new Error(String(err)));
       throw err;
     } finally {
       span.end();

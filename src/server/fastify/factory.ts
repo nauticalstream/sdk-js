@@ -1,66 +1,52 @@
-import fastify, { type FastifyInstance, type FastifyBaseLogger } from 'fastify';
-import type { Bindings, ChildLoggerOptions } from 'pino';
+import fastify, { type FastifyInstance } from 'fastify';
 import { createLogger } from '../../telemetry/utils/logging';
+import { createFastifyLoggerAdapter } from './logger/adapter';
 import { fastifyTelemetry } from './plugins/telemetry.plugin';
 import { fastifyRequestLogging } from './plugins/logging.plugin';
+import { fastifyObservability } from './plugins/observability.plugin';
+import { fastifyCors } from './plugins/cors.plugin';
+import { DEFAULT_SERVICE_NAME, DEFAULT_REQUEST_LOGGING } from './config';
 import type { FastifyServerOptions } from './types';
-
-/** Adapts telemetry logger (Pino) to Fastify's logger interface */
-function createFastifyLoggerAdapter(logger: ReturnType<typeof createLogger>): FastifyBaseLogger {
-  return {
-    level: logger.level,
-    fatal: logger.fatal.bind(logger),
-    error: logger.error.bind(logger),
-    warn: logger.warn.bind(logger),
-    info: logger.info.bind(logger),
-    debug: logger.debug.bind(logger),
-    trace: logger.trace.bind(logger),
-    silent: logger.silent?.bind(logger) || (() => {}),
-    child(bindings: Bindings, options?: ChildLoggerOptions): FastifyBaseLogger {
-      const childLogger = logger.child(bindings, options);
-      return createFastifyLoggerAdapter(childLogger);
-    },
-  } as FastifyBaseLogger;
-}
 
 /**
  * Creates a Fastify server with automatic telemetry integration.
- * 
- * @param options - Server configuration
- * @returns Configured Fastify instance
- * 
+ *
+ * Registers in order:
+ *  1. `fastifyTelemetry`      — correlation ID extraction + OTel context propagation
+ *  2. `fastifyObservability`  — OTel metrics per request (no-op when SDK absent)
+ *  3. `fastifyRequestLogging` — structured Pino request/response logs (if enabled)
+ *  4. `fastifyCors`           — CORS headers (if configured)
+ *
  * @example
+ * ```typescript
  * const server = await createFastifyServer({
  *   serviceName: 'my-service',
- *   requestLogging: true,
- *   cors: { origin: true }
+ *   trustProxy: true,   // required behind AWS ALB / nginx / k8s ingress
+ *   cors: { origin: true },
  * });
+ * ```
  */
 export async function createFastifyServer(
   options: FastifyServerOptions
 ): Promise<FastifyInstance> {
-  const { serviceName = 'fastify', requestLogging = true, cors, destination, ...fastifyOptions } = options;
-  
-  const telemetryLogger = createLogger({ name: serviceName }, destination);
-  const logger = createFastifyLoggerAdapter(telemetryLogger);
-  
+  const {
+    serviceName = DEFAULT_SERVICE_NAME,
+    requestLogging = DEFAULT_REQUEST_LOGGING,
+    cors,
+    destination,
+    trustProxy = false,
+  } = options;
+
   const server = fastify({
-    ...fastifyOptions,
-    loggerInstance: logger,
+    loggerInstance: createFastifyLoggerAdapter(createLogger({ name: serviceName }, destination)),
     disableRequestLogging: true,
+    trustProxy,
   });
 
   await server.register(fastifyTelemetry);
-
-  if (requestLogging) {
-    await server.register(fastifyRequestLogging);
-  }
-
-  if (cors) {
-    const fastifyCors = await import('@fastify/cors');
-    const corsOptions = typeof cors === 'boolean' ? { origin: true } : cors;
-    await server.register(fastifyCors.default, corsOptions);
-  }
+  await server.register(fastifyObservability);
+  if (requestLogging) await server.register(fastifyRequestLogging);
+  if (cors) await server.register(fastifyCors, { cors });
 
   return server;
 }

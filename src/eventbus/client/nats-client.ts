@@ -1,4 +1,4 @@
-import { connect, type NatsConnection, type JetStreamClient, StringCodec, type Codec } from 'nats';
+import { connect, type NatsConnection, type JetStreamClient } from 'nats';
 import type { Logger } from 'pino';
 
 export interface NatsClientConfig {
@@ -7,72 +7,42 @@ export interface NatsClientConfig {
   logger: Logger;
 }
 
-/**
- * NATS JetStream client wrapper
- * Manages connection, reconnection, and provides access to JetStream
- */
+/** Managed NATS connection — wraps connect/disconnect and exposes JetStream accessors. */
 export class NatsClient {
   private connection: NatsConnection | null = null;
   private jetstream: JetStreamClient | null = null;
-  private readonly codec: Codec<string>;
   private isConnected = false;
   private config: NatsClientConfig;
 
   constructor(config: NatsClientConfig) {
     this.config = config;
-    this.codec = StringCodec();
   }
 
-  /**
-   * Connect to NATS server
-   */
+  /** Connect to NATS and initialise JetStream. Waits for the first connection. */
   async connect(): Promise<void> {
     try {
-      this.config.logger.info({ servers: this.config.servers }, 'Connecting to NATS server...');
+      this.config.logger.info({ servers: this.config.servers }, 'Connecting to NATS...');
 
       this.connection = await connect({
         servers: this.config.servers,
         name: this.config.name,
-        maxReconnectAttempts: -1, // Infinite reconnect attempts
-        reconnectTimeWait: 2000, // 2 seconds between reconnects
-        waitOnFirstConnect: true, // Wait for initial connection instead of failing immediately
+        maxReconnectAttempts: -1,   // infinite
+        reconnectTimeWait: 2000,
+        waitOnFirstConnect: true,
       });
 
       this.jetstream = this.connection.jetstream();
       this.isConnected = true;
 
-      this.config.logger.info('Successfully connected to NATS JetStream');
-
-      // Handle connection events
-      this.setupEventHandlers();
+      this.config.logger.info('Connected to NATS JetStream');
+      this.watchStatus();
     } catch (error) {
       this.config.logger.error({ error }, 'Failed to connect to NATS');
       throw error;
     }
   }
 
-  /**
-   * Setup connection event handlers
-   */
-  private setupEventHandlers(): void {
-    if (!this.connection) return;
-
-    (async () => {
-      for await (const status of this.connection!.status()) {
-        this.config.logger.info({ type: status.type, data: status.data }, 'NATS connection status change');
-
-        if (status.type === 'disconnect' || status.type === 'error') {
-          this.isConnected = false;
-        } else if (status.type === 'reconnect') {
-          this.isConnected = true;
-        }
-      }
-    })();
-  }
-
-  /**
-   * Disconnect from NATS server
-   */
+  /** Drain in-flight messages then close the connection. */
   async disconnect(): Promise<void> {
     if (this.connection) {
       await this.connection.drain();
@@ -82,47 +52,37 @@ export class NatsClient {
     }
   }
 
-  /**
-   * Get JetStream client
-   */
-  getJetStream(): JetStreamClient {
-    if (!this.jetstream) {
-      throw new Error('NATS JetStream not initialized. Call connect() first.');
-    }
-    return this.jetstream;
-  }
-
-  /**
-   * Get JetStream Manager for admin operations
-   */
-  async getJetStreamManager() {
-    if (!this.connection) {
-      throw new Error('NATS connection not initialized. Call connect() first.');
-    }
-    return this.connection.jetstreamManager();
-  }
-
-  /**
-   * Get NATS connection
-   */
+  /** Returns the raw NATS connection. Throws if not yet connected. */
   getConnection(): NatsConnection {
-    if (!this.connection) {
-      throw new Error('NATS connection not initialized. Call connect() first.');
-    }
+    if (!this.connection) throw new Error('NATS not connected — call connect() first');
     return this.connection;
   }
 
-  /**
-   * Get string codec for encoding/decoding messages
-   */
-  getCodec(): Codec<string> {
-    return this.codec;
+  /** Returns the JetStream client. Throws if not yet connected. */
+  getJetStream(): JetStreamClient {
+    if (!this.jetstream) throw new Error('JetStream not initialised — call connect() first');
+    return this.jetstream;
   }
 
-  /**
-   * Check if connected
-   */
+  /** Returns a JetStream manager for admin operations (consumer/stream CRUD). */
+  async getJetStreamManager() {
+    if (!this.connection) throw new Error('NATS not connected — call connect() first');
+    return this.connection.jetstreamManager();
+  }
+
   get connected(): boolean {
     return this.isConnected;
+  }
+
+  /** Log reconnect/disconnect events and keep isConnected in sync. */
+  private watchStatus(): void {
+    if (!this.connection) return;
+    (async () => {
+      for await (const status of this.connection!.status()) {
+        this.config.logger.info({ type: status.type, data: status.data }, 'NATS status change');
+        if (status.type === 'disconnect' || status.type === 'error') this.isConnected = false;
+        else if (status.type === 'reconnect') this.isConnected = true;
+      }
+    })();
   }
 }

@@ -14,11 +14,15 @@ export class MQTTClientManager {
             return this.client;
         }
         if (this.isConnecting) {
-            // Wait for existing connection attempt
-            return new Promise((resolve) => {
+            // Wait for existing connection attempt — reject if it fails
+            return new Promise((resolve, reject) => {
                 const checkConnection = () => {
                     if (this.client?.connected) {
                         resolve(this.client);
+                    }
+                    else if (!this.isConnecting) {
+                        // isConnecting was reset to false without a successful connection — first attempt failed
+                        reject(new Error('MQTT connection failed during concurrent connect attempt'));
                     }
                     else {
                         setTimeout(checkConnection, 100);
@@ -70,6 +74,13 @@ export class MQTTClientManager {
         return this.client;
     }
     /**
+     * Returns true only when the underlying MQTT socket is live.
+     * Use this to check the actual transport state, not just our local flag.
+     */
+    isConnected() {
+        return this.client?.connected ?? false;
+    }
+    /**
      * Gracefully disconnect from MQTT broker
      * Allows pending messages to complete before closing
      */
@@ -91,9 +102,6 @@ export class MQTTClientManager {
             this.client = null;
             this.isDisconnecting = false;
         }
-    }
-    isConnected() {
-        return this.client?.connected ?? false;
     }
 }
 //# sourceMappingURL=mqtt-client.js.map

@@ -1,3 +1,4 @@
+import { type Span } from '@opentelemetry/api';
 /**
  * Create MQTT User Properties with trace context and correlation metadata
  * Returns Record<string, string> for MQTT v5 userProperties
@@ -19,7 +20,7 @@ export declare function createPublishProperties(correlationId: string, source?: 
  * @param messageSize - Size of the message payload in bytes
  * @param fn - Async function to execute within the span
  */
-export declare function withPublishSpan(topic: string, messageSize: number, fn: () => Promise<void>): Promise<void>;
+export declare function withPublishSpan(topic: string, messageSize: number, fn: (span: Span) => Promise<void>): Promise<void>;
 /**
  * Wrap a message handler in an OTel consumer span
  * Extracts trace context from MQTT userProperties and creates a child span
@@ -30,5 +31,5 @@ export declare function withPublishSpan(topic: string, messageSize: number, fn: 
  * @param userProperties - MQTT v5 userProperties containing trace context
  * @param fn - Async function to execute within the span
  */
-export declare function withMessageSpan(topic: string, userProperties: Record<string, string | string[]> | undefined, fn: () => Promise<void>): Promise<void>;
+export declare function withMessageSpan(topic: string, userProperties: Record<string, string | string[]> | undefined, fn: (span: Span) => Promise<void>): Promise<void>;
 //# sourceMappingURL=telemetry.d.ts.map

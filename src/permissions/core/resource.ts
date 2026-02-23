@@ -1,5 +1,12 @@
 import type { KetoClient } from '../client/keto';
-import { ForbiddenError } from '../../errors';
+import { ForbiddenError, ValidationError } from '../../errors';
+
+/** Zero-trust guard: rejects empty or whitespace-only IDs before they reach Keto */
+function assertNonEmpty(value: string, name: string): void {
+  if (!value || value.trim().length === 0) {
+    throw new ValidationError(`${name} must not be empty`);
+  }
+}
 
 /**
  * Check if user has a specific permission on a resource
@@ -11,6 +18,10 @@ export async function hasPermission(
   userId: string,
   permission: string
 ): Promise<boolean> {
+  assertNonEmpty(namespace, 'namespace');
+  assertNonEmpty(resourceId, 'resourceId');
+  assertNonEmpty(userId, 'userId');
+  assertNonEmpty(permission, 'permission');
   const result = await client.permission.checkPermission({
     namespace,
     object: resourceId,
@@ -47,6 +58,9 @@ export async function grantOwnership(
   resourceId: string,
   userId: string
 ): Promise<void> {
+  assertNonEmpty(namespace, 'namespace');
+  assertNonEmpty(resourceId, 'resourceId');
+  assertNonEmpty(userId, 'userId');
   await client.relationship.createRelationship({
     createRelationshipBody: {
       namespace,
@@ -67,6 +81,10 @@ export async function grantPermission(
   userId: string,
   permission: string
 ): Promise<void> {
+  assertNonEmpty(namespace, 'namespace');
+  assertNonEmpty(resourceId, 'resourceId');
+  assertNonEmpty(userId, 'userId');
+  assertNonEmpty(permission, 'permission');
   const relation = permissionToRelation(permission);
   await client.relationship.createRelationship({
     createRelationshipBody: {
@@ -88,6 +106,10 @@ export async function revokePermission(
   userId: string,
   permission: string
 ): Promise<void> {
+  assertNonEmpty(namespace, 'namespace');
+  assertNonEmpty(resourceId, 'resourceId');
+  assertNonEmpty(userId, 'userId');
+  assertNonEmpty(permission, 'permission');
   const relation = permissionToRelation(permission);
   await client.relationship.deleteRelationships({
     namespace,
@@ -106,6 +128,9 @@ export async function linkToWorkspace(
   resourceId: string,
   workspaceId: string
 ): Promise<void> {
+  assertNonEmpty(namespace, 'namespace');
+  assertNonEmpty(resourceId, 'resourceId');
+  assertNonEmpty(workspaceId, 'workspaceId');
   await client.relationship.createRelationship({
     createRelationshipBody: {
       namespace,
@@ -129,6 +154,9 @@ export async function unlinkFromWorkspace(
   resourceId: string,
   workspaceId: string
 ): Promise<void> {
+  assertNonEmpty(namespace, 'namespace');
+  assertNonEmpty(resourceId, 'resourceId');
+  assertNonEmpty(workspaceId, 'workspaceId');
   await client.relationship.deleteRelationships({
     namespace,
     object: resourceId,
@@ -148,6 +176,9 @@ export async function listResources(
   userId: string,
   permission: string = 'view'
 ): Promise<string[]> {
+  assertNonEmpty(namespace, 'namespace');
+  assertNonEmpty(userId, 'userId');
+  assertNonEmpty(permission, 'permission');
   const result = await client.relationship.getRelationships({
     namespace,
     relation: permission,
@@ -165,6 +196,8 @@ export async function cleanupResource(
   namespace: string,
   resourceId: string
 ): Promise<void> {
+  assertNonEmpty(namespace, 'namespace');
+  assertNonEmpty(resourceId, 'resourceId');
   // Delete all tuples where this resource is the object
   await client.relationship.deleteRelationships({
     namespace,
@@ -173,17 +206,18 @@ export async function cleanupResource(
 }
 
 /**
- * Convert permission name to relation name
+ * Map a logical permission name to the corresponding Keto relation.
+ * Only 'view' and 'edit' have explicit plural aliases; everything else
+ * (including custom relations) passes through unchanged.
+ *
+ * NOTE: 'delete' and 'share' are intentionally NOT mapped here — use
+ * grantOwnership() when you intend to grant ownership-level access.
  */
 function permissionToRelation(permission: string): string {
-  // Map common permission names to plural relation names
   const mapping: Record<string, string> = {
     view: 'viewers',
     edit: 'editors',
-    delete: 'owners',
-    share: 'owners',
     own: 'owners',
   };
-
   return mapping[permission] || permission;
 }

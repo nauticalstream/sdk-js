@@ -92,7 +92,7 @@ describe('createHealthPlugin', () => {
       url: '/health',
     });
 
-    expect(response.statusCode).toBe(200);
+    expect(response.statusCode).toBe(503);
 
     const body = JSON.parse(response.body);
     expect(body.status).toBe('degraded');
@@ -128,7 +128,7 @@ describe('createHealthPlugin', () => {
       url: '/health',
     });
 
-    expect(response.statusCode).toBe(200);
+    expect(response.statusCode).toBe(503);
 
     const body = JSON.parse(response.body);
     expect(body.status).toBe('degraded');
@@ -232,10 +232,33 @@ describe('createHealthPlugin', () => {
       url: '/health',
     });
 
-    expect(response.statusCode).toBe(200);
+    expect(response.statusCode).toBe(503);
     const body = JSON.parse(response.body);
     expect(body.status).toBe('degraded');
     expect(body.systems.customCheck.connected).toBe(false);
     expect(body.systems.customCheck.status).toBe('error');
+  });
+
+  it('captures the message when a check throws a plain string', async () => {
+    app = Fastify({ logger: false });
+
+    await app.register(
+      createHealthPlugin({
+        serviceName: 'test-service',
+        version: '1.0.0',
+        checks: {
+          // Some code does `throw 'message'` rather than `throw new Error('message')`
+          broker: async () => { throw 'connection string invalid'; },
+        },
+      })
+    );
+
+    await app.ready();
+
+    const response = await app.inject({ method: 'GET', url: '/health' });
+
+    expect(response.statusCode).toBe(503);
+    const body = JSON.parse(response.body);
+    expect(body.systems.broker.error).toBe('connection string invalid');
   });
 });

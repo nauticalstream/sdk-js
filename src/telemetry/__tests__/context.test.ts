@@ -3,8 +3,10 @@ import { context } from '@opentelemetry/api';
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks';
 import {
   getCorrelationId,
+  peekCorrelationId,
   setCorrelationId,
   withCorrelationId,
+  withEnsuredCorrelationId,
   generateCorrelationId,
   getTraceId,
   getSpanId,
@@ -99,5 +101,53 @@ describe('getSpanId', () => {
 describe('getActiveSpan', () => {
   it('returns undefined when there is no active span', () => {
     expect(getActiveSpan()).toBeUndefined();
+  });
+});
+
+describe('withEnsuredCorrelationId', () => {
+  it('generates a UUID and passes it to fn when no ID is in context', async () => {
+    let received: string | undefined;
+    await withEnsuredCorrelationId(async (id) => { received = id; });
+    expect(received).toMatch(UUID_REGEX);
+  });
+
+  it('makes peekCorrelationId() return the ID inside fn', async () => {
+    let peeked: string | undefined;
+    await withEnsuredCorrelationId(async () => { peeked = peekCorrelationId(); });
+    expect(peeked).toMatch(UUID_REGEX);
+  });
+
+  it('propagates the same ID to nested async calls', async () => {
+    let outer: string | undefined;
+    let inner: string | undefined;
+
+    await withEnsuredCorrelationId(async (id) => {
+      outer = id;
+      await Promise.resolve(); // cross an async boundary
+      inner = peekCorrelationId();
+    });
+
+    expect(inner).toBe(outer);
+  });
+
+  it('reuses an existing ID when one is already in context', async () => {
+    const existing = 'pre-existing-id';
+    let received: string | undefined;
+
+    await withCorrelationId(existing, async () => {
+      await withEnsuredCorrelationId(async (id) => { received = id; });
+    });
+
+    expect(received).toBe(existing);
+  });
+
+  it('returns the value from fn', async () => {
+    const result = await withEnsuredCorrelationId(async () => 'enterprise');
+    expect(result).toBe('enterprise');
+  });
+
+  it('does not leak the generated ID outside fn', async () => {
+    await withEnsuredCorrelationId(async () => {});
+    expect(peekCorrelationId()).toBeUndefined();
   });
 });

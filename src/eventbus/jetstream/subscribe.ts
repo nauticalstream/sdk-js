@@ -1,51 +1,42 @@
-import type { NatsClient } from '../client/nats-client';
+import type { JsMsg, Consumer } from 'nats';
 import type { Logger } from 'pino';
-import type { JsMsg, Consumer, JetStreamClient } from 'nats';
-import { AckPolicy, DeliverPolicy } from 'nats';
+import type { NatsClient } from '../client/nats-client';
+import { ensureConsumer } from './consumer';
 
 /**
- * Error handling actions for JetStream messages
- * - retry: NAK the message for redelivery (transient errors like network/DB timeouts)
- * - discard: ACK the message to remove from queue (logic errors like validation failures)
- * - deadletter: TERM the message to mark as poison (critical errors needing manual intervention)
+ * What to do with a message after handler failure.
+ *
+ * - retry       NAK for redelivery — use for transient errors (network, DB timeout)
+ * - discard     ACK + remove — use for permanent logic errors (validation, bad schema)
+ * - deadletter  TERM — marks the message as poison, requires manual intervention
  */
 export type ErrorAction = 'retry' | 'discard' | 'deadletter';
 
-/**
- * Error classifier function - determines how to handle errors
- */
+/** Classify an error into an ErrorAction. */
 export type ErrorClassifier = (error: unknown) => ErrorAction;
 
-/**
- * Default error classifier - retry everything (backward compatible)
- */
-export const defaultErrorClassifier: ErrorClassifier = (_error: unknown): ErrorAction => {
-  return 'retry';
-};
+/** Default classifier — always retry. Safe for unknown error types. */
+export const defaultErrorClassifier: ErrorClassifier = () => 'retry';
 
-/**
- * JetStream subscriber configuration
- * Handler receives raw binary data (Uint8Array) for protobuf decoding
- */
 export interface SubscriberConfig {
   stream: string;
   consumer: string;
   subject: string;
+  /** Receives raw bytes — decode them with parseEnvelope + fromJson inside the handler. */
   handler: (data: Uint8Array, msg: JsMsg) => Promise<void>;
   concurrency?: number;
   retryDelayMs?: number;
-  /**
-   * Optional error classifier to determine retry behavior
-   * Defaults to retrying all errors if not provided
-   */
+  /** Max delivery attempts before NATS dead-letters the message. */
+  maxDeliveries?: number;
   errorClassifier?: ErrorClassifier;
 }
 
 /**
- * Establish a resilient JetStream durable subscription.
- * Returns a cleanup function to stop consumption gracefully.
- * 
- * Handler receives raw binary data (Uint8Array) for protobuf decoding
+ * Low-level JetStream message loop.
+ * Delivers raw Uint8Array to the handler; ACK/NAK/TERM based on error classifier.
+ * Returns an async cleanup function — await it to drain the consumer gracefully.
+ *
+ * Upper layers (JetStreamAPI.subscribe) call this and wrap it with proto decode logic.
  */
 export async function subscribe(
   client: NatsClient,
@@ -58,37 +49,24 @@ export async function subscribe(
     subject,
     handler,
     concurrency = 1,
-    retryDelayMs = 500
+    retryDelayMs = 500,
+    errorClassifier = defaultErrorClassifier,
   } = config;
 
+  if (!client.connected) {
+    logger.warn({ subject }, 'NATS not connected — subscriber returning no-op');
+    return async () => {};
+  }
+
   try {
-    if (!client.connected) {
-      logger.warn({ subject }, 'NATS not connected - cannot subscribe');
-      return async () => {};
-    }
-
-    const js: JetStreamClient = client.getJetStream();
-
-    logger.info({ stream, consumer: consumerName, subject }, 'Initializing JetStream consumer');
-
+    const js = client.getJetStream();
     const jsm = await client.getJetStreamManager();
-    let consumer: Consumer;
 
-    try {
-      await jsm.consumers.info(stream, consumerName);
-      logger.debug({ consumer: consumerName }, 'Using existing consumer');
-    } catch {
-      logger.info({ consumer: consumerName }, 'Creating JetStream consumer');
-      await jsm.consumers.add(stream, {
-        name: consumerName,
-        durable_name: consumerName,
-        ack_policy: AckPolicy.Explicit,
-        filter_subject: subject,
-        deliver_policy: DeliverPolicy.All
-      });
-    }
+    logger.info({ stream, consumer: consumerName, subject }, 'Initialising JetStream consumer');
 
-    consumer = await js.consumers.get(stream, consumerName);
+    const consumer: Consumer = await ensureConsumer(jsm, js, stream, consumerName, subject, {
+      maxDeliveries: config.maxDeliveries,
+    });
     const messages = await consumer.consume({ max_messages: 100 });
 
     let active = 0;
@@ -101,46 +79,24 @@ export async function subscribe(
       if (!msg) return;
 
       active++;
-
       try {
-        // Pass raw binary data to handler for protobuf decoding
-        const binaryData = msg.data;
-
-        logger.debug({ subject: msg.subject, consumer: consumerName, bytes: binaryData.length }, 'Processing message');
-        await handler(binaryData, msg);
+        logger.debug({ subject: msg.subject, consumer: consumerName, bytes: msg.data.length }, 'Processing message');
+        await handler(msg.data, msg);
         msg.ack();
-
-        logger.debug({ subject: msg.subject, consumer: consumerName }, 'Message processed');
       } catch (err) {
-        const classifier = config.errorClassifier || defaultErrorClassifier;
-        const action = classifier(err);
-        const errorName = err instanceof Error ? err.constructor.name : 'UnknownError';
-        const errorMessage = err instanceof Error ? err.message : String(err);
+        const action = errorClassifier(err);
+        const name = err instanceof Error ? err.constructor.name : 'UnknownError';
+        const message = err instanceof Error ? err.message : String(err);
 
-        switch (action) {
-          case 'retry':
-            logger.error(
-              { err, errorName, errorMessage, subject: msg.subject, consumer: consumerName },
-              'Transient error - will retry after delay'
-            );
-            msg.nak(retryDelayMs);
-            break;
-
-          case 'discard':
-            logger.warn(
-              { errorName, errorMessage, subject: msg.subject, consumer: consumerName },
-              'Non-retryable error - discarding message'
-            );
-            msg.ack(); // ACK to remove from queue
-            break;
-
-          case 'deadletter':
-            logger.error(
-              { err, errorName, errorMessage, subject: msg.subject, consumer: consumerName },
-              'Fatal error - marking as poison message (deadletter)'
-            );
-            msg.term(); // Terminal error - requires manual intervention
-            break;
+        if (action === 'retry') {
+          logger.error({ err, name, message, subject: msg.subject, consumer: consumerName }, 'Transient error — will retry');
+          msg.nak(retryDelayMs);
+        } else if (action === 'discard') {
+          logger.warn({ name, message, subject: msg.subject, consumer: consumerName }, 'Non-retryable error — discarding');
+          msg.ack();
+        } else {
+          logger.error({ err, name, message, subject: msg.subject, consumer: consumerName }, 'Fatal error — dead-lettering');
+          msg.term();
         }
       } finally {
         active--;
@@ -156,9 +112,7 @@ export async function subscribe(
           void processNext();
         }
       } catch (err) {
-        if (!stopped) {
-          logger.error({ err }, 'JetStream consumer stopped unexpectedly');
-        }
+        if (!stopped) logger.error({ err }, 'JetStream consumer stopped unexpectedly');
       }
     })();
 
@@ -175,7 +129,7 @@ export async function subscribe(
       }
     };
   } catch (err) {
-    logger.error({ err, stream: config.stream, consumer: config.consumer, subject: config.subject }, 'Failed to initialize consumer');
+    logger.error({ err, stream, consumer: config.consumer, subject }, 'Failed to initialise consumer');
     return async () => {};
   }
 }

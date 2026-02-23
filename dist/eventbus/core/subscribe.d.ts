@@ -2,7 +2,7 @@ import type { NatsClient } from '../client/nats-client';
 import type { Logger } from 'pino';
 import type { Message } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
-import { type Event } from '@nauticalstream/proto/platform/v1/event_pb';
+import { type Event } from './envelope';
 import type { Unsubscribe } from './types';
 /**
  * Subscribe to subject (ephemeral)

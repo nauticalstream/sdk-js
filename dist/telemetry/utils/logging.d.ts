@@ -15,7 +15,12 @@ export interface TelemetryLoggerOptions extends LoggerOptions {
  */
 export type TelemetryLogger = Logger;
 /**
- * Create a Pino logger with automatic correlation ID and trace ID injection
+ * Create a Pino logger with automatic trace/span ID injection and — when a
+ * correlation ID is present in the active OTel context — correlation ID injection.
+ *
+ * Uses `peekCorrelationId()` (not `getCorrelationId()`) so that log lines
+ * emitted outside a request/message handler do NOT get synthetic UUIDs that
+ * would never match any trace in Grafana Loki.
  *
  * @param options - Logger options
  * @param options.name - Logger name (appears in logs and Sentry events)

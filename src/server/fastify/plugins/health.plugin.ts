@@ -17,7 +17,7 @@ import type { HealthPluginOptions } from '../types';
  */
 export function createHealthPlugin(options: HealthPluginOptions) {
   async function healthPlugin(fastify: FastifyInstance): Promise<void> {
-    fastify.get(options.path ?? '/health', async () => {
+    fastify.get(options.path ?? '/health', async (_, reply) => {
       // Run all health checks in parallel
       const checkResults = await Promise.all(
         Object.entries(options.checks).map(async ([name, checkFn]) => {
@@ -27,13 +27,18 @@ export function createHealthPlugin(options: HealthPluginOptions) {
               return [name, { connected: false, status: 'error' }];
             }
             return [name, { connected: true, status: 'ok' }];
-          } catch (error: any) {
+          } catch (error: unknown) {
+            // Capture the message whether the check threw an Error or a plain string/value
+            const message =
+              error instanceof Error
+                ? error.message
+                : String(error) || 'Health check failed';
             return [
               name,
               {
                 connected: false,
                 status: 'error',
-                error: error?.message || 'Health check failed',
+                error: message,
               },
             ];
           }
@@ -44,6 +49,12 @@ export function createHealthPlugin(options: HealthPluginOptions) {
       const isHealthy = Object.values(systems).every(
         (system: any) => system.connected
       );
+
+      // Return HTTP 503 when degraded so orchestrators (Kubernetes, AWS ALB, nginx)
+      // can automatically detect and route around unhealthy instances.
+      if (!isHealthy) {
+        reply.code(503);
+      }
 
       return {
         status: isHealthy ? 'ok' : 'degraded',

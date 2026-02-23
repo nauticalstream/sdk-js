@@ -64,18 +64,21 @@ export async function withPublishSpan(topic, messageSize, fn) {
         attributes: {
             'messaging.system': 'mqtt',
             'messaging.destination': topic,
+            'messaging.operation': 'publish',
             'messaging.message.payload_size_bytes': messageSize,
         },
     });
     return context.with(trace.setSpan(context.active(), span), async () => {
         try {
-            await fn();
-            span.setStatus({ code: SpanStatusCode.OK });
+            await fn(span);
+            // OTel spec §Span-Status: leave status UNSET on success; only set ERROR on failure
         }
         catch (err) {
             span.setStatus({ code: SpanStatusCode.ERROR });
             if (err instanceof Error)
                 span.recordException(err);
+            else
+                span.recordException(new Error(String(err)));
             throw err;
         }
         finally {
@@ -96,22 +99,26 @@ export async function withPublishSpan(topic, messageSize, fn) {
 export async function withMessageSpan(topic, userProperties, fn) {
     const parentCtx = propagation.extract(context.active(), userProperties, getter);
     const tracer = trace.getTracer(TRACER_NAME);
-    const span = tracer.startSpan(`receive ${topic}`, {
+    const span = tracer.startSpan(`process ${topic}`, {
         kind: SpanKind.CONSUMER,
         attributes: {
             'messaging.system': 'mqtt',
             'messaging.destination': topic,
+            // OTel messaging semconv: 'process' for consumers that handle a received message
+            'messaging.operation': 'process',
         },
     }, parentCtx);
     return context.with(trace.setSpan(parentCtx, span), async () => {
         try {
-            await fn();
-            span.setStatus({ code: SpanStatusCode.OK });
+            await fn(span);
+            // OTel spec §Span-Status: leave status UNSET on success; only set ERROR on failure
         }
         catch (err) {
             span.setStatus({ code: SpanStatusCode.ERROR });
             if (err instanceof Error)
                 span.recordException(err);
+            else
+                span.recordException(new Error(String(err)));
             throw err;
         }
         finally {

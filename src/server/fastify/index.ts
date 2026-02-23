@@ -9,10 +9,20 @@ export {
 
 export { fastifyTelemetry, type FastifyTelemetryOptions } from './plugins/telemetry.plugin';
 export { fastifyRequestLogging } from './plugins/logging.plugin';
+export { fastifyObservability } from './plugins/observability.plugin';
+export { fastifyCors, type FastifyCorsPluginOptions } from './plugins/cors.plugin';
 export { createGraphQLPlugin } from './plugins/graphql.plugin';
 export { createHealthPlugin } from './plugins/health.plugin';
 
 export * from './errors';
+
+// Observability instruments — for services that want to add custom labels
+export {
+  httpRequestsTotal,
+  httpRequestDuration,
+  httpActiveRequests,
+  httpErrorsTotal,
+} from './observability/metrics';
 
 export type {
   BaseContext,
@@ -24,3 +34,9 @@ export type {
   HealthPluginOptions,
   HealthCheckFn,
 } from './types';
+
+export {
+  DEFAULT_SERVICE_NAME,
+  DEFAULT_CORRELATION_ID_HEADER,
+  DEFAULT_REQUEST_LOGGING,
+} from './config';

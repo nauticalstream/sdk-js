@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/node';
 import { nodeProfilingIntegration } from '@sentry/profiling-node';
 import type { SentryConfig } from './config';
-import { getCorrelationId, getTraceId, getSpanId } from '../utils/context';
+import { peekCorrelationId, getTraceId, getSpanId } from '../utils/context';
 
 let sentryInitialized = false;
 
@@ -22,7 +22,8 @@ let sentryInitialized = false;
  */
 export function initSentry(config: SentryConfig): void {
   if (!config.enabled || !config.dsn) {
-    console.log('[Sentry] Disabled or no DSN provided');
+    // Silent when Sentry is intentionally disabled — avoids noise in
+    // services that don't use Sentry at all.
     return;
   }
 
@@ -35,13 +36,16 @@ export function initSentry(config: SentryConfig): void {
     dsn: config.dsn,
     environment: config.environment,
     release: config.release,
-    tracesSampleRate: config.tracesSampleRate || 0.1,
-    profilesSampleRate: config.profilesSampleRate || 0.1,
+    // Use ?? not || so that an explicit 0 ("disable") is respected.
+    tracesSampleRate: config.tracesSampleRate ?? 0.1,
+    profilesSampleRate: config.profilesSampleRate ?? 0.0,
     
     integrations: [
-      // Performance profiling
-      nodeProfilingIntegration(),
-      
+      // CPU profiling — only enabled when config.profiling is explicitly true.
+      // nodeProfilingIntegration() adds ~20 MB startup overhead, so it is
+      // opt-in rather than on by default.
+      ...(config.profiling === true ? [nodeProfilingIntegration()] : []),
+
       // Auto-capture uncaught exceptions (process-level)
       Sentry.onUncaughtExceptionIntegration({
         onFatalError: async (err) => {
@@ -64,7 +68,9 @@ export function initSentry(config: SentryConfig): void {
       // Add trace context to all events
       event.contexts = event.contexts || {};
       event.contexts.telemetry = {
-        correlationId: getCorrelationId(),
+        // Use peekCorrelationId so we don't manufacture a fake UUID when
+        // there is no active correlation context.
+        correlationId: peekCorrelationId(),
         traceId: getTraceId(),
         spanId: getSpanId(),
       };

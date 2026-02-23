@@ -57,10 +57,12 @@ export function classifyKetoError(error: unknown): Error {
     return new TimeoutError(message || 'Keto request timeout');
   }
 
-  // HTTP status code extraction
-  const statusMatch = message.match(/status[:\s]+(\d{3})/i) || 
+  // HTTP status code extraction — only match explicit HTTP-range codes (4xx/5xx).
+  // The bare /(\d{3})/ fallback is intentionally removed: it is too greedy and
+  // would misfire on messages like "took 500ms" or "100 items remaining".
+  const statusMatch = message.match(/status[:\s]+(\d{3})/i) ||
                       message.match(/code[:\s]+(\d{3})/i) ||
-                      message.match(/(\d{3})/);
+                      message.match(/\b(4\d{2}|5\d{2})\b/);
   const statusCode = statusMatch ? parseInt(statusMatch[1], 10) : null;
 
   if (statusCode) {

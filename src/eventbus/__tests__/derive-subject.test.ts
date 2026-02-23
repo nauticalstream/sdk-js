@@ -24,8 +24,7 @@ describe('deriveSubject', () => {
     });
 
     it('preserves dots in the package.version prefix', () => {
-      const result = deriveSubject('a.b.SomeEvent');
-      expect(result.startsWith('a.b.')).toBe(true);
+      expect(deriveSubject('a.b.SomeEvent').startsWith('a.b.')).toBe(true);
     });
   });
 

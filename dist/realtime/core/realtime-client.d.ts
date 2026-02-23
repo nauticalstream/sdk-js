@@ -11,6 +11,7 @@ export declare class RealtimeClient {
     private brokerUrl;
     private breaker;
     private connected;
+    private transportListenersRegistered;
     private retryConfig;
     constructor(config: RealtimeClientConfig);
     /** Connect to MQTT broker */

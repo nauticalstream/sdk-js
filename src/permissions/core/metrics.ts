@@ -25,6 +25,7 @@ export const permissionsWriteLatency = meter.createHistogram('permissions.write.
  */
 export const permissionsCheckSuccess = meter.createCounter('permissions.check.success.total', {
   description: 'Total successful permission checks',
+  unit: '{check}',
 });
 
 /**
@@ -32,6 +33,7 @@ export const permissionsCheckSuccess = meter.createCounter('permissions.check.su
  */
 export const permissionsCheckDenied = meter.createCounter('permissions.check.denied.total', {
   description: 'Total permission checks denied by permission type',
+  unit: '{check}',
 });
 
 /**
@@ -39,6 +41,7 @@ export const permissionsCheckDenied = meter.createCounter('permissions.check.den
  */
 export const permissionsCheckErrors = meter.createCounter('permissions.check.errors.total', {
   description: 'Total permission check errors by type',
+  unit: '{error}',
 });
 
 /**
@@ -46,6 +49,7 @@ export const permissionsCheckErrors = meter.createCounter('permissions.check.err
  */
 export const permissionsWriteSuccess = meter.createCounter('permissions.write.success.total', {
   description: 'Total successful permission writes',
+  unit: '{write}',
 });
 
 /**
@@ -53,6 +57,7 @@ export const permissionsWriteSuccess = meter.createCounter('permissions.write.su
  */
 export const permissionsWriteErrors = meter.createCounter('permissions.write.errors.total', {
   description: 'Total permission write errors by type',
+  unit: '{error}',
 });
 
 /**
@@ -60,6 +65,7 @@ export const permissionsWriteErrors = meter.createCounter('permissions.write.err
  */
 export const permissionsRetryAttempts = meter.createCounter('permissions.retry.attempts.total', {
   description: 'Total permission operation retry attempts',
+  unit: '{attempt}',
 });
 
 /**
@@ -67,4 +73,5 @@ export const permissionsRetryAttempts = meter.createCounter('permissions.retry.a
  */
 export const permissionsCircuitBreakerState = meter.createUpDownCounter('permissions.circuit_breaker.state', {
   description: 'Permission circuit breaker state (1=closed, 0=open)',
+  unit: '1',
 });

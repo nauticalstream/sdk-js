@@ -21,6 +21,7 @@ import {
   getOrCreateCircuitBreaker,
   shouldRetry,
   DEFAULT_RETRY_CONFIG,
+  DEFAULT_CIRCUIT_BREAKER_CONFIG,
   type RetryConfig,
   type ResilientCircuitBreaker,
 } from '../../resilience';
@@ -32,6 +33,7 @@ import {
   permissionsWriteSuccess,
   permissionsWriteErrors,
   permissionsRetryAttempts,
+  permissionsCircuitBreakerState,
 } from '../core/metrics';
 
 /** KetoClient - Ory Keto HTTP client with retry, circuit breaker and metrics */
@@ -52,14 +54,16 @@ export class KetoClient {
     this.logger = config.logger || defaultLogger.child({ service: 'permissions' });
     this.retryConfig = { ...DEFAULT_RETRY_CONFIG, ...config.retryConfig };
 
-    this.readBreaker = getOrCreateCircuitBreaker(
-      'keto-read',
-      config.circuitBreaker
-    );
-    this.writeBreaker = getOrCreateCircuitBreaker(
-      'keto-write',
-      config.circuitBreaker
-    );
+    this.readBreaker = getOrCreateCircuitBreaker('keto-read', {
+      ...DEFAULT_CIRCUIT_BREAKER_CONFIG,
+      ...config.circuitBreaker,
+      stateMetric: permissionsCircuitBreakerState,
+    });
+    this.writeBreaker = getOrCreateCircuitBreaker('keto-write', {
+      ...DEFAULT_CIRCUIT_BREAKER_CONFIG,
+      ...config.circuitBreaker,
+      stateMetric: permissionsCircuitBreakerState,
+    });
   }
 
   /** Check if a subject has permission on an object */

@@ -45,6 +45,8 @@ export async function withPermissionSpan<T>(
       span.setStatus({ code: SpanStatusCode.ERROR });
       if (err instanceof Error) {
         span.recordException(err);
+      } else {
+        span.recordException(new Error(String(err)));
       }
       throw err;
     } finally {

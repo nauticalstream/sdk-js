@@ -1,17 +1,19 @@
-import type { NatsClient } from '../client/nats-client';
-import type { Logger } from 'pino';
-import type { JsMsg, Consumer, JetStreamClient, KV, ObjectStore } from 'nats';
-import { AckPolicy, DeliverPolicy } from 'nats';
-import { fromBinary, type Message, type MessageInitShape } from '@bufbuild/protobuf';
+import { fromJson, type Message, type MessageInitShape } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
-import { EventSchema, type Event } from '@nauticalstream/proto/platform/v1/event_pb';
+import type { KV, ObjectStore } from 'nats';
+import type { Logger } from 'pino';
+import type { NatsClient } from '../client/nats-client';
+import type { Event } from '@nauticalstream/proto/platform/v1/event_pb';
 import { publish as jsPublish, type JetStreamPublishOptions } from './publish';
-import { withSubscribeSpan } from '../core/telemetry';
-import type { ErrorClassifier } from './subscribe';
-import { defaultErrorClassifier } from './subscribe';
+import { subscribe as jsSubscribe, defaultErrorClassifier, type ErrorClassifier } from './subscribe';
+import { ensureEphemeralConsumer } from './consumer';
+import { getKvBucket, getObjectStore } from './kv';
+import { parseEnvelope } from '../envelope';
+import { withSubscribeSpan } from '../observability/tracing';
 
 /**
- * JetStream API - persistent, reliable, durable operations
+ * High-level JetStream API — persistent, durable, at-least-once delivery.
+ * All methods delegate to focused single-responsibility modules.
  */
 export class JetStreamAPI {
   constructor(
@@ -21,9 +23,8 @@ export class JetStreamAPI {
   ) {}
 
   /**
-   * Publish to JetStream (persistent)
-   * Payload is automatically wrapped in a platform.v1.Event envelope.
-   * Subject is auto-derived from schema.typeName unless overridden in options.
+   * Publish to JetStream with retry and circuit breaker.
+   * Subject is auto-derived from schema.typeName unless overridden.
    */
   async publish<T extends Message>(
     schema: GenMessage<T>,
@@ -34,8 +35,9 @@ export class JetStreamAPI {
   }
 
   /**
-   * Subscribe to JetStream with durable consumer.
-   * Deserializes incoming binary data using the provided protobuf schema.
+   * Subscribe to a JetStream stream with a durable consumer.
+   * Handler receives the typed domain message and the full platform.v1.Event envelope.
+   * Use errorClassifier to control retry / discard / deadletter behaviour per error type.
    */
   async subscribe<T extends Message>(config: {
     stream: string;
@@ -48,154 +50,41 @@ export class JetStreamAPI {
     maxDeliveries?: number;
     errorClassifier?: ErrorClassifier;
   }): Promise<() => Promise<void>> {
-    const {
-      stream,
-      consumer: consumerName,
-      subject,
-      schema,
-      handler,
-      concurrency = 1,
-      retryDelayMs = 500,
-      maxDeliveries = 5,
-      errorClassifier = defaultErrorClassifier
-    } = config;
+    const { schema, handler, errorClassifier = defaultErrorClassifier, ...rest } = config;
 
-    try {
-      if (!this.client.connected) {
-        this.logger.warn({ subject }, 'NATS not connected');
-        return async () => {};
-      }
-
-      const js: JetStreamClient = this.client.getJetStream();
-
-      this.logger.info({ stream, consumer: consumerName, subject }, 'Creating JetStream consumer');
-
-      const jsm = await this.client.getJetStreamManager();
-      let consumer: Consumer;
-
-      try {
-        await jsm.consumers.info(stream, consumerName);
-        this.logger.debug({ consumer: consumerName }, 'Using existing consumer');
-      } catch {
-        this.logger.info({ consumer: consumerName }, 'Creating new JetStream consumer');
-        await jsm.consumers.add(stream, {
-          name: consumerName,
-          durable_name: consumerName,
-          ack_policy: AckPolicy.Explicit,
-          filter_subject: subject,
-          deliver_policy: DeliverPolicy.All,
-          max_deliver: maxDeliveries
-        });
-      }
-
-      consumer = await js.consumers.get(stream, consumerName);
-      const messages = await consumer.consume({ max_messages: 100 });
-
-      let active = 0;
-      const queue: JsMsg[] = [];
-      let stopped = false;
-
-      const processNext = async () => {
-        if (active >= concurrency || stopped) return;
-        const msg = queue.shift();
-        if (!msg) return;
-
-        active++;
-        try {
-          const envelope = fromBinary(EventSchema, msg.data) as Event;
-          const data = fromBinary(schema, envelope.payload) as T;
-
-          await withSubscribeSpan(subject, msg.headers ?? undefined, () => handler(data, envelope));
-          msg.ack();
-        } catch (err) {
-          const action = errorClassifier(err);
-          const errorName = err instanceof Error ? err.constructor.name : 'UnknownError';
-          const errorMessage = err instanceof Error ? err.message : String(err);
-
-          switch (action) {
-            case 'retry':
-              this.logger.error(
-                { err, errorName, errorMessage, subject, consumer: consumerName },
-                'Transient error - will retry after delay'
-              );
-              msg.nak(retryDelayMs);
-              break;
-
-            case 'discard':
-              this.logger.warn(
-                { errorName, errorMessage, subject, consumer: consumerName },
-                'Non-retryable error - discarding message'
-              );
-              msg.ack(); // ACK to remove from queue
-              break;
-
-            case 'deadletter':
-              this.logger.error(
-                { err, errorName, errorMessage, subject, consumer: consumerName },
-                'Fatal error - marking as poison message (deadletter)'
-              );
-              msg.term(); // Terminal error - requires manual intervention
-              break;
-          }
-        } finally {
-          active--;
-          void processNext();
-        }
-      };
-
-      const loop = (async () => {
-        try {
-          for await (const msg of messages) {
-            if (stopped) break;
-            queue.push(msg);
-            void processNext();
-          }
-        } catch (err) {
-          if (!stopped) {
-            this.logger.error({ err }, 'Consumer stopped unexpectedly');
-          }
-        }
-      })();
-
-      this.logger.info({ stream, consumer: consumerName, subject }, 'JetStream consumer started');
-
-      return async () => {
-        stopped = true;
-        await messages.close();
-        await loop;
-        this.logger.info({ consumer: consumerName }, 'JetStream consumer closed');
-      };
-    } catch (err) {
-      this.logger.error({ err, stream, consumer: config.consumer, subject }, 'Failed to create consumer');
-      return async () => {};
-    }
+    return jsSubscribe(this.client, this.logger, {
+      ...rest,
+      errorClassifier,
+      handler: async (raw, msg) => {
+        const envelope = parseEnvelope(raw);
+        const data = fromJson(schema, envelope.data ?? {}) as T;
+        await withSubscribeSpan(config.subject, msg.headers ?? undefined, () => handler(data, envelope));
+      },
+    });
   }
 
   /**
-   * Work queue pattern - at-least-once delivery
+   * Work queue — at-least-once delivery with concurrency 1.
+   * Uses a stable durable consumer name so messages queued during downtime
+   * are delivered to the same consumer on restart.
    */
   async workQueue<T extends Message>(config: {
     stream: string;
     subject: string;
     schema: GenMessage<T>;
     handler: (data: T, envelope: Event) => Promise<void>;
-    maxRetries?: number;
-    ackWait?: number;
+    maxDeliveries?: number;
   }): Promise<() => Promise<void>> {
-    const consumerName = `${config.stream}-workqueue-${Date.now()}`;
-    
     return this.subscribe({
-      stream: config.stream,
-      consumer: consumerName,
-      subject: config.subject,
-      schema: config.schema,
-      handler: config.handler,
-      concurrency: 1
+      ...config,
+      consumer: `${config.stream}-workqueue`,
+      concurrency: 1,
     });
   }
 
   /**
-   * Replay stream from timestamp
+   * Replay stream events starting from a timestamp or sequence number.
+   * Uses an ephemeral consumer that is deleted on cleanup.
    */
   async replay<T extends Message>(config: {
     stream: string;
@@ -208,42 +97,18 @@ export class JetStreamAPI {
     const { stream, startTime, startSequence, subject = '>', schema, handler } = config;
 
     try {
-      const js = this.client.getJetStream();
-      const consumerName = `replay-${Date.now()}`;
       const jsm = await this.client.getJetStreamManager();
-
-      let deliverPolicy = DeliverPolicy.All;
-      const consumerOpts: any = {
-        name: consumerName,
-        ack_policy: AckPolicy.Explicit,
-        filter_subject: subject
-      };
-
-      if (startTime) {
-        deliverPolicy = DeliverPolicy.StartTime;
-        consumerOpts.opt_start_time = new Date(startTime).toISOString();
-      } else if (startSequence) {
-        deliverPolicy = DeliverPolicy.StartSequence;
-        consumerOpts.opt_start_seq = startSequence;
-      }
-
-      consumerOpts.deliver_policy = deliverPolicy;
-
-      await jsm.consumers.add(stream, consumerOpts);
-
-      const consumer = await js.consumers.get(stream, consumerName);
+      const js = this.client.getJetStream();
+      const { consumer, name } = await ensureEphemeralConsumer(jsm, js, stream, subject, { startTime, startSequence });
       const messages = await consumer.consume({ max_messages: 100 });
 
       let stopped = false;
-
       const loop = (async () => {
         try {
           for await (const msg of messages) {
             if (stopped) break;
-            
-            const envelope = fromBinary(EventSchema, msg.data) as Event;
-            const data = fromBinary(schema, envelope.payload) as T;
-
+            const envelope = parseEnvelope(msg.data);
+            const data = fromJson(schema, envelope.data ?? {}) as T;
             await withSubscribeSpan(subject, msg.headers ?? undefined, () => handler(data, envelope));
             msg.ack();
           }
@@ -258,7 +123,7 @@ export class JetStreamAPI {
         stopped = true;
         await messages.close();
         await loop;
-        await jsm.consumers.delete(stream, consumerName);
+        await jsm.consumers.delete(stream, name);
         this.logger.info('Stream replay closed');
       };
     } catch (err) {
@@ -267,43 +132,13 @@ export class JetStreamAPI {
     }
   }
 
-  /**
-   * Get Key-Value store bucket
-   */
-  async kv(bucketName: string): Promise<KV> {
-    const js = this.client.getJetStream();
-    const jsm = await this.client.getJetStreamManager();
-
-    try {
-      // Try to get existing bucket
-      return await js.views.kv(bucketName);
-    } catch {
-      // Create new bucket
-      this.logger.info({ bucket: bucketName }, 'Creating KV bucket');
-      await jsm.streams.add({
-        name: `KV_${bucketName}`,
-        subjects: [`$KV.${bucketName}.>`]
-      });
-      return await js.views.kv(bucketName);
-    }
+  /** Get or create a JetStream Key-Value bucket. */
+  kv(bucketName: string): Promise<KV> {
+    return getKvBucket(this.client, bucketName, this.logger);
   }
 
-  /**
-   * Get Object Store bucket
-   */
-  async objectStore(bucketName: string): Promise<ObjectStore> {
-    const js = this.client.getJetStream();
-    const jsm = await this.client.getJetStreamManager();
-
-    try {
-      return await js.views.os(bucketName);
-    } catch {
-      this.logger.info({ bucket: bucketName }, 'Creating object store bucket');
-      await jsm.streams.add({
-        name: `OBJ_${bucketName}`,
-        subjects: [`$O.${bucketName}.>`]
-      });
-      return await js.views.os(bucketName);
-    }
+  /** Get or create a JetStream Object Store bucket. */
+  objectStore(bucketName: string): Promise<ObjectStore> {
+    return getObjectStore(this.client, bucketName, this.logger);
   }
 }

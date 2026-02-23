@@ -9,6 +9,12 @@ export interface SentryConfig {
     tracesSampleRate?: number;
     /** Sample rate for profiling (0.0 to 1.0) */
     profilesSampleRate?: number;
+    /**
+     * Enable CPU profiling via `@sentry/profiling-node`.
+     * Defaults to **false** — nodeProfilingIntegration() adds ~20 MB startup overhead.
+     * Only enable when you need profiling data in Sentry.
+     */
+    profiling?: boolean;
     /** Enable/disable Sentry */
     enabled?: boolean;
     /** Error patterns to ignore */

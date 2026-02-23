@@ -2,8 +2,8 @@ import { MQTTClientManager } from '../client/mqtt-client';
 import { serializeProto } from '../utils/serialization';
 import { createPublishProperties, withPublishSpan, withMessageSpan } from './telemetry';
 import { classifyMQTTError } from '../errors';
-import { publishLatency, publishSuccess, publishAttempts, retryAttempts, publishErrorsByType } from './metrics';
-import { resilientOperation, getOrCreateCircuitBreaker, shouldRetry, type ResilientCircuitBreaker } from '../../resilience';
+import { publishLatency, publishSuccess, publishAttempts, retryAttempts, publishErrorsByType, circuitBreakerState } from './metrics';
+import { resilientOperation, getOrCreateCircuitBreaker, shouldRetry, DEFAULT_CIRCUIT_BREAKER_CONFIG, type ResilientCircuitBreaker } from '../../resilience';
 import { DEFAULT_RETRY_CONFIG, type RetryConfig, type RealtimeClientConfig, type PublishOptions, type QoS } from './config';
 import { defaultLogger } from '../utils/logger';
 import type { Message } from '@bufbuild/protobuf';
@@ -21,6 +21,7 @@ export class RealtimeClient {
   private brokerUrl: string;
   private breaker: ResilientCircuitBreaker;
   private connected = false;
+  private transportListenersRegistered = false;
   private retryConfig: RetryConfig & { operationTimeout: number };
 
   constructor(config: RealtimeClientConfig) {
@@ -28,7 +29,7 @@ export class RealtimeClient {
     this.brokerUrl = config.brokerUrl;
     this.logger = config.logger || defaultLogger.child({ service: config.name });
     this.retryConfig = { ...DEFAULT_RETRY_CONFIG, ...config.retryConfig } as RetryConfig & { operationTimeout: number };
-    this.breaker = getOrCreateCircuitBreaker(this.brokerUrl);
+    this.breaker = getOrCreateCircuitBreaker(this.brokerUrl, { ...DEFAULT_CIRCUIT_BREAKER_CONFIG, stateMetric: circuitBreakerState });
     this.mqttClient = new MQTTClientManager({
       brokerUrl: config.brokerUrl,
       clientId: config.clientId,
@@ -49,8 +50,19 @@ export class RealtimeClient {
     }
 
     try {
-      await this.mqttClient.connect();
+      const mqttClient = await this.mqttClient.connect();
       this.connected = true;
+
+      // Register transport-level listeners exactly once per client instance.
+      // These keep this.connected in sync with the underlying socket so that
+      // _publishInternal correctly re-enters connect() after a broker disconnect.
+      if (!this.transportListenersRegistered) {
+        this.transportListenersRegistered = true;
+        mqttClient.on('offline', () => { this.connected = false; });
+        // mqtt.js fires 'connect' on every successful (re)connect
+        mqttClient.on('connect', () => { this.connected = true; });
+      }
+
       this.logger.info({ service: this.name }, 'RealtimeClient connected');
     } catch (error) {
       this.logger.error({ error, service: this.name }, 'Failed to connect RealtimeClient');
@@ -104,12 +116,10 @@ export class RealtimeClient {
     const client = this.mqttClient.getClient();
     const payloadSize = Buffer.isBuffer(payload) ? payload.length : Buffer.byteLength(payload);
 
-    topicArray.forEach((topic) => {
-      publishAttempts.add(1, { topic });
-    });
-
     const publishToTopic = (topic: string): Promise<void> =>
       new Promise<void>((resolve, reject) => {
+        // Count every attempt including retries so metrics reflect actual traffic
+        publishAttempts.add(1, { topic });
         client.publish(topic, payload, publishOptions, (error) => {
           if (error) {
             const classified = classifyMQTTError(error);
@@ -139,7 +149,6 @@ export class RealtimeClient {
         shouldRetry,
         retry: this.retryConfig,
         breaker: this.breaker,
-        timeoutMs: this.retryConfig.operationTimeout,
         metrics: {
           latency: publishLatency,
           retries: retryAttempts,
@@ -232,6 +241,9 @@ export class RealtimeClient {
       this.logger.info({ service: this.name }, 'Disconnecting RealtimeClient...');
       await this.mqttClient.disconnect();
       this.connected = false;
+      // Allow listeners to be re-registered on the next connect() call
+      // since mqtt.js creates a new MqttClient instance after disconnect
+      this.transportListenersRegistered = false;
       this.logger.info({ service: this.name }, 'RealtimeClient disconnected');
     } catch (error) {
       this.logger.error({ error, service: this.name }, 'Error disconnecting RealtimeClient');
