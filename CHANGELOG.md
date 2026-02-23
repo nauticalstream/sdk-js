@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/nauticalstream/sdk-js/compare/v1.4.0...v1.4.1) (2026-02-23)
+
+
+### Bug Fixes
+
+* add withServiceSpan helper with automatic request.id injection from correlationId ([98b7de0](https://github.com/nauticalstream/sdk-js/commit/98b7de015f5ef3b586cf6ba2fba2fd5eba70d596))
+
 # [1.4.0](https://github.com/nauticalstream/sdk-js/compare/v1.3.6...v1.4.0) (2026-02-23)
 
 
