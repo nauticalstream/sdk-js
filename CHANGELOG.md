@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/nauticalstream/sdk-js/compare/v1.3.6...v1.4.0) (2026-02-23)
+
+
+### Features
+
+* harden SDK across all libraries for production readiness ([bd44597](https://github.com/nauticalstream/sdk-js/commit/bd4459708390cd87e473ecb758b74595d219d81a))
+
 ## [1.3.6](https://github.com/nauticalstream/sdk-js/compare/v1.3.5...v1.3.6) (2026-02-21)
 
 
