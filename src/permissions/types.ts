@@ -1,12 +1,21 @@
-import { 
-  PlatformRole, 
-  WorkspaceRole, 
-  ResourcePermission 
-} from '@nauticalstream/proto/permissions/v1/permissions_pb';
+import { PlatformRole, WorkspaceRole } from '@nauticalstream/proto/permissions/v1/roles_pb';
+import { PermissionNamespace } from '@nauticalstream/proto/permissions/v1/namespaces_pb';
+import { PostPermission } from '@nauticalstream/proto/permissions/v1/post_permissions_pb';
+import { FilePermission } from '@nauticalstream/proto/permissions/v1/file_permissions_pb';
+import { ArticlePermission } from '@nauticalstream/proto/permissions/v1/article_permissions_pb';
+import { WorkspacePermission } from '@nauticalstream/proto/permissions/v1/workspace_permissions_pb';
 import type { Logger } from 'pino';
 import type { RetryConfig, CircuitBreakerConfig } from './core/config';
 
-export { PlatformRole, WorkspaceRole, ResourcePermission };
+export {
+  PlatformRole,
+  WorkspaceRole,
+  PermissionNamespace,
+  PostPermission,
+  FilePermission,
+  ArticlePermission,
+  WorkspacePermission,
+};
 
 export interface PermissionsConfig {
   readUrl: string;

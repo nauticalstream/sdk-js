@@ -7,34 +7,24 @@
  * ```typescript
  * import { Permissions } from '@nauticalstream/sdk/permissions';
  * 
- * const permissions = new Permissions({ url: 'http://localhost:4467' });
- * 
- * // No bootstrap needed - just instantiate and use
+ * const permissions = new Permissions({ readUrl: '...', writeUrl: '...' });
  * 
  * // Platform permissions
  * const isAdmin = await permissions.platform.hasAdmin(userId);
  * await permissions.platform.grantRole(userId, PlatformRole.ADMIN);
  * 
  * // Workspace permissions
- * const canEdit = await permissions.workspace.hasPermission(
- *   workspaceId, 
- *   userId, 
- *   'edit'
- * );
- * await permissions.workspace.grantRole(
- *   workspaceId, 
- *   userId, 
- *   WorkspaceRole.OWNER
- * );
+ * await permissions.workspace.requireRole(workspaceId, userId, WorkspaceRole.ADMIN);
  * 
- * // Resource permissions
- * const canView = await permissions.resource.hasPermission(
- *   'Post', 
- *   postId, 
- *   userId, 
- *   'view'
- * );
- * await permissions.resource.linkToWorkspace('Post', postId, workspaceId);
+ * // Post permissions
+ * await permissions.posts.requirePermission(postId, userId, PostPermission.EDIT);
+ * await permissions.posts.linkToWorkspace(postId, workspaceId);
+ * 
+ * // Article permissions
+ * await permissions.articles.requirePermission(articleId, userId, ArticlePermission.VIEW);
+ * 
+ * // File permissions
+ * await permissions.files.requirePermission(fileId, userId, FilePermission.DELETE);
  * ```
  */
 
@@ -53,7 +43,11 @@ export type {
 export {
   PlatformRole,
   WorkspaceRole,
-  ResourcePermission,
+  WorkspacePermission,
+  PermissionNamespace,
+  PostPermission,
+  FilePermission,
+  ArticlePermission,
 } from './types';
 
 // Re-export commonly used errors from centralized errors library
@@ -62,10 +56,12 @@ export { ForbiddenError, ValidationError } from '../errors';
 // Client (for advanced usage)
 export { KetoClient } from './client/keto';
 
-// Core modules (for advanced usage)
+// Domain modules (for advanced usage / testing)
 export * as platform from './core/platform';
 export * as workspace from './core/workspace';
-export * as resource from './core/resource';
+export { PostsPermissions } from './domains/posts';
+export { ArticlesPermissions } from './domains/articles';
+export { FilesPermissions } from './domains/files';
 
 // Production features - Observability & Resilience
 export type { RetryConfig, CircuitBreakerConfig } from './core/config';

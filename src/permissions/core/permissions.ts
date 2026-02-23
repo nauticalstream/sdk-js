@@ -1,16 +1,30 @@
 import { KetoClient } from '../client/keto';
 import * as platform from './platform';
 import * as workspace from './workspace';
-import * as resource from './resource';
+import { PostsPermissions } from '../domains/posts';
+import { ArticlesPermissions } from '../domains/articles';
+import { FilesPermissions } from '../domains/files';
 import { resetCircuitBreaker } from '../../resilience';
-import type { PermissionsConfig, PlatformRole, WorkspaceRole, ResourcePermission } from '../types';
+import type {
+  PermissionsConfig,
+  PlatformRole,
+  WorkspaceRole,
+  WorkspacePermission,
+} from '../types';
 
 /** Permissions - Ory Keto permission management */
 export class Permissions {
   private client: KetoClient;
 
+  readonly posts: PostsPermissions;
+  readonly articles: ArticlesPermissions;
+  readonly files: FilesPermissions;
+
   constructor(config: PermissionsConfig) {
     this.client = new KetoClient(config);
+    this.posts = new PostsPermissions(this.client);
+    this.articles = new ArticlesPermissions(this.client);
+    this.files = new FilesPermissions(this.client);
   }
 
   /** Platform-level operations */
@@ -35,11 +49,11 @@ export class Permissions {
       workspace.hasRole(this.client, workspaceId, userId, role),
     requireRole: (workspaceId: string, userId: string, role: WorkspaceRole) =>
       workspace.requireRole(this.client, workspaceId, userId, role),
-    hasPermission: (workspaceId: string, userId: string, permission: string) =>
+    hasPermission: (workspaceId: string, userId: string, permission: WorkspacePermission | string) =>
       workspace.hasPermission(this.client, workspaceId, userId, permission),
-    requirePermission: (workspaceId: string, userId: string, permission: string) =>
+    requirePermission: (workspaceId: string, userId: string, permission: WorkspacePermission | string) =>
       workspace.requirePermission(this.client, workspaceId, userId, permission),
-    listWorkspaces: (userId: string, permission?: string) =>
+    listWorkspaces: (userId: string, permission?: WorkspacePermission | string) =>
       workspace.listWorkspaces(this.client, userId, permission),
     grantRole: (workspaceId: string, userId: string, role: WorkspaceRole) =>
       workspace.grantRole(this.client, workspaceId, userId, role),
@@ -47,28 +61,6 @@ export class Permissions {
       workspace.revokeRole(this.client, workspaceId, userId, role),
     revokeAllRoles: (workspaceId: string, userId: string) =>
       workspace.revokeAllRoles(this.client, workspaceId, userId),
-  };
-
-  /** Resource-level operations */
-  readonly resource = {
-    hasPermission: (namespace: string, resourceId: string, userId: string, permission: ResourcePermission | string) =>
-      resource.hasPermission(this.client, namespace, resourceId, userId, permission),
-    requirePermission: (namespace: string, resourceId: string, userId: string, permission: ResourcePermission | string) =>
-      resource.requirePermission(this.client, namespace, resourceId, userId, permission),
-    grantOwnership: (namespace: string, resourceId: string, userId: string) =>
-      resource.grantOwnership(this.client, namespace, resourceId, userId),
-    grantPermission: (namespace: string, resourceId: string, userId: string, permission: ResourcePermission | string) =>
-      resource.grantPermission(this.client, namespace, resourceId, userId, permission),
-    revokePermission: (namespace: string, resourceId: string, userId: string, permission: ResourcePermission | string) =>
-      resource.revokePermission(this.client, namespace, resourceId, userId, permission),
-    linkToWorkspace: (namespace: string, resourceId: string, workspaceId: string) =>
-      resource.linkToWorkspace(this.client, namespace, resourceId, workspaceId),
-    unlinkFromWorkspace: (namespace: string, resourceId: string, workspaceId: string) =>
-      resource.unlinkFromWorkspace(this.client, namespace, resourceId, workspaceId),
-    listResources: (namespace: string, userId: string, permission?: string) =>
-      resource.listResources(this.client, namespace, userId, permission),
-    cleanupResource: (namespace: string, resourceId: string) =>
-      resource.cleanupResource(this.client, namespace, resourceId),
   };
 
   /** Reset circuit breaker for specific endpoint */

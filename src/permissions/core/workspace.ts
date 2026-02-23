@@ -1,8 +1,26 @@
 import type { KetoClient } from '../client/keto';
-import { WorkspaceRole } from '../types';
+import { WorkspaceRole, WorkspacePermission } from '../types';
 import { ForbiddenError, ValidationError, NotFoundError } from '../../errors';
 
 const NAMESPACE = 'Workspace';
+
+/**
+ * Convert WorkspacePermission enum to the Keto permit name (for checkPermission calls).
+ */
+function workspacePermissionToPermit(permission: WorkspacePermission | string): string {
+  if (typeof permission === 'string') return permission;
+  switch (permission) {
+    case WorkspacePermission.VIEW:           return 'view';
+    case WorkspacePermission.MEMBER:         return 'member';
+    case WorkspacePermission.ADMIN:          return 'admin';
+    case WorkspacePermission.OWNER:          return 'owner';
+    case WorkspacePermission.INVITE_MEMBER:  return 'invite_member';
+    case WorkspacePermission.REMOVE_MEMBER:  return 'remove_member';
+    case WorkspacePermission.UPDATE_SETTINGS: return 'update_settings';
+    case WorkspacePermission.DELETE:         return 'delete';
+    default: throw new ValidationError(`Invalid workspace permission: ${permission}`);
+  }
+}
 
 /** Zero-trust guard: rejects empty or whitespace-only IDs before they reach Keto */
 function assertNonEmpty(value: string, name: string): void {
@@ -60,15 +78,16 @@ export async function hasPermission(
   client: KetoClient,
   workspaceId: string,
   userId: string,
-  permission: string
+  permission: WorkspacePermission | string
 ): Promise<boolean> {
   assertNonEmpty(workspaceId, 'workspaceId');
   assertNonEmpty(userId, 'userId');
-  assertNonEmpty(permission, 'permission');
+  const permit = workspacePermissionToPermit(permission);
+  assertNonEmpty(permit, 'permission');
   const result = await client.permission.checkPermission({
     namespace: NAMESPACE,
     object: workspaceId,
-    relation: permission,
+    relation: permit,
     subjectId: userId,
   });
   return result.data.allowed === true;
@@ -81,7 +100,7 @@ export async function requirePermission(
   client: KetoClient,
   workspaceId: string,
   userId: string,
-  permission: string
+  permission: WorkspacePermission | string
 ): Promise<void> {
   const allowed = await hasPermission(client, workspaceId, userId, permission);
   if (!allowed) {
@@ -97,13 +116,14 @@ export async function requirePermission(
 export async function listWorkspaces(
   client: KetoClient,
   userId: string,
-  permission: string = 'view'
+  permission: WorkspacePermission | string = WorkspacePermission.VIEW
 ): Promise<string[]> {
   assertNonEmpty(userId, 'userId');
-  assertNonEmpty(permission, 'permission');
+  const permit = workspacePermissionToPermit(permission);
+  assertNonEmpty(permit, 'permission');
   const result = await client.relationship.getRelationships({
     namespace: NAMESPACE,
-    relation: permission,
+    relation: permit,
     subjectId: userId,
   });
 
