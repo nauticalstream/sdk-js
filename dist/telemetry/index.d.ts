@@ -4,6 +4,7 @@ export { getCorrelationId, peekCorrelationId, getOrCreateCorrelationId, withEnsu
 export { createLogger, type TelemetryLoggerOptions } from './utils/logging';
 export { recordCounter, recordHistogram, recordGauge, addUpDownCounter, createObservableGauge, startTimer, } from './utils/metrics';
 export { withSpan as withInternalSpan, withServerSpan, withClientSpan, withConsumerSpan, withProducerSpan, withTracedPublish, injectTraceHeaders, } from './utils/tracing';
+export { withServiceSpan, type ServiceSpanContext } from './utils/service';
 export { initSentry, getSentry, closeSentry, Sentry } from './sentry/index';
 export type { SentryConfig } from './sentry/config';
 export { DEFAULT_SENTRY_CONFIG } from './sentry/config';

@@ -62,6 +62,9 @@ export {
   injectTraceHeaders,
 } from './utils/tracing';
 
+// Service-layer span helper
+export { withServiceSpan, type ServiceSpanContext } from './utils/service';
+
 // Sentry integration
 export { initSentry, getSentry, closeSentry, Sentry } from './sentry/index';
 export type { SentryConfig } from './sentry/config';
