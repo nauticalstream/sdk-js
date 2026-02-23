@@ -1,3 +1,10 @@
+## [1.4.3](https://github.com/nauticalstream/sdk-js/compare/v1.4.2...v1.4.3) (2026-02-23)
+
+
+### Bug Fixes
+
+* use JSON payload string and auto-derive subject in buildEnvelope ([985abe8](https://github.com/nauticalstream/sdk-js/commit/985abe8e69ff925e3f949868842cf4ba1dc22a02))
+
 ## [1.4.2](https://github.com/nauticalstream/sdk-js/compare/v1.4.1...v1.4.2) (2026-02-23)
 
 
