@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/nauticalstream/sdk-js/compare/v1.4.3...v1.5.0) (2026-02-23)
+
+
+### Features
+
+* **telemetry:** add Node.js runtime metrics via RuntimeNodeInstrumentation ([8dc0362](https://github.com/nauticalstream/sdk-js/commit/8dc0362b9eea5e4ad123ecb9c8871459772d6560))
+
 ## [1.4.3](https://github.com/nauticalstream/sdk-js/compare/v1.4.2...v1.4.3) (2026-02-23)
 
 
