@@ -1,14 +1,17 @@
 import type { KetoClient } from '../client/keto';
 import { PlatformRole } from '../types';
-import { ForbiddenError, ValidationError } from '../../errors';
+import { ForbiddenError } from '../../errors';
 
 const PLATFORM_ID = 'global'; // Singleton platform object
 const NAMESPACE = 'Platform';
 
-/** Zero-trust guard: rejects empty or whitespace-only IDs before they reach Keto */
-function assertNonEmpty(value: string, name: string): void {
-  if (!value || value.trim().length === 0) {
-    throw new ValidationError(`${name} must not be empty`);
+/**
+ * Guard: throws ForbiddenError so unauthenticated callers get a 403,
+ * not a 400/500. All permission checks flow naturally through error handler.
+ */
+function assertUserId(userId: string | undefined | null): asserts userId is string {
+  if (!userId || userId.trim().length === 0) {
+    throw new ForbiddenError('Authentication required');
   }
 }
 
@@ -17,10 +20,10 @@ function assertNonEmpty(value: string, name: string): void {
  */
 export async function hasRole(
   client: KetoClient,
-  userId: string,
+  userId: string | undefined | null,
   role: PlatformRole
 ): Promise<boolean> {
-  assertNonEmpty(userId, 'userId');
+  assertUserId(userId);
   const relation = roleToRelation(role);
   if (!relation) {
     throw new ValidationError(`Invalid platform role: ${role}`);
@@ -40,7 +43,7 @@ export async function hasRole(
  */
 export async function requireRole(
   client: KetoClient,
-  userId: string,
+  userId: string | undefined | null,
   role: PlatformRole
 ): Promise<void> {
   const allowed = await hasRole(client, userId, role);
@@ -52,21 +55,21 @@ export async function requireRole(
 /**
  * Check if user has platform admin role
  */
-export async function hasAdmin(client: KetoClient, userId: string): Promise<boolean> {
+export async function hasAdmin(client: KetoClient, userId: string | undefined | null): Promise<boolean> {
   return hasRole(client, userId, PlatformRole.ADMIN);
 }
 
 /**
  * Check if user has platform support role
  */
-export async function hasSupport(client: KetoClient, userId: string): Promise<boolean> {
+export async function hasSupport(client: KetoClient, userId: string | undefined | null): Promise<boolean> {
   return hasRole(client, userId, PlatformRole.SUPPORT);
 }
 
 /**
  * Require platform admin role (throws if not authorized)
  */
-export async function requireAdmin(client: KetoClient, userId: string): Promise<void> {
+export async function requireAdmin(client: KetoClient, userId: string | undefined | null): Promise<void> {
   const allowed = await hasAdmin(client, userId);
   if (!allowed) {
     throw new ForbiddenError('Platform admin permission required');
@@ -76,7 +79,7 @@ export async function requireAdmin(client: KetoClient, userId: string): Promise<
 /**
  * Require platform support role (throws if not authorized)
  */
-export async function requireSupport(client: KetoClient, userId: string): Promise<void> {
+export async function requireSupport(client: KetoClient, userId: string | undefined | null): Promise<void> {
   const allowed = await hasSupport(client, userId);
   if (!allowed) {
     throw new ForbiddenError('Platform support permission required');

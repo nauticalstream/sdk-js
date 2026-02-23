@@ -47,14 +47,14 @@ export class Permissions {
 
   /** Platform-level operations */
   readonly platform = {
-    hasRole: (userId: string, role: PlatformRole) => 
+    hasRole: (userId: string | undefined | null, role: PlatformRole) => 
       platform.hasRole(this.client, userId, role),
-    requireRole: (userId: string, role: PlatformRole) => 
+    requireRole: (userId: string | undefined | null, role: PlatformRole) => 
       platform.requireRole(this.client, userId, role),
-    hasAdmin: (userId: string) => platform.hasAdmin(this.client, userId),
-    hasSupport: (userId: string) => platform.hasSupport(this.client, userId),
-    requireAdmin: (userId: string) => platform.requireAdmin(this.client, userId),
-    requireSupport: (userId: string) => platform.requireSupport(this.client, userId),
+    hasAdmin: (userId: string | undefined | null) => platform.hasAdmin(this.client, userId),
+    hasSupport: (userId: string | undefined | null) => platform.hasSupport(this.client, userId),
+    requireAdmin: (userId: string | undefined | null) => platform.requireAdmin(this.client, userId),
+    requireSupport: (userId: string | undefined | null) => platform.requireSupport(this.client, userId),
     grantRole: (userId: string, role: PlatformRole) => 
       platform.grantRole(this.client, userId, role),
     revokeRole: (userId: string, role: PlatformRole) => 
