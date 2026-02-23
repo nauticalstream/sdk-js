@@ -1,6 +1,6 @@
 import type { KetoClient } from '../client/keto';
 import { PlatformRole } from '../types';
-import { ForbiddenError } from '../../errors';
+import { ForbiddenError, ValidationError } from '../../errors';
 
 const PLATFORM_ID = 'global'; // Singleton platform object
 const NAMESPACE = 'Platform';
@@ -94,7 +94,7 @@ export async function grantRole(
   userId: string,
   role: PlatformRole
 ): Promise<void> {
-  assertNonEmpty(userId, 'userId');
+  assertUserId(userId);
   const relation = roleToRelation(role);
   if (!relation) {
     throw new ValidationError(`Invalid platform role: ${role}`);
@@ -118,7 +118,7 @@ export async function revokeRole(
   userId: string,
   role: PlatformRole
 ): Promise<void> {
-  assertNonEmpty(userId, 'userId');
+  assertUserId(userId);
   const relation = roleToRelation(role);
   if (!relation) {
     throw new ValidationError(`Invalid platform role: ${role}`);
