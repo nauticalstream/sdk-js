@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/nauticalstream/sdk-js/compare/v2.0.2...v2.1.0) (2026-02-23)
+
+
+### Features
+
+* **permissions:** add ResourcePermission enum support, remove OPL namespace config ([0e58551](https://github.com/nauticalstream/sdk-js/commit/0e58551079878ebb733d8e0f3f7b9fa770ce87de))
+
 ## [2.0.2](https://github.com/nauticalstream/sdk-js/compare/v2.0.1...v2.0.2) (2026-02-23)
 
 
