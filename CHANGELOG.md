@@ -1,3 +1,10 @@
+# [2.2.0](https://github.com/nauticalstream/sdk-js/compare/v2.1.0...v2.2.0) (2026-02-23)
+
+
+### Features
+
+* **permissions:** per-domain modules (posts/articles/files) replacing generic resource API ([b911d39](https://github.com/nauticalstream/sdk-js/commit/b911d3981f5fca070254761c116bb14194599ae4))
+
 # [2.1.0](https://github.com/nauticalstream/sdk-js/compare/v2.0.2...v2.1.0) (2026-02-23)
 
 
