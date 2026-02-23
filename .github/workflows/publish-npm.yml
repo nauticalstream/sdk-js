@@ -6,12 +6,45 @@ on:
       - main
 
 jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup
+        with:
+          npm-token: ${{ secrets.NPM_TOKEN }}
+
+      - name: Test
+        run: npm test
+
+  build:
+    name: Build
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup
+        with:
+          npm-token: ${{ secrets.NPM_TOKEN }}
+
+      - uses: ./.github/actions/build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
   release:
+    name: Release
+    needs: build
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Required to push commits and tags
-      issues: write    # Required to comment on issues
-      pull-requests: write  # Required to comment on PRs
+      contents: write
+      issues: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -22,12 +55,12 @@ jobs:
         with:
           npm-token: ${{ secrets.NPM_TOKEN }}
 
-      - name: Test
-        run: npm run test
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
 
-      - uses: ./.github/actions/build
-
-      - name: Release with semantic-release
+      - name: Release
         run: npx semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
