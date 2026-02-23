@@ -45,17 +45,18 @@ describe('buildEnvelope', () => {
     expect(Array.isArray(event.data)).toBe(false);
   });
 
-  it('binary is non-empty Uint8Array', () => {
-    const { binary } = buildEnvelope(SOURCE, SUBJECT, WorkspaceCreatedSchema, {}, CORRELATION);
-    expect(binary).toBeInstanceOf(Uint8Array);
-    expect(binary.length).toBeGreaterThan(0);
+  it('payload is a non-empty JSON string', () => {
+    const { payload } = buildEnvelope(SOURCE, SUBJECT, WorkspaceCreatedSchema, {}, CORRELATION);
+    expect(typeof payload).toBe('string');
+    expect(payload.length).toBeGreaterThan(0);
+    expect(() => JSON.parse(payload)).not.toThrow();
   });
 });
 
 describe('parseEnvelope round-trip', () => {
-  it('parseEnvelope(buildEnvelope().binary) equals the original event', () => {
-    const { event, binary } = buildEnvelope(SOURCE, SUBJECT, WorkspaceCreatedSchema, {}, CORRELATION);
-    const parsed = parseEnvelope(binary);
+  it('parseEnvelope(buildEnvelope().payload) equals the original event', () => {
+    const { event, payload } = buildEnvelope(SOURCE, SUBJECT, WorkspaceCreatedSchema, {}, CORRELATION);
+    const parsed = parseEnvelope(payload);
     expect(parsed.type).toBe(event.type);
     expect(parsed.source).toBe(event.source);
     expect(parsed.correlationId).toBe(event.correlationId);

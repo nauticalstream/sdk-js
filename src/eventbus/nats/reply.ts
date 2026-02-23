@@ -9,8 +9,6 @@ import { withCorrelationId, generateCorrelationId } from '../../telemetry/utils/
 import { deriveSubject } from '../utils/derive-subject';
 import type { ReplyOptions, Unsubscribe } from '../types';
 
-const encoder = new TextEncoder();
-
 export interface ReplyHandlerConfig<TRequest extends Message, TResponse extends Message> {
   source: string;
   reqSchema: GenMessage<TRequest>;
@@ -56,8 +54,8 @@ export async function reply<TRequest extends Message, TResponse extends Message>
           correlationId ?? generateCorrelationId(),
           () => handler(data, inbound)
         );
-        const { binary } = buildEnvelope(source, subject, respSchema, responseData, correlationId ?? generateCorrelationId());
-        msg.respond(binary);
+        const { payload } = buildEnvelope(source, subject, respSchema, responseData, correlationId ?? generateCorrelationId());
+        msg.respond(payload);
       } catch (error) {
         logger.error({ error, subject }, 'Request handler failed');
         // Signal failure: respond with an Event that has no data — caller's request() will throw.
@@ -67,7 +65,7 @@ export async function reply<TRequest extends Message, TResponse extends Message>
           correlationId: correlationId ?? generateCorrelationId(),
           timestamp: new Date().toISOString(),
         });
-        msg.respond(encoder.encode(toJsonString(EventSchema, errorEvent)));
+        msg.respond(toJsonString(EventSchema, errorEvent));
       }
     },
   });

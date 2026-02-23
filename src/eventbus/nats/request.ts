@@ -28,12 +28,12 @@ export async function request<TRequest extends Message, TResponse extends Messag
 
   const subject = deriveSubject(reqSchema.typeName);
   const timeoutMs = options?.timeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS;
-  const { binary, event } = buildEnvelope(source, subject, reqSchema, data, options?.correlationId);
+  const { payload, event } = buildEnvelope(source, subject, reqSchema, data, options?.correlationId);
 
   logger.debug({ subject, correlationId: event.correlationId }, 'Sending NATS request');
 
   try {
-    const response = await client.getConnection().request(subject, binary, { timeout: timeoutMs });
+    const response = await client.getConnection().request(subject, payload, { timeout: timeoutMs });
     const responseEnvelope = parseEnvelope(response.data);
 
     // Responder signals handler failure by sending an event with no data.

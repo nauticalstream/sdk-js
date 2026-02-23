@@ -6,10 +6,13 @@ vi.mock('../envelope', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../envelope')>();
   return {
     ...actual,
-    buildEnvelope: vi.fn().mockReturnValue({
-      event: { correlationId: 'cid-1' },
-      binary: new Uint8Array([1, 2, 3]),
-      headers: {},
+    buildEnvelope: vi.fn().mockImplementation((_source, _schema, _data, options) => {
+      const subject = options?.subject ?? 'workspace.v1.workspace-created';
+      return {
+        event: { correlationId: 'cid-1', type: subject },
+        payload: `{"type":"${subject}"}`,
+        headers: {},
+      };
     }),
   };
 });

@@ -8,8 +8,8 @@ vi.mock('../envelope', async (importOriginal) => {
   return {
     ...actual,
     buildEnvelope: vi.fn().mockReturnValue({
-      event: { correlationId: 'cid-1' },
-      binary: new Uint8Array([1, 2, 3]),
+      event: { correlationId: 'cid-1', type: 'workspace.v1.workspace-created' },
+      payload: '{"type":"workspace.v1.workspace-created"}',
       headers: {},
     }),
   };
@@ -28,12 +28,12 @@ const schema = { typeName: 'workspace.v1.WorkspaceCreated' } as any;
 beforeEach(() => vi.clearAllMocks());
 
 describe('nats/publish', () => {
-  it('calls connection.publish with correct subject and binary', async () => {
+  it('calls connection.publish with correct subject and payload', async () => {
     await publish(makeClient(true), mockLogger, 'svc', schema, {});
     expect(mockPublish).toHaveBeenCalledOnce();
-    const [subject, binary] = mockPublish.mock.calls[0];
+    const [subject, payload] = mockPublish.mock.calls[0];
     expect(subject).toBe('workspace.v1.workspace-created');
-    expect(binary).toBeInstanceOf(Uint8Array);
+    expect(typeof payload).toBe('string');
   });
 
   it('throws when client is not connected', async () => {
@@ -46,6 +46,7 @@ describe('nats/publish', () => {
   it('propagates custom correlationId into buildEnvelope', async () => {
     await publish(makeClient(true), mockLogger, 'svc', schema, {}, { correlationId: 'custom-cid' });
     const callArgs = (buildEnvelope as ReturnType<typeof vi.fn>).mock.calls[0];
-    expect(callArgs[4]).toBe('custom-cid');
+    // new API: (source, schema, data, options) — correlationId is in callArgs[3]
+    expect(callArgs[3]?.correlationId).toBe('custom-cid');
   });
 });

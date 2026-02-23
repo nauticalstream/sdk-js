@@ -1,1 +1,0 @@
-{"version":3,"file":"circuit-breaker.d.ts","sourceRoot":"","sources":["../../../src/realtime/core/circuit-breaker.ts"],"names":[],"mappings":"AAAA;;;GAGG;AAEH,OAAO,EAA0C,KAAK,cAAc,EAAE,MAAM,kBAAkB,CAAC;AAE/F;;;;;;;;GAQG;AACH,wBAAgB,YAAY,CAAC,SAAS,EAAE,MAAM,GAAG,IAAI,CAEpD;AAED;;;;;GAKG;AACH,wBAAgB,iBAAiB,CAAC,SAAS,EAAE,MAAM,GAAG,cAAc,GAAG,SAAS,CAQ/E"}

@@ -1,0 +1,9 @@
+name: Build
+description: Compile TypeScript and generate dist output
+
+runs:
+  using: composite
+  steps:
+    - name: Build
+      shell: bash
+      run: npm run build

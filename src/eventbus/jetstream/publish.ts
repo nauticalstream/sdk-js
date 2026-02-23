@@ -14,7 +14,6 @@ import {
 } from '../observability/metrics';
 import { resilientOperation, getOrCreateCircuitBreaker, shouldRetry, DEFAULT_CIRCUIT_BREAKER_CONFIG, type ResilientCircuitBreaker } from '../../resilience';
 import { DEFAULT_RETRY_CONFIG, type RetryConfig } from '../config';
-import { deriveSubject } from '../utils/derive-subject';
 import { resetCircuitBreaker } from '../../resilience';
 
 export interface JetStreamPublishOptions {
@@ -51,17 +50,17 @@ export async function publish<T extends Message>(
   data: MessageInitShape<GenMessage<T>>,
   options?: JetStreamPublishOptions
 ): Promise<{ ok: boolean; error?: boolean }> {
-  const subject = options?.subject ?? deriveSubject(schema.typeName);
   const config = { ...DEFAULT_RETRY_CONFIG, ...options?.retryConfig };
+  const { payload, event, headers } = buildEnvelope(source, schema, data, { subject: options?.subject, correlationId: options?.correlationId });
+  const subject = event.type;
 
   jetstreamPublishAttempts.add(1, { subject });
 
   try {
     const js = client.getJetStream();
-    const { binary, event, headers } = buildEnvelope(source, subject, schema, data, options?.correlationId);
 
     await resilientOperation(
-      () => js.publish(subject, binary, { headers }),
+      () => js.publish(subject, payload, { headers }),
       {
         operation: 'jetstream.publish',
         logger,
@@ -79,7 +78,7 @@ export async function publish<T extends Message>(
       }
     );
 
-    logger.debug({ subject, bytes: binary.length, correlationId: event.correlationId }, 'Published to JetStream');
+    logger.debug({ subject, correlationId: event.correlationId }, 'Published to JetStream');
     return { ok: true };
   } catch (err) {
     logger.warn({ subject, error: err }, 'JetStream publish failed');
