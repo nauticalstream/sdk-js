@@ -3,7 +3,7 @@ import * as platform from './platform';
 import * as workspace from './workspace';
 import * as resource from './resource';
 import { resetCircuitBreaker } from '../../resilience';
-import type { PermissionsConfig, PlatformRole, WorkspaceRole } from '../types';
+import type { PermissionsConfig, PlatformRole, WorkspaceRole, ResourcePermission } from '../types';
 
 /** Permissions - Ory Keto permission management */
 export class Permissions {
@@ -51,15 +51,15 @@ export class Permissions {
 
   /** Resource-level operations */
   readonly resource = {
-    hasPermission: (namespace: string, resourceId: string, userId: string, permission: string) =>
+    hasPermission: (namespace: string, resourceId: string, userId: string, permission: ResourcePermission | string) =>
       resource.hasPermission(this.client, namespace, resourceId, userId, permission),
-    requirePermission: (namespace: string, resourceId: string, userId: string, permission: string) =>
+    requirePermission: (namespace: string, resourceId: string, userId: string, permission: ResourcePermission | string) =>
       resource.requirePermission(this.client, namespace, resourceId, userId, permission),
     grantOwnership: (namespace: string, resourceId: string, userId: string) =>
       resource.grantOwnership(this.client, namespace, resourceId, userId),
-    grantPermission: (namespace: string, resourceId: string, userId: string, permission: string) =>
+    grantPermission: (namespace: string, resourceId: string, userId: string, permission: ResourcePermission | string) =>
       resource.grantPermission(this.client, namespace, resourceId, userId, permission),
-    revokePermission: (namespace: string, resourceId: string, userId: string, permission: string) =>
+    revokePermission: (namespace: string, resourceId: string, userId: string, permission: ResourcePermission | string) =>
       resource.revokePermission(this.client, namespace, resourceId, userId, permission),
     linkToWorkspace: (namespace: string, resourceId: string, workspaceId: string) =>
       resource.linkToWorkspace(this.client, namespace, resourceId, workspaceId),

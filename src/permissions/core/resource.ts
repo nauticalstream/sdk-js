@@ -1,10 +1,26 @@
 import type { KetoClient } from '../client/keto';
+import { ResourcePermission } from '../types';
 import { ForbiddenError, ValidationError } from '../../errors';
 
 /** Zero-trust guard: rejects empty or whitespace-only IDs before they reach Keto */
 function assertNonEmpty(value: string, name: string): void {
   if (!value || value.trim().length === 0) {
     throw new ValidationError(`${name} must not be empty`);
+  }
+}
+
+/**
+ * Map ResourcePermission enum to the Keto permission/relation string.
+ * Keeps callers type-safe — no raw strings needed.
+ */
+function resourcePermissionToString(permission: ResourcePermission | string): string {
+  if (typeof permission === 'string') return permission;
+  switch (permission) {
+    case ResourcePermission.VIEW:   return 'view';
+    case ResourcePermission.EDIT:   return 'edit';
+    case ResourcePermission.DELETE: return 'delete';
+    case ResourcePermission.SHARE:  return 'share';
+    default: throw new ValidationError(`Invalid resource permission: ${permission}`);
   }
 }
 
@@ -16,16 +32,18 @@ export async function hasPermission(
   namespace: string,
   resourceId: string,
   userId: string,
-  permission: string
+  permission: ResourcePermission | string
 ): Promise<boolean> {
   assertNonEmpty(namespace, 'namespace');
   assertNonEmpty(resourceId, 'resourceId');
   assertNonEmpty(userId, 'userId');
-  assertNonEmpty(permission, 'permission');
+  const permStr = resourcePermissionToString(permission);
+  assertNonEmpty(permStr, 'permission');
+  const relation = permissionToRelation(permStr);
   const result = await client.permission.checkPermission({
     namespace,
     object: resourceId,
-    relation: permission,
+    relation,
     subjectId: userId,
   });
   return result.data.allowed === true;
@@ -39,7 +57,7 @@ export async function requirePermission(
   namespace: string,
   resourceId: string,
   userId: string,
-  permission: string
+  permission: ResourcePermission | string
 ): Promise<void> {
   const allowed = await hasPermission(client, namespace, resourceId, userId, permission);
   if (!allowed) {
@@ -79,13 +97,14 @@ export async function grantPermission(
   namespace: string,
   resourceId: string,
   userId: string,
-  permission: string
+  permission: ResourcePermission | string
 ): Promise<void> {
   assertNonEmpty(namespace, 'namespace');
   assertNonEmpty(resourceId, 'resourceId');
   assertNonEmpty(userId, 'userId');
-  assertNonEmpty(permission, 'permission');
-  const relation = permissionToRelation(permission);
+  const permStr = resourcePermissionToString(permission);
+  assertNonEmpty(permStr, 'permission');
+  const relation = permissionToRelation(permStr);
   await client.relationship.createRelationship({
     createRelationshipBody: {
       namespace,
@@ -104,13 +123,14 @@ export async function revokePermission(
   namespace: string,
   resourceId: string,
   userId: string,
-  permission: string
+  permission: ResourcePermission | string
 ): Promise<void> {
   assertNonEmpty(namespace, 'namespace');
   assertNonEmpty(resourceId, 'resourceId');
   assertNonEmpty(userId, 'userId');
-  assertNonEmpty(permission, 'permission');
-  const relation = permissionToRelation(permission);
+  const permStr = resourcePermissionToString(permission);
+  assertNonEmpty(permStr, 'permission');
+  const relation = permissionToRelation(permStr);
   await client.relationship.deleteRelationships({
     namespace,
     object: resourceId,
@@ -206,12 +226,9 @@ export async function cleanupResource(
 }
 
 /**
- * Map a logical permission name to the corresponding Keto relation.
- * Only 'view' and 'edit' have explicit plural aliases; everything else
- * (including custom relations) passes through unchanged.
- *
- * NOTE: 'delete' and 'share' are intentionally NOT mapped here — use
- * grantOwnership() when you intend to grant ownership-level access.
+ * Map a logical permission string to the corresponding Keto relation.
+ * 'view' and 'edit' have plural relation aliases in the OPL;
+ * 'delete', 'share', and anything else pass through unchanged as permit names.
  */
 function permissionToRelation(permission: string): string {
   const mapping: Record<string, string> = {

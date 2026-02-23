@@ -9,7 +9,6 @@
  * 
  * const permissions = new Permissions({ url: 'http://localhost:4467' });
  * 
- * // Bootstrap namespace configuration on startup
  * // No bootstrap needed - just instantiate and use
  * 
  * // Platform permissions
@@ -62,9 +61,6 @@ export { ForbiddenError, ValidationError } from '../errors';
 
 // Client (for advanced usage)
 export { KetoClient } from './client/keto';
-
-// OPL Configuration (for reference/testing)
-export { OPL_NAMESPACE_CONFIG } from './config/namespaces';
 
 // Core modules (for advanced usage)
 export * as platform from './core/platform';
