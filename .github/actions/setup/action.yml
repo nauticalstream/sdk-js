@@ -1,5 +1,5 @@
 name: Setup
-description: Checkout, setup Node.js, and install dependencies
+description: Setup Node.js and install dependencies
 
 inputs:
   npm-token:
@@ -10,11 +10,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        persist-credentials: false
-
     - uses: actions/setup-node@v4
       with:
         node-version: '24'

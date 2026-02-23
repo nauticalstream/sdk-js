@@ -13,6 +13,11 @@ jobs:
       issues: write    # Required to comment on issues
       pull-requests: write  # Required to comment on PRs
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
       - uses: ./.github/actions/setup
         with:
           npm-token: ${{ secrets.NPM_TOKEN }}
