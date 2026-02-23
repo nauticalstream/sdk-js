@@ -1,5 +1,4 @@
 import { KetoClient } from '../client/keto';
-import { OPL_NAMESPACE_CONFIG } from '../config/namespaces';
 import * as platform from './platform';
 import * as workspace from './workspace';
 import * as resource from './resource';
@@ -19,19 +18,31 @@ export class Permissions {
     this.logger = config.logger || defaultLogger.child({ service: 'permissions' });
   }
 
-  /** Bootstrap namespace configuration (call on service startup) */
+  /** Bootstrap permissions client (call on service startup) */
   async bootstrap(): Promise<void> {
-    try {
-      // Validate OPL syntax
-      await this.client.relationship.checkOplSyntax({
-        body: OPL_NAMESPACE_CONFIG,
-      });
-
-      this.logger.info('Namespace configuration validated');
-    } catch (error) {
-      this.logger.error({ error }, 'Failed to validate namespace configuration');
-      throw error;
+    // Check Keto health (both read and write endpoints)
+    const health = await checkHealth(this.client);
+    
+    if (!health.healthy) {
+      this.logger.error(
+        { 
+          readEndpoint: health.readEndpoint,
+          writeEndpoint: health.writeEndpoint,
+          latency: health.latency 
+        },
+        'Keto health check failed'
+      );
+      throw new Error('Keto is not healthy - cannot initialize permissions');
     }
+
+    this.logger.info(
+      { 
+        readEndpoint: health.readEndpoint,
+        writeEndpoint: health.writeEndpoint,
+        latency: health.latency 
+      },
+      'Permissions (Ory Keto) initialized'
+    );
   }
 
   /** Platform-level operations */
