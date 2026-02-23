@@ -7,6 +7,7 @@
  */
 
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
+import { RuntimeNodeInstrumentation } from '@opentelemetry/instrumentation-runtime-node';
 import { OTLPTraceExporter as OTLPHttpTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { OTLPTraceExporter as OTLPGrpcTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc';
 import { OTLPMetricExporter as OTLPHttpMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
@@ -73,7 +74,7 @@ export function buildInstrumentations(config: TelemetryConfig): Instrumentation[
   // Fall back to DEFAULT_CONFIG so callers can also pass an unmerged config.
   const inst = config.instrumentations ?? DEFAULT_CONFIG.instrumentations ?? {};
 
-  return getNodeAutoInstrumentations({
+  const autoInstrumentations = getNodeAutoInstrumentations({
     // ── Web / network ──────────────────────────────────────────────────────────
     '@opentelemetry/instrumentation-fastify': {
       enabled: inst.fastify !== false,
@@ -118,6 +119,19 @@ export function buildInstrumentations(config: TelemetryConfig): Instrumentation[
       ...(typeof inst.pino === 'object' ? inst.pino : {}),
     },
   });
+
+  const runtimeCfg = inst.runtimeMetrics;
+  const runtimeEnabled = runtimeCfg !== false;
+
+  if (!runtimeEnabled) {
+    return autoInstrumentations;
+  }
+
+  const runtimeInst = new RuntimeNodeInstrumentation(
+    typeof runtimeCfg === 'object' ? runtimeCfg : { monitoringPrecision: 10 },
+  );
+
+  return [...autoInstrumentations, runtimeInst];
 }
 
 // ── Span processors ───────────────────────────────────────────────────────────

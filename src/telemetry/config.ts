@@ -68,6 +68,14 @@ export interface InstrumentationConfig {
   // ─── Application ─────────────────────────────────────────────────────────
   graphql?: boolean | Record<string, any>;   // @opentelemetry/instrumentation-graphql
   pino?:    boolean | Record<string, any>;   // @opentelemetry/instrumentation-pino
+
+  // ─── Runtime ──────────────────────────────────────────────────────────────
+  /**
+   * Node.js runtime metrics: event-loop lag/utilization, GC duration/frequency,
+   * heap space usage. Enabled by default — set to `false` to opt out.
+   * Pass `{ monitoringPrecision: <ms> }` to override the sampling interval (default 10 ms).
+   */
+  runtimeMetrics?: boolean | { monitoringPrecision?: number };
 }
 
 export interface CorrelationIdConfig {
@@ -137,16 +145,17 @@ export const DEFAULT_CONFIG: Partial<TelemetryConfig> = {
   serviceVersion: process.env.npm_package_version ?? 'unknown',
   environment: process.env.NODE_ENV || 'development',
   instrumentations: {
-    fastify:  true,
-    mongodb:  true,
-    http:     true,
-    dns:      true,
-    pg:       true,
-    redis:    true,
-    ioredis:  true,
-    graphql:  false, // opt-in — high cardinality in large schemas
-    pino:     true,
-    grpc:     false, // opt-in — not every service uses gRPC
+    fastify:        true,
+    mongodb:        true,
+    http:           true,
+    dns:            true,
+    pg:             true,
+    redis:          true,
+    ioredis:        true,
+    graphql:        false, // opt-in — high cardinality in large schemas
+    pino:           true,
+    grpc:           false, // opt-in — not every service uses gRPC
+    runtimeMetrics: true,  // event-loop, GC, heap metrics via RuntimeNodeInstrumentation
   },
   correlationId: {
     headerName: 'x-correlation-id',
