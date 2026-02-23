@@ -1,3 +1,11 @@
+## [2.0.1](https://github.com/nauticalstream/sdk-js/compare/v2.0.0...v2.0.1) (2026-02-23)
+
+
+### Bug Fixes
+
+* **permissions:** accept string | undefined | null for all userId params, throw ForbiddenError on missing auth ([8fd5d18](https://github.com/nauticalstream/sdk-js/commit/8fd5d18ec2b4b2c17f2cc8d5fb6c01534a477cfb))
+* **permissions:** restore ValidationError import and replace assertNonEmpty in grantRole/revokeRole ([ea13664](https://github.com/nauticalstream/sdk-js/commit/ea136644fe9ef1d8aac1f646e7bf6314c1546320))
+
 # [2.0.0](https://github.com/nauticalstream/sdk-js/compare/v1.6.0...v2.0.0) (2026-02-23)
 
 
