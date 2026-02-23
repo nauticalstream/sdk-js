@@ -1,3 +1,10 @@
+## [1.5.1](https://github.com/nauticalstream/sdk-js/compare/v1.5.0...v1.5.1) (2026-02-23)
+
+
+### Bug Fixes
+
+* **permissions:** replace OPL syntax check with Keto health check in bootstrap ([ab24ba7](https://github.com/nauticalstream/sdk-js/commit/ab24ba75724cce1663db2b7315dd0b4015aba416))
+
 # [1.5.0](https://github.com/nauticalstream/sdk-js/compare/v1.4.3...v1.5.0) (2026-02-23)
 
 
