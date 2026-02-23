@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/nauticalstream/sdk-js/compare/v1.5.1...v1.6.0) (2026-02-23)
+
+
+### Features
+
+* **fastify:** add error handling and validation middleware ([12d499f](https://github.com/nauticalstream/sdk-js/commit/12d499f261d320f9bada0f876be1949842e52f59))
+
 ## [1.5.1](https://github.com/nauticalstream/sdk-js/compare/v1.5.0...v1.5.1) (2026-02-23)
 
 
