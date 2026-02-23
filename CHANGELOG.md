@@ -1,3 +1,15 @@
+# [2.0.0](https://github.com/nauticalstream/sdk-js/compare/v1.6.0...v2.0.0) (2026-02-23)
+
+
+### Bug Fixes
+
+* **deps:** update zod peer dependency to ^4.0.0 ([a0ece69](https://github.com/nauticalstream/sdk-js/commit/a0ece693ef5522e59bf379ededb015f660dbcaba))
+
+
+### BREAKING CHANGES
+
+* **deps:** Requires zod ^4.0.0 instead of ^3.0.0
+
 # [1.6.0](https://github.com/nauticalstream/sdk-js/compare/v1.5.1...v1.6.0) (2026-02-23)
 
 
