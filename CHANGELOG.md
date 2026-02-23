@@ -1,3 +1,10 @@
+## [1.4.2](https://github.com/nauticalstream/sdk-js/compare/v1.4.1...v1.4.2) (2026-02-23)
+
+
+### Bug Fixes
+
+* simplify realtime to JSON, rename correlation.id span attr, add module READMEs ([e331189](https://github.com/nauticalstream/sdk-js/commit/e33118992d14846b1a6a6f8efec7966eb3845d2e))
+
 ## [1.4.1](https://github.com/nauticalstream/sdk-js/compare/v1.4.0...v1.4.1) (2026-02-23)
 
 
