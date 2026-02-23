@@ -32,7 +32,7 @@ export interface HttpErrorResponse {
   correlationId?: string;
 
   /**
-   * Additional error details (optional)
+   * Additional error details (optional, e.g., validation field errors)
    */
   details?: unknown;
 }
@@ -72,6 +72,7 @@ export function formatHttpError(error: unknown): HttpErrorResponse {
       message: error.message,
       errorCode: error.errorCode,
       correlationId: getCorrelationId(),
+      details: (error as any).details, // Include validation details if present
     };
   }
 

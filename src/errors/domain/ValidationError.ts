@@ -22,6 +22,12 @@ import { DomainException } from '../base/DomainException';
  * if (input.startDate > input.endDate) {
  *   throw new ValidationError('Start date must be before end date');
  * }
+ * 
+ * // With structured details
+ * throw new ValidationError('Invalid user data', [
+ *   { field: 'email', message: 'Invalid email format' },
+ *   { field: 'age', message: 'Must be at least 18' }
+ * ]);
  * ```
  */
 export class ValidationError extends DomainException {
@@ -30,7 +36,19 @@ export class ValidationError extends DomainException {
   readonly httpStatus = 400;
   readonly graphqlCode = 'VALIDATION_ERROR';
 
-  constructor(message: string) {
+  /**
+   * Structured validation errors (optional)
+   * Useful for form validation with field-specific errors
+   */
+  public readonly details?: Array<{
+    path?: string;
+    field?: string;
+    message: string;
+    code?: string;
+  }>;
+
+  constructor(message: string, details?: Array<{ path?: string; field?: string; message: string; code?: string }>) {
     super(message);
+    this.details = details;
   }
 }

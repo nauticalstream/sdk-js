@@ -15,6 +15,9 @@ export { createGraphQLPlugin } from './plugins/graphql.plugin';
 export { createHealthPlugin } from './plugins/health.plugin';
 
 export * from './errors';
+export { fastifyErrorHandler } from './errors/error-handler.plugin';
+export { validateBody, validateQuery, validateParams } from './errors/validation.middleware';
+export { mapZodError, isZodError } from './errors/zod-mapper';
 
 // Observability instruments — for services that want to add custom labels
 export {
