@@ -1,3 +1,10 @@
+## [2.2.1](https://github.com/nauticalstream/sdk-js/compare/v2.2.0...v2.2.1) (2026-02-24)
+
+
+### Bug Fixes
+
+* remove legacy buildEnvelope overload and make subject optional in JetStreamAPI.subscribe ([9b2bc2b](https://github.com/nauticalstream/sdk-js/commit/9b2bc2b263a38664278086b20e311192a0529da8))
+
 # [2.2.0](https://github.com/nauticalstream/sdk-js/compare/v2.1.0...v2.2.0) (2026-02-23)
 
 
