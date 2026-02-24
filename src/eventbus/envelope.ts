@@ -39,48 +39,15 @@ export function buildEnvelope<T extends Message>(
   schema: GenMessage<T>,
   data: MessageInitShape<GenMessage<T>>,
   options?: { subject?: string; correlationId?: string }
-): Envelope;
-/** @deprecated Pass options object instead of positional subject/correlationId */
-export function buildEnvelope<T extends Message>(
-  source: string,
-  subject: string,
-  schema: GenMessage<T>,
-  data: MessageInitShape<GenMessage<T>>,
-  correlationId?: string
-): Envelope;
-export function buildEnvelope<T extends Message>(
-  source: string,
-  schemaOrSubject: GenMessage<T> | string,
-  dataOrSchema: MessageInitShape<GenMessage<T>> | GenMessage<T>,
-  optionsOrData?: { subject?: string; correlationId?: string } | MessageInitShape<GenMessage<T>>,
-  legacyCorrelationId?: string
 ): Envelope {
-  // Overload resolution
-  let subject: string;
-  let schema: GenMessage<T>;
-  let data: MessageInitShape<GenMessage<T>>;
-  let correlationId: string | undefined;
+  const subject = options?.subject ?? deriveSubject(schema.typeName);
+  const correlationId = options?.correlationId ?? peekCorrelationId() ?? generateCorrelationId();
 
-  if (typeof schemaOrSubject === 'string') {
-    // Legacy positional: (source, subject, schema, data, correlationId?)
-    subject = schemaOrSubject;
-    schema = dataOrSchema as GenMessage<T>;
-    data = optionsOrData as MessageInitShape<GenMessage<T>>;
-    correlationId = legacyCorrelationId;
-  } else {
-    // New: (source, schema, data, options?)
-    schema = schemaOrSubject;
-    data = dataOrSchema as MessageInitShape<GenMessage<T>>;
-    const opts = optionsOrData as { subject?: string; correlationId?: string } | undefined;
-    subject = opts?.subject ?? deriveSubject(schema.typeName);
-    correlationId = opts?.correlationId;
-  }
-  const resolvedCorrelationId = correlationId ?? peekCorrelationId() ?? generateCorrelationId();
   const message = create(schema, data);
   const event = create(EventSchema, {
     type: subject,
     source,
-    correlationId: resolvedCorrelationId,
+    correlationId,
     timestamp: new Date().toISOString(),
     data: toJson(schema, message) as JsonObject,
   });
@@ -88,7 +55,7 @@ export function buildEnvelope<T extends Message>(
   return {
     event,
     payload: toJsonString(EventSchema, event),
-    headers: createPublishHeaders(resolvedCorrelationId),
+    headers: createPublishHeaders(correlationId),
   };
 }
 

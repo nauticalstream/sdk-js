@@ -28,7 +28,7 @@ export async function request<TRequest extends Message, TResponse extends Messag
 
   const subject = deriveSubject(reqSchema.typeName);
   const timeoutMs = options?.timeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS;
-  const { payload, event } = buildEnvelope(source, subject, reqSchema, data, options?.correlationId);
+  const { payload, event } = buildEnvelope(source, reqSchema, data, { subject, correlationId: options?.correlationId });
 
   logger.debug({ subject, correlationId: event.correlationId }, 'Sending NATS request');
 

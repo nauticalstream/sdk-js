@@ -10,6 +10,7 @@ import { ensureEphemeralConsumer } from './consumer';
 import { getKvBucket, getObjectStore } from './kv';
 import { parseEnvelope } from '../envelope';
 import { withSubscribeSpan } from '../observability/tracing';
+import { deriveSubject } from '../utils/derive-subject';
 
 /**
  * High-level JetStream API — persistent, durable, at-least-once delivery.
@@ -38,11 +39,12 @@ export class JetStreamAPI {
    * Subscribe to a JetStream stream with a durable consumer.
    * Handler receives the typed domain message and the full platform.v1.Event envelope.
    * Use errorClassifier to control retry / discard / deadletter behaviour per error type.
+   * Subject is auto-derived from schema.typeName unless overridden.
    */
   async subscribe<T extends Message>(config: {
     stream: string;
     consumer: string;
-    subject: string;
+    subject?: string;
     schema: GenMessage<T>;
     handler: (data: T, envelope: Event) => Promise<void>;
     concurrency?: number;
@@ -51,14 +53,16 @@ export class JetStreamAPI {
     errorClassifier?: ErrorClassifier;
   }): Promise<() => Promise<void>> {
     const { schema, handler, errorClassifier = defaultErrorClassifier, ...rest } = config;
+    const subject = config.subject ?? deriveSubject(schema.typeName);
 
     return jsSubscribe(this.client, this.logger, {
       ...rest,
+      subject,
       errorClassifier,
       handler: async (raw, msg) => {
         const envelope = parseEnvelope(raw);
         const data = fromJson(schema, envelope.data ?? {}) as T;
-        await withSubscribeSpan(config.subject, msg.headers ?? undefined, () => handler(data, envelope));
+        await withSubscribeSpan(subject, msg.headers ?? undefined, () => handler(data, envelope));
       },
     });
   }

@@ -9,29 +9,29 @@ const CORRELATION = 'test-correlation-id';
 
 describe('buildEnvelope', () => {
   it('sets type equal to subject', () => {
-    const { event } = buildEnvelope(SOURCE, SUBJECT, WorkspaceCreatedSchema, {}, CORRELATION);
+    const { event } = buildEnvelope(SOURCE, WorkspaceCreatedSchema, {}, { subject: SUBJECT, correlationId: CORRELATION });
     expect(event.type).toBe(SUBJECT);
   });
 
   it('sets source', () => {
-    const { event } = buildEnvelope(SOURCE, SUBJECT, WorkspaceCreatedSchema, {}, CORRELATION);
+    const { event } = buildEnvelope(SOURCE, WorkspaceCreatedSchema, {}, { subject: SUBJECT, correlationId: CORRELATION });
     expect(event.source).toBe(SOURCE);
   });
 
   it('sets correlationId', () => {
-    const { event } = buildEnvelope(SOURCE, SUBJECT, WorkspaceCreatedSchema, {}, CORRELATION);
+    const { event } = buildEnvelope(SOURCE, WorkspaceCreatedSchema, {}, { subject: SUBJECT, correlationId: CORRELATION });
     expect(event.correlationId).toBe(CORRELATION);
   });
 
   it('auto-generates correlationId when not supplied', () => {
-    const { event } = buildEnvelope(SOURCE, SUBJECT, WorkspaceCreatedSchema, {});
+    const { event } = buildEnvelope(SOURCE, WorkspaceCreatedSchema, {}, { subject: SUBJECT });
     expect(typeof event.correlationId).toBe('string');
     expect(event.correlationId.length).toBeGreaterThan(0);
   });
 
   it('sets timestamp as ISO-8601 string', () => {
     const before = Date.now();
-    const { event } = buildEnvelope(SOURCE, SUBJECT, WorkspaceCreatedSchema, {}, CORRELATION);
+    const { event } = buildEnvelope(SOURCE, WorkspaceCreatedSchema, {}, { subject: SUBJECT, correlationId: CORRELATION });
     const after = Date.now();
     const ts = new Date(event.timestamp).getTime();
     expect(ts).toBeGreaterThanOrEqual(before);
@@ -39,14 +39,14 @@ describe('buildEnvelope', () => {
   });
 
   it('data is a plain object (JsonObject)', () => {
-    const { event } = buildEnvelope(SOURCE, SUBJECT, WorkspaceCreatedSchema, {}, CORRELATION);
+    const { event } = buildEnvelope(SOURCE, WorkspaceCreatedSchema, {}, { subject: SUBJECT, correlationId: CORRELATION });
     expect(event.data).toBeDefined();
     expect(typeof event.data).toBe('object');
     expect(Array.isArray(event.data)).toBe(false);
   });
 
   it('payload is a non-empty JSON string', () => {
-    const { payload } = buildEnvelope(SOURCE, SUBJECT, WorkspaceCreatedSchema, {}, CORRELATION);
+    const { payload } = buildEnvelope(SOURCE, WorkspaceCreatedSchema, {}, { subject: SUBJECT, correlationId: CORRELATION });
     expect(typeof payload).toBe('string');
     expect(payload.length).toBeGreaterThan(0);
     expect(() => JSON.parse(payload)).not.toThrow();
@@ -55,7 +55,7 @@ describe('buildEnvelope', () => {
 
 describe('parseEnvelope round-trip', () => {
   it('parseEnvelope(buildEnvelope().payload) equals the original event', () => {
-    const { event, payload } = buildEnvelope(SOURCE, SUBJECT, WorkspaceCreatedSchema, {}, CORRELATION);
+    const { event, payload } = buildEnvelope(SOURCE, WorkspaceCreatedSchema, {}, { subject: SUBJECT, correlationId: CORRELATION });
     const parsed = parseEnvelope(payload);
     expect(parsed.type).toBe(event.type);
     expect(parsed.source).toBe(event.source);

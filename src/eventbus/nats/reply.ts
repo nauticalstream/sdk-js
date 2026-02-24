@@ -54,7 +54,7 @@ export async function reply<TRequest extends Message, TResponse extends Message>
           correlationId ?? generateCorrelationId(),
           () => handler(data, inbound)
         );
-        const { payload } = buildEnvelope(source, subject, respSchema, responseData, correlationId ?? generateCorrelationId());
+        const { payload } = buildEnvelope(source, respSchema, responseData, { subject, correlationId });
         msg.respond(payload);
       } catch (error) {
         logger.error({ error, subject }, 'Request handler failed');
