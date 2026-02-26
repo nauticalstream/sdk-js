@@ -1,3 +1,10 @@
+## [2.2.2](https://github.com/nauticalstream/sdk-js/compare/v2.2.1...v2.2.2) (2026-02-26)
+
+
+### Bug Fixes
+
+* **eventbus:** make stream parameter optional with auto-derivation ([62d46c2](https://github.com/nauticalstream/sdk-js/commit/62d46c2b574db445c39fa58901a7bec5f0b9d8e3))
+
 ## [2.2.1](https://github.com/nauticalstream/sdk-js/compare/v2.2.0...v2.2.1) (2026-02-24)
 
 
