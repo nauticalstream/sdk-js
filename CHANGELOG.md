@@ -1,3 +1,10 @@
+## [2.2.3](https://github.com/nauticalstream/sdk-js/compare/v2.2.2...v2.2.3) (2026-02-27)
+
+
+### Bug Fixes
+
+* improve error handling and formatting across SDK ([29d9c10](https://github.com/nauticalstream/sdk-js/commit/29d9c10005b8a3a12905b16d3eaf953e2c7b4626))
+
 ## [2.2.2](https://github.com/nauticalstream/sdk-js/compare/v2.2.1...v2.2.2) (2026-02-26)
 
 
