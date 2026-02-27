@@ -1,4 +1,4 @@
-import type { ErrorCode, ErrorSeverity } from '@nauticalstream/proto/error/v1/codes_pb';
+import { ErrorCode, ErrorSeverity } from '@nauticalstream/proto/error/v1/codes_pb';
 
 /**
  * Base class for all domain/business errors
@@ -68,8 +68,6 @@ export abstract class DomainException extends Error {
    * Derived from severity level
    */
   get isRetryable(): boolean {
-    // Import at runtime to avoid circular dependency issues
-    const { ErrorSeverity } = require('@nauticalstream/proto/error/v1/codes_pb');
     return this.severity === ErrorSeverity.RETRYABLE;
   }
 

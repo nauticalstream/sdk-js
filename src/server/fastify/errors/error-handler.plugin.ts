@@ -51,7 +51,12 @@ export async function fastifyErrorHandler(server: FastifyInstance): Promise<void
     if (formatted.statusCode >= 500) {
       logger.error(
         {
-          error: mappedError,
+          error: {
+            message: mappedError.message,
+            stack: mappedError.stack,
+            name: mappedError.name,
+            ...('cause' in mappedError ? { cause: mappedError.cause } : {}),
+          },
           correlationId: formatted.correlationId,
           path: request.url,
           method: request.method,

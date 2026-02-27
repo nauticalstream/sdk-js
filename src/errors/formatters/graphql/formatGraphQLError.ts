@@ -1,4 +1,4 @@
-import type { GraphQLError } from 'graphql';
+import { GraphQLError } from 'graphql';
 import { DomainException } from '../../base/DomainException';
 import { SystemException } from '../../base/SystemException';
 
@@ -22,9 +22,7 @@ import { SystemException } from '../../base/SystemException';
  * ```
  */
 export function formatGraphQLError(err: GraphQLError): GraphQLError {
-  // Import GraphQLError at runtime to avoid peer dependency issues
-  const { GraphQLError: GQLError } = require('graphql');
-  
+  const GQLError = GraphQLError;
   const original = err.originalError;
 
   if (!original) {

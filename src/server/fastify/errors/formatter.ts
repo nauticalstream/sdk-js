@@ -17,6 +17,7 @@ export interface MercuriusErrorFormatterResponse {
 
 /**
  * Creates a Mercurius error formatter that injects `correlationId` into every GraphQL error.
+ * Logs 5xx errors with full stack traces for debugging.
  *
  * @example
  * server.register(mercuriusFederation, {
@@ -25,8 +26,12 @@ export interface MercuriusErrorFormatterResponse {
  */
 export function createGraphQLErrorFormatter() {
   return (execution: any, _context: any): MercuriusErrorFormatterResponse => {
+    const statusCode = execution.statusCode || 200;
+    // In Mercurius, _context is the Fastify Request — logger is at request.server.log
+    const logger = _context?.server?.log || _context?.app?.log || _context?.log || console;
+
     return {
-      statusCode: execution.statusCode || 200,
+      statusCode,
       response: {
         ...execution,
         errors: execution.errors?.map((err: any) => {
@@ -40,6 +45,25 @@ export function createGraphQLErrorFormatter() {
             formatted.extensions?.correlationId ||
             getCorrelationId() ||
             generateCorrelationId();
+
+          // Log unexpected errors (INTERNAL_SERVER_ERROR) with full original error details
+          if (formatted.extensions?.code === 'INTERNAL_SERVER_ERROR') {
+            const original = err.originalError || err;
+            const logData = {
+              correlationId,
+              path: err.path,
+              locations: err.locations,
+              errorName: original?.name,
+              errorMessage: original?.message,
+              stack: original?.stack,
+              cause: original?.cause,
+            };
+            if (logger.error) {
+              logger.error(logData, `[GraphQL INTERNAL_SERVER_ERROR] ${original?.message || err.message}`);
+            } else {
+              console.error(`[GraphQL INTERNAL_SERVER_ERROR] ${original?.message || err.message}`, logData);
+            }
+          }
           
           return {
             ...formatted,
