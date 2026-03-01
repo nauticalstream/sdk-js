@@ -41,6 +41,10 @@
     "./server/fastify": {
       "types": "./dist/server/fastify/index.d.ts",
       "default": "./dist/server/fastify/index.js"
+    },
+    "./workspace": {
+      "types": "./dist/workspace/index.d.ts",
+      "default": "./dist/workspace/index.js"
     }
   },
   "files": [
