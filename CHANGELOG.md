@@ -1,3 +1,10 @@
+# [2.3.0](https://github.com/nauticalstream/sdk-js/compare/v2.2.3...v2.3.0) (2026-03-01)
+
+
+### Features
+
+* update workspace validator to fail-closed for security, use 'Published' terminology ([943c4d3](https://github.com/nauticalstream/sdk-js/commit/943c4d36f44c226c4867810a111bec2fe0537d22))
+
 ## [2.2.3](https://github.com/nauticalstream/sdk-js/compare/v2.2.2...v2.2.3) (2026-02-27)
 
 
