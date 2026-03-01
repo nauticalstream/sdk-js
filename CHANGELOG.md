@@ -1,3 +1,10 @@
+## [2.3.1](https://github.com/nauticalstream/sdk-js/compare/v2.3.0...v2.3.1) (2026-03-01)
+
+
+### Bug Fixes
+
+* export workspace validator module in SDK ([1574ca8](https://github.com/nauticalstream/sdk-js/commit/1574ca86e027d0aa91e05a2fcff718c2cdfd39d9))
+
 # [2.3.0](https://github.com/nauticalstream/sdk-js/compare/v2.2.3...v2.3.0) (2026-03-01)
 
 
