@@ -1,3 +1,13 @@
+# [3.0.0](https://github.com/nauticalstream/sdk-js/compare/v2.3.1...v3.0.0) (2026-03-05)
+
+
+* feat!: simplify Context with pre-computed audit fields and unified ActionSource ([8b536e2](https://github.com/nauticalstream/sdk-js/commit/8b536e287d5f58369803dbaa84278b5700533a09))
+
+
+### BREAKING CHANGES
+
+* ActionSource type changed. Context interface unified - BaseContext and BusinessContext removed. createSystemContext() signature simplified.
+
 ## [2.3.1](https://github.com/nauticalstream/sdk-js/compare/v2.3.0...v2.3.1) (2026-03-01)
 
 
