@@ -1,6 +1,6 @@
 import type { FastifyRequest } from 'fastify';
 import { getCorrelationId, getTraceId, getSpanId } from '../../../telemetry';
-import type { BaseContext, BusinessContext } from '../types';
+import type { Context } from '../types';
 
 /**
  * Builds base telemetry context from the incoming request.
@@ -10,8 +10,10 @@ import type { BaseContext, BusinessContext } from '../types';
  * async context. Trace and span IDs come from the currently active OTel span.
  *
  * Pure extraction — no generation or side effects.
+ * 
+ * @deprecated Use createUserContext from context.ts instead
  */
-export function createBaseContext(request: FastifyRequest): BaseContext {
+export function createBaseContext(request: FastifyRequest): Partial<Context> {
   return {
     correlationId: (request as any).correlationId || getCorrelationId(),
     traceId: getTraceId(),
@@ -27,8 +29,10 @@ export function createBaseContext(request: FastifyRequest): BaseContext {
  * Returns `undefined` for any header that is absent.
  *
  * Pure extraction — no defaults, no generation, no side effects.
+ * 
+ * @deprecated Use createUserContext from context.ts instead
  */
-export function extractBusinessContext(request: FastifyRequest): BusinessContext {
+export function extractBusinessContext(request: FastifyRequest): Partial<Context> {
   return {
     userId: request.headers['x-user-id'] as string | undefined,
     workspaceId: request.headers['x-workspace-id'] as string | undefined,

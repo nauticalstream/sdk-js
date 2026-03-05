@@ -3,11 +3,14 @@ import { context } from '@opentelemetry/api';
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks';
 import type { FastifyRequest } from 'fastify';
 import {
-  createBaseContext,
-  extractBusinessContext,
+  createUserContext,
+  createSystemContext,
+  createContextFromEvent,
+} from '../context';
+import {
   createContext,
   createContextBuilder,
-} from '../context';
+} from '../context/builder';
 import { setCorrelationId } from '../../../telemetry/utils/context';
 
 // Setup OTel context manager
@@ -20,6 +23,7 @@ beforeAll(() => {
 // Mock Fastify request
 function createMockRequest(headers: Record<string, string> = {}): FastifyRequest {
   return {
+    id: 'req-123',
     ip: '127.0.0.1',
     headers: {
       'user-agent': 'test-agent/1.0',
@@ -29,20 +33,21 @@ function createMockRequest(headers: Record<string, string> = {}): FastifyRequest
   } as any;
 }
 
-describe('createBaseContext', () => {
+describe('createContext (from Fastify request)', () => {
   it('extracts correlationId from request.correlationId', () => {
     const request = createMockRequest({ 'x-correlation-id': 'test-123' });
-    const ctx = createBaseContext(request);
+    const ctx = createContext(request);
 
     expect(ctx.correlationId).toBe('test-123');
     expect(ctx.ip).toBe('127.0.0.1');
     expect(ctx.userAgent).toBe('test-agent/1.0');
     expect(ctx.headers).toBeDefined();
+    expect(ctx.actionSource).toBe('user');
   });
 
   it('generates correlationId when not in request', () => {
     const request = createMockRequest();
-    const ctx = createBaseContext(request);
+    const ctx = createContext(request);
 
     expect(ctx.correlationId).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -55,35 +60,37 @@ describe('createBaseContext', () => {
     const otelCtx = setCorrelationId('otel-correlation-123');
     
     await context.with(otelCtx, () => {
-      const ctx = createBaseContext(request);
+      const ctx = createContext(request);
       expect(ctx.correlationId).toBeDefined();
     });
   });
-});
 
-describe('extractBusinessContext', () => {
   it('extracts userId and workspaceId from headers', () => {
     const request = createMockRequest({
       'x-user-id': 'user-456',
       'x-workspace-id': 'ws-789',
     });
 
-    const ctx = extractBusinessContext(request);
+    const ctx = createContext(request);
 
     expect(ctx.userId).toBe('user-456');
     expect(ctx.workspaceId).toBe('ws-789');
+    expect(ctx.actorId).toBe('user-456');
+    expect(ctx.isUserAction).toBe(true);
+    expect(ctx.isSystemAction).toBe(false);
   });
 
   it('returns undefined for missing business headers', () => {
     const request = createMockRequest();
-    const ctx = extractBusinessContext(request);
+    const ctx = createContext(request);
 
     expect(ctx.userId).toBeUndefined();
-    expect(ctx.workspaceId).toBeUndefined();
+    expect(ctx.workspaceId).toBe('');
+    expect(ctx.actorId).toBeNull();
+    expect(ctx.isUserAction).toBe(false);
+    expect(ctx.isSystemAction).toBe(true);
   });
-});
 
-describe('createContext', () => {
   it('combines base and business context', () => {
     const request = createMockRequest({
       'x-correlation-id': 'universal-123',
@@ -93,14 +100,20 @@ describe('createContext', () => {
 
     const ctx = createContext(request);
 
-    // Base context
+    // Telemetry
     expect(ctx.correlationId).toBe('universal-123');
     expect(ctx.ip).toBe('127.0.0.1');
     expect(ctx.userAgent).toBe('test-agent/1.0');
 
-    // Business context
+    // Business
     expect(ctx.userId).toBe('user-999');
     expect(ctx.workspaceId).toBe('ws-888');
+    
+    // Pre-computed audit fields
+    expect(ctx.actorId).toBe('user-999');
+    expect(ctx.actionSource).toBe('user');
+    expect(ctx.isUserAction).toBe(true);
+    expect(ctx.isSystemAction).toBe(false);
   });
 
   it('works with partial business headers', () => {
@@ -111,7 +124,7 @@ describe('createContext', () => {
     const ctx = createContext(request);
 
     expect(ctx.userId).toBe('user-only');
-    expect(ctx.workspaceId).toBeUndefined();
+    expect(ctx.workspaceId).toBe('');
     expect(ctx.correlationId).toBeDefined();
   });
 });
@@ -165,3 +178,104 @@ describe('createContextBuilder', () => {
     expect(ctx.userId).toBe('overridden-user');
   });
 });
+
+describe('createUserContext', () => {
+  it('creates context with user action source', () => {
+    const ctx = createUserContext(
+      {
+        correlationId: 'test-123',
+        ip: '192.168.1.1',
+        userAgent: 'Mozilla/5.0',
+        headers: {},
+      },
+      'user-456',
+      'ws-789'
+    );
+
+    expect(ctx.userId).toBe('user-456');
+    expect(ctx.workspaceId).toBe('ws-789');
+    expect(ctx.actorId).toBe('user-456');
+    expect(ctx.actionSource).toBe('user');
+    expect(ctx.isUserAction).toBe(true);
+    expect(ctx.isSystemAction).toBe(false);
+  });
+
+  it('handles missing userId', () => {
+    const ctx = createUserContext(
+      {
+        ip: '127.0.0.1',
+        headers: {},
+      },
+      undefined,
+      'ws-123'
+    );
+
+    expect(ctx.userId).toBeUndefined();
+    expect(ctx.actorId).toBeNull();
+    expect(ctx.isUserAction).toBe(false);
+    expect(ctx.isSystemAction).toBe(true);
+  });
+});
+
+describe('createSystemContext', () => {
+  it('creates context with system action source', () => {
+    const ctx = createSystemContext('ws-123');
+
+    expect(ctx.workspaceId).toBe('ws-123');
+    expect(ctx.userId).toBeUndefined();
+    expect(ctx.actorId).toBeNull();
+    expect(ctx.actionSource).toBe('system');
+    expect(ctx.isUserAction).toBe(false);
+    expect(ctx.isSystemAction).toBe(true);
+  });
+
+  it('allows system action with userId for impersonation', () => {
+    const ctx = createSystemContext('ws-123', 'user-456');
+
+    expect(ctx.userId).toBe('user-456');
+    expect(ctx.actorId).toBe('user-456');
+    expect(ctx.actionSource).toBe('system');
+    expect(ctx.isUserAction).toBe(false);
+    expect(ctx.isSystemAction).toBe(true);
+  });
+});
+
+describe('createContextFromEvent', () => {
+  it('creates context from event envelope', () => {
+    const envelope = {
+      correlationId: 'event-123',
+      source: 'article-service',
+      timestamp: '2025-01-01T00:00:00Z',
+      type: 'article.created.v1',
+    };
+
+    const ctx = createContextFromEvent(envelope, 'ws-789', 'user-456');
+
+    expect(ctx.correlationId).toBe('event-123');
+    expect(ctx.workspaceId).toBe('ws-789');
+    expect(ctx.userId).toBe('user-456');
+    expect(ctx.actorId).toBe('user-456');
+    expect(ctx.actionSource).toBe('system'); // events are system-initiated
+    expect(ctx.isUserAction).toBe(false); // events are not direct user actions
+    expect(ctx.isSystemAction).toBe(true); // events are system-initiated even with userId
+    expect(ctx.eventMetadata?.eventSource).toBe('article-service');
+    expect(ctx.eventMetadata?.eventTimestamp).toBe('2025-01-01T00:00:00Z');
+    expect(ctx.eventMetadata?.eventType).toBe('article.created.v1');
+  });
+
+  it('handles missing userId in event', () => {
+    const envelope = {
+      correlationId: 'event-456',
+      source: 'cron-job',
+      timestamp: '2025-01-02T00:00:00Z',
+    };
+
+    const ctx = createContextFromEvent(envelope, 'ws-123');
+
+    expect(ctx.userId).toBeUndefined();
+    expect(ctx.actorId).toBeNull();
+    expect(ctx.actionSource).toBe('system');
+    expect(ctx.isSystemAction).toBe(true);
+  });
+});
+

@@ -1,24 +1,81 @@
 import type { FastifyRequest } from 'fastify';
 import type { DestinationStream } from 'pino';
 
-/** Telemetry fields attached to every request context */
-export interface BaseContext {
+// ────────────────────────────────────────────────────────────────────────────
+// Context
+// ────────────────────────────────────────────────────────────────────────────
+
+/** Action source type for audit tracking */
+export type ActionSource = 'user' | 'system';
+
+/**
+ * Unified context available in all services.
+ * Fully enriched with computed audit fields at creation time.
+ */
+export interface Context {
+  // ── Telemetry ──────────────────────────────────────────────────────────────
+  
+  /** Correlation ID for distributed tracing */
   correlationId: string;
+  
+  /** OpenTelemetry trace ID */
   traceId?: string;
+  
+  /** OpenTelemetry span ID */
   spanId?: string;
+  
+  /** Request ID (for HTTP/GraphQL requests) */
+  requestId?: string;
+  
+  /** Client IP address */
   ip: string;
+  
+  /** User agent string */
   userAgent?: string;
+  
+  /** Request headers */
   headers: Record<string, string | string[] | undefined>;
-}
-
-/** Business identifiers extracted from standard headers */
-export interface BusinessContext {
+  
+  // ── Business Identifiers ───────────────────────────────────────────────────
+  
+  /** User ID from authentication (undefined for system actions) */
   userId?: string;
+  
+  /** Workspace/tenant ID */
   workspaceId?: string;
+  
+  /** Alias for workspaceId (industry standard) */
+  tenantId?: string;
+  
+  // ── Audit Fields (Pre-computed) ────────────────────────────────────────────
+  
+  /** Source of the action */
+  source: ActionSource;
+  
+  /** Actor ID for database audit (userId or null for system) */
+  actorId: string | null;
+  
+  /** Action source for database audit (same as source) */
+  actionSource: ActionSource;
+  
+  /** Whether this is a user-initiated action */
+  isUserAction: boolean;
+  
+  /** Whether this is a system-initiated action */
+  isSystemAction: boolean;
+  
+  // ── Event Metadata (Only for event contexts) ───────────────────────────────
+  
+  /** Event metadata (populated for event-sourced contexts) */
+  eventMetadata?: {
+    /** Service that emitted the event */
+    eventSource: string;
+    /** Event timestamp */
+    eventTimestamp: string;
+    /** Event type/subject */
+    eventType?: string;
+  };
 }
-
-/** Combined telemetry + business context available in all services */
-export interface Context extends BaseContext, BusinessContext {}
 
 /** Function that extracts custom context fields from a request */
 export type ContextExtractor<T extends object> = (request: FastifyRequest) => T;

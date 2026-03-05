@@ -1,11 +1,17 @@
 export { createFastifyServer } from './factory';
 
 export {
-  createBaseContext,
-  extractBusinessContext,
+  createUserContext,
+  createSystemContext,
+  createContextFromEvent,
+  withContext,
+  getContext,
+} from './context';
+
+export {
   createContext,
   createContextBuilder,
-} from './context';
+} from './context/builder';
 
 export { fastifyTelemetry, type FastifyTelemetryOptions } from './plugins/telemetry.plugin';
 export { fastifyRequestLogging } from './plugins/logging.plugin';
@@ -28,8 +34,7 @@ export {
 } from './observability/metrics';
 
 export type {
-  BaseContext,
-  BusinessContext,
+  ActionSource,
   Context,
   ContextExtractor,
   FastifyServerOptions,

@@ -1,16 +1,31 @@
 import type { FastifyRequest } from 'fastify';
 import type { Context, ContextExtractor } from '../types';
-import { createBaseContext, extractBusinessContext } from './base';
+import { createUserContext } from '../context';
+import { getTraceId, getSpanId } from '../../../telemetry';
 
 /**
- * Builds the universal context (telemetry + business) for a request.
+ * Builds the universal context (telemetry + business + audit) for a request.
  * Use directly as the `context` function in `createGraphQLPlugin`.
+ * 
+ * All audit fields (actorId, actionSource, isUserAction, etc.) are pre-computed.
  */
 export function createContext(request: FastifyRequest): Context {
-  return {
-    ...createBaseContext(request),
-    ...extractBusinessContext(request),
-  };
+  const userId = request.headers['x-user-id'] as string | undefined;
+  const workspaceId = request.headers['x-workspace-id'] as string | undefined;
+  
+  return createUserContext(
+    {
+      correlationId: (request as any).correlationId,
+      traceId: getTraceId(),
+      spanId: getSpanId(),
+      requestId: request.id,
+      ip: request.ip,
+      userAgent: request.headers['user-agent'],
+      headers: request.headers,
+    },
+    userId,
+    workspaceId
+  );
 }
 
 /**

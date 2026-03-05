@@ -16,6 +16,7 @@ import type {
   RequestOptions,
   ReplyOptions,
   Unsubscribe,
+  EventHandler,
 } from './types';
 
 export interface EventBusConfig {
@@ -82,7 +83,7 @@ export class EventBus {
   /** Subscribe to a NATS Core subject with load-balancing queue group. */
   async queueGroup<T extends Message>(
     schema: GenMessage<T>,
-    handler: (data: T, envelope: Event) => Promise<void>,
+    handler: EventHandler<T>,
     options: QueueGroupOptions
   ): Promise<Unsubscribe> {
     return natsQueueGroup.queueGroup(this.client, this.logger, schema, handler, options);
