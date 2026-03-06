@@ -60,7 +60,7 @@ export class WorkspaceStatusValidator {
       const response = (await this.eventBus.request(
         GetWorkspacesStatusRequestSchema,
         GetWorkspacesStatusResponseSchema,
-        { workspaceIds },
+        { ids: workspaceIds },
       )) as GetWorkspacesStatusResponse;
 
       const filtered = items.filter(item => {
@@ -101,7 +101,7 @@ export class WorkspaceStatusValidator {
       const response = (await this.eventBus.request(
         GetWorkspacesStatusRequestSchema,
         GetWorkspacesStatusResponseSchema,
-        { workspaceIds: [workspaceId] },
+        { ids: [workspaceId] },
       )) as GetWorkspacesStatusResponse;
 
       return response.workspaceStatus[workspaceId] === true;
@@ -132,7 +132,7 @@ export class WorkspaceStatusValidator {
       const response = (await this.eventBus.request(
         GetWorkspacesStatusRequestSchema,
         GetWorkspacesStatusResponseSchema,
-        { workspaceIds },
+        { ids: workspaceIds },
       )) as GetWorkspacesStatusResponse;
 
       return response.workspaceStatus;

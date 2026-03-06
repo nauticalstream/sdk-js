@@ -23,7 +23,7 @@ export async function publish<T extends Message>(
   if (!client.connected) throw new Error('NATS not connected — cannot publish');
 
   const { payload, event, headers } = buildEnvelope(source, schema, data, { correlationId: options?.correlationId });
-  const subject = event.type;
+  const subject = event.subject;
 
   client.getConnection().publish(subject, payload, { headers });
   logger.debug({ subject, correlationId: event.correlationId }, 'Published to NATS Core');

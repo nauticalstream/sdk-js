@@ -9,8 +9,8 @@ vi.mock('../envelope', async (importOriginal) => {
     buildEnvelope: vi.fn().mockImplementation((_source, _schema, _data, options) => {
       const subject = options?.subject ?? 'workspace.v1.workspace-created';
       return {
-        event: { correlationId: 'cid-1', type: subject },
-        payload: `{"type":"${subject}"}`,
+        event: { correlationId: 'cid-1', subject: subject },
+        payload: `{"subject":"${subject}"}`,
         headers: {},
       };
     }),

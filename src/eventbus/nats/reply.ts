@@ -60,7 +60,7 @@ export async function reply<TRequest extends Message, TResponse extends Message>
         logger.error({ error, subject }, 'Request handler failed');
         // Signal failure: respond with an Event that has no data — caller's request() will throw.
         const errorEvent = create(EventSchema, {
-          type: `${subject}.error`,
+          subject: `${subject}.error`,
           source,
           correlationId: correlationId ?? generateCorrelationId(),
           timestamp: new Date().toISOString(),

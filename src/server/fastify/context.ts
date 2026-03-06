@@ -146,7 +146,7 @@ export function createContextFromEvent(
     correlationId: string;
     source: string;
     timestamp: string;
-    type?: string;
+    subject?: string;
   },
   workspaceId?: string,
   userId?: string
@@ -159,7 +159,7 @@ export function createContextFromEvent(
     eventMetadata: {
       eventSource: envelope.source,
       eventTimestamp: envelope.timestamp,
-      eventType: envelope.type,
+      eventType: envelope.subject,
     },
   });
 }

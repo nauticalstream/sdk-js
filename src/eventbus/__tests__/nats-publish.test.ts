@@ -8,8 +8,8 @@ vi.mock('../envelope', async (importOriginal) => {
   return {
     ...actual,
     buildEnvelope: vi.fn().mockReturnValue({
-      event: { correlationId: 'cid-1', type: 'workspace.v1.workspace-created' },
-      payload: '{"type":"workspace.v1.workspace-created"}',
+      event: { correlationId: 'cid-1', subject: 'workspace.v1.workspace-created' },
+      payload: '{"subject":"workspace.v1.workspace-created"}',
       headers: {},
     }),
   };

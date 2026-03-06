@@ -8,9 +8,9 @@ const SUBJECT = 'workspace.v1.workspace-created';
 const CORRELATION = 'test-correlation-id';
 
 describe('buildEnvelope', () => {
-  it('sets type equal to subject', () => {
+  it('sets subject field', () => {
     const { event } = buildEnvelope(SOURCE, WorkspaceCreatedSchema, {}, { subject: SUBJECT, correlationId: CORRELATION });
-    expect(event.type).toBe(SUBJECT);
+    expect(event.subject).toBe(SUBJECT);
   });
 
   it('sets source', () => {
@@ -57,7 +57,7 @@ describe('parseEnvelope round-trip', () => {
   it('parseEnvelope(buildEnvelope().payload) equals the original event', () => {
     const { event, payload } = buildEnvelope(SOURCE, WorkspaceCreatedSchema, {}, { subject: SUBJECT, correlationId: CORRELATION });
     const parsed = parseEnvelope(payload);
-    expect(parsed.type).toBe(event.type);
+    expect(parsed.subject).toBe(event.subject);
     expect(parsed.source).toBe(event.source);
     expect(parsed.correlationId).toBe(event.correlationId);
     expect(parsed.timestamp).toBe(event.timestamp);

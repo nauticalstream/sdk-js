@@ -61,7 +61,7 @@ describe('nats/subscribe', () => {
 
     // Feed a properly-built envelope so parseEnvelope doesn't fail
     const evt = create(EventSchema, {
-      type: 'workspace.v1.workspace-created',
+      subject: 'workspace.v1.workspace-created',
       source: 'svc',
       correlationId: 'test-cid',
       timestamp: new Date().toISOString(),

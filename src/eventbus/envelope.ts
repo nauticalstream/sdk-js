@@ -45,7 +45,7 @@ export function buildEnvelope<T extends Message>(
 
   const message = create(schema, data);
   const event = create(EventSchema, {
-    type: subject,
+    subject: subject,
     source,
     correlationId,
     timestamp: new Date().toISOString(),

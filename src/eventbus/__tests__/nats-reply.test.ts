@@ -5,9 +5,9 @@ import type { NatsClient } from '../client/nats-client';
 import { EventSchema } from '@nauticalstream/proto/platform/v1/event_pb';
 import { create, toJsonString } from '@bufbuild/protobuf';
 
-function makeEventBinary(type: string, source: string, correlationId?: string): Uint8Array {
+function makeEventBinary(subject: string, source: string, correlationId?: string): Uint8Array {
   const evt = create(EventSchema, {
-    type,
+    subject,
     source,
     correlationId: correlationId ?? 'test-cid',
     timestamp: new Date().toISOString(),

@@ -52,7 +52,7 @@ export async function publish<T extends Message>(
 ): Promise<{ ok: boolean; error?: boolean }> {
   const config = { ...DEFAULT_RETRY_CONFIG, ...options?.retryConfig };
   const { payload, event, headers } = buildEnvelope(source, schema, data, { subject: options?.subject, correlationId: options?.correlationId });
-  const subject = event.type;
+  const subject = event.subject;
 
   jetstreamPublishAttempts.add(1, { subject });
 

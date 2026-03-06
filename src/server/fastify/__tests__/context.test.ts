@@ -246,7 +246,7 @@ describe('createContextFromEvent', () => {
       correlationId: 'event-123',
       source: 'article-service',
       timestamp: '2025-01-01T00:00:00Z',
-      type: 'article.created.v1',
+      subject: 'article.created.v1',
     };
 
     const ctx = createContextFromEvent(envelope, 'ws-789', 'user-456');
