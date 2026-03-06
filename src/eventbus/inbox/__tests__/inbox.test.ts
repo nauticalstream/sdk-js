@@ -28,13 +28,15 @@ function createMockPrisma() {
   const mockTx: PrismaTransaction = {
     processedEvent: {
       findUnique: vi.fn(async ({ where }) => {
-        const key = `${where.eventId_consumerName.eventId}:${where.eventId_consumerName.consumerName}`;
-        return processedEvents.has(key) ? { id: key } : null;
+        const key = `${where.id_consumerName.id}:${where.id_consumerName.consumerName}`;
+        return processedEvents.has(key) 
+          ? { id: where.id_consumerName.id, consumerName: where.id_consumerName.consumerName } 
+          : null;
       }),
       create: vi.fn(async ({ data }) => {
-        const key = `${data.eventId}:${data.consumerName}`;
+        const key = `${data.id}:${data.consumerName}`;
         processedEvents.set(key, data);
-        return { id: key, ...data };
+        return data;
       }),
     },
   };
@@ -59,8 +61,8 @@ describe('isEventProcessed', () => {
     expect(result).toBe(false);
     expect(mockTx.processedEvent.findUnique).toHaveBeenCalledWith({
       where: {
-        eventId_consumerName: {
-          eventId: 'event-123',
+        id_consumerName: {
+          id: 'event-123',
           consumerName: 'test-consumer',
         },
       },
@@ -85,7 +87,7 @@ describe('markEventProcessed', () => {
 
     expect(mockTx.processedEvent.create).toHaveBeenCalledWith({
       data: {
-        eventId: 'test-event-123',
+        id: 'test-event-123',
         correlationId: 'test-correlation-123',
         subject: 'article.created',
         streamName: 'core-nats',
@@ -208,7 +210,7 @@ describe('withIdempotentHandler', () => {
 
   it('should log when event already processed', async () => {
     const { mockPrisma, processedEvents } = createMockPrisma();
-    processedEvents.set('test-event-123:article-consumer', { id: 'test' });
+    processedEvents.set('test-event-123:article-consumer', { id: 'test-event-123', consumerName: 'article-consumer' });
     const handler = vi.fn(async () => 'result');
     const logger = {
       info: vi.fn(),
@@ -332,9 +334,9 @@ describe('EventProcessor', () => {
     expect(logger.info).toHaveBeenCalled();
   });
 
-  it('should return null for already processed events', async () => {
+  it('should return null for already processed events',async () => {
     const { mockPrisma, processedEvents } = createMockPrisma();
-    processedEvents.set('test-event-123:article-consumer', { id: 'test' });
+    processedEvents.set('test-event-123:article-consumer', { id: 'test-event-123', consumerName: 'article-consumer' });
 
     const processor = new EventProcessor(mockPrisma, 'article-consumer');
     const handler = vi.fn(async () => 'result');

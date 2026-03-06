@@ -31,8 +31,8 @@ export async function isEventProcessed(
 ): Promise<boolean> {
   const existing = await tx.processedEvent.findUnique({
     where: {
-      eventId_consumerName: {
-        eventId,
+      id_consumerName: {
+        id: eventId,
         consumerName,
       },
     },
@@ -68,7 +68,7 @@ export async function markEventProcessed(
   metadata?: { streamName: string; sequenceNumber: bigint }
 ): Promise<void> {
   const data: ProcessedEventData = {
-    eventId: event.id,
+    id: event.id,
     correlationId: event.correlationId,
     subject: event.subject,
     streamName: metadata?.streamName ?? 'core-nats',
