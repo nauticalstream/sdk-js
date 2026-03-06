@@ -1,3 +1,10 @@
+## [4.0.2](https://github.com/nauticalstream/sdk-js/compare/v4.0.1...v4.0.2) (2026-03-06)
+
+
+### Bug Fixes
+
+* **inbox:** make PrismaClient type compatible with any generated Prisma client ([58e734b](https://github.com/nauticalstream/sdk-js/commit/58e734b931491f0068429ce21ac0c0012ca6fa29))
+
 ## [4.0.1](https://github.com/nauticalstream/sdk-js/compare/v4.0.0...v4.0.1) (2026-03-06)
 
 
