@@ -1,3 +1,15 @@
+# [4.0.0](https://github.com/nauticalstream/sdk-js/compare/v3.1.1...v4.0.0) (2026-03-06)
+
+
+* feat!: add Event.id support and outbox pattern ([d97ca42](https://github.com/nauticalstream/sdk-js/commit/d97ca4258c550a54a94ab3b158d9e812677b8b17))
+
+
+### BREAKING CHANGES
+
+* Updated to proto v3.0.0 with Event.id field. Inbox pattern now uses eventId for deduplication instead of correlationId. IDGenerator refactored to parameter-based API with UUID v7 support for event IDs.
+
+Added transactional outbox pattern with OutboxPublisher class for reliable event publishing. All 528 tests passing.
+
 ## [3.1.1](https://github.com/nauticalstream/sdk-js/compare/v3.1.0...v3.1.1) (2026-03-06)
 
 
