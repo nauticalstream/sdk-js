@@ -1,3 +1,10 @@
+## [4.0.3](https://github.com/nauticalstream/sdk-js/compare/v4.0.2...v4.0.3) (2026-03-06)
+
+
+### Bug Fixes
+
+* **errors:** include validation details in GraphQL error extensions ([007ed82](https://github.com/nauticalstream/sdk-js/commit/007ed8286fb25f19a83dc37b0be4acd471918d19))
+
 ## [4.0.2](https://github.com/nauticalstream/sdk-js/compare/v4.0.1...v4.0.2) (2026-03-06)
 
 
