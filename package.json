@@ -22,6 +22,10 @@
       "types": "./dist/eventbus/index.d.ts",
       "default": "./dist/eventbus/index.js"
     },
+    "./eventbus/inbox": {
+      "types": "./dist/eventbus/inbox/index.d.ts",
+      "default": "./dist/eventbus/inbox/index.js"
+    },
     "./permissions": {
       "types": "./dist/permissions/index.d.ts",
       "default": "./dist/permissions/index.js"
