@@ -1,6 +1,7 @@
 import { GraphQLError } from 'graphql';
 import { DomainException } from '../../base/DomainException';
 import { SystemException } from '../../base/SystemException';
+import { ValidationError } from '../../domain/ValidationError';
 
 /**
  * Format GraphQL errors for Mercurius/Apollo Server
@@ -28,6 +29,20 @@ export function formatGraphQLError(err: GraphQLError): GraphQLError {
   if (!original) {
     // GraphQL validation/syntax errors — safe to forward as-is
     return err;
+  }
+
+  // ValidationError - include structured validation details
+  if (original instanceof ValidationError) {
+    return new GQLError(original.message, {
+      ...err,
+      extensions: {
+        ...err.extensions,
+        code: original.graphqlCode,
+        errorCode: original.errorCode,
+        httpStatus: original.httpStatus,
+        details: original.details, // Include field-specific validation errors
+      },
+    });
   }
 
   // Domain exception - use its metadata
