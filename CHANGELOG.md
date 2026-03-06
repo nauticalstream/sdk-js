@@ -1,3 +1,16 @@
+# [3.1.0](https://github.com/nauticalstream/sdk-js/compare/v3.0.0...v3.1.0) (2026-03-06)
+
+
+### Bug Fixes
+
+* update Event envelope to use 'subject' field instead of 'type' ([e2d9021](https://github.com/nauticalstream/sdk-js/commit/e2d902171b5459bead40e091bde0e124c3ea4221))
+* use envelope.subject instead of type in queue-group ([ae0b033](https://github.com/nauticalstream/sdk-js/commit/ae0b033dd8e3b7824b9e220f96268fa933cdefe8))
+
+
+### Features
+
+* add transactional inbox pattern for idempotent event consumption ([46c885b](https://github.com/nauticalstream/sdk-js/commit/46c885ba0e3efc595041070b6ce382cafdcfa69e))
+
 # [3.0.0](https://github.com/nauticalstream/sdk-js/compare/v2.3.1...v3.0.0) (2026-03-05)
 
 
