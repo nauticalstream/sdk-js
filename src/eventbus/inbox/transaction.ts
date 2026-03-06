@@ -87,7 +87,7 @@ export async function withIdempotentHandler<T>(
 ): Promise<T | null> {
   const { skipMarkProcessed = false, metadata, logger } = options;
 
-  return prisma.$transaction(async (tx) => {
+  return prisma.$transaction(async (tx: PrismaTransaction) => {
     // Step 1: Check if already processed (idempotency check by eventId)
     const alreadyProcessed = await isEventProcessed(tx, event.id, consumerName);
 

@@ -70,10 +70,9 @@ export type PrismaTransaction = {
 
 /**
  * Generic Prisma client type with $transaction support.
+ * Uses a loose type that is compatible with any Prisma-generated client.
  */
 export type PrismaClient = {
-  $transaction: <T>(
-    fn: (tx: PrismaTransaction) => Promise<T>,
-    options?: { timeout?: number; maxWait?: number; isolationLevel?: string }
-  ) => Promise<T>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  $transaction: (...args: any[]) => Promise<any>;
 };
