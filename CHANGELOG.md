@@ -1,3 +1,10 @@
+## [3.1.1](https://github.com/nauticalstream/sdk-js/compare/v3.1.0...v3.1.1) (2026-03-06)
+
+
+### Bug Fixes
+
+* add eventbus/inbox export to package.json ([173851f](https://github.com/nauticalstream/sdk-js/commit/173851f176268ba3d949e969f289fcb6c20fa99f))
+
 # [3.1.0](https://github.com/nauticalstream/sdk-js/compare/v3.0.0...v3.1.0) (2026-03-06)
 
 
