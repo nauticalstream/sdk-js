@@ -1,3 +1,10 @@
+## [4.0.1](https://github.com/nauticalstream/sdk-js/compare/v4.0.0...v4.0.1) (2026-03-06)
+
+
+### Bug Fixes
+
+* simplify inbox to use id field directly for event.id ([f2b55a3](https://github.com/nauticalstream/sdk-js/commit/f2b55a3af912d1d8be3a5b30a1217008b1d3616b))
+
 # [4.0.0](https://github.com/nauticalstream/sdk-js/compare/v3.1.1...v4.0.0) (2026-03-06)
 
 
