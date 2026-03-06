@@ -8,6 +8,19 @@ const SUBJECT = 'workspace.v1.workspace-created';
 const CORRELATION = 'test-correlation-id';
 
 describe('buildEnvelope', () => {
+  it('sets id field as UUID v7', () => {
+    const { event } = buildEnvelope(SOURCE, WorkspaceCreatedSchema, {}, { subject: SUBJECT, correlationId: CORRELATION });
+    expect(typeof event.id).toBe('string');
+    expect(event.id.length).toBe(36); // UUID format
+    expect(event.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+  });
+
+  it('generates unique ids for each call', () => {
+    const { event: event1 } = buildEnvelope(SOURCE, WorkspaceCreatedSchema, {}, { subject: SUBJECT, correlationId: CORRELATION });
+    const { event: event2 } = buildEnvelope(SOURCE, WorkspaceCreatedSchema, {}, { subject: SUBJECT, correlationId: CORRELATION });
+    expect(event1.id).not.toBe(event2.id);
+  });
+
   it('sets subject field', () => {
     const { event } = buildEnvelope(SOURCE, WorkspaceCreatedSchema, {}, { subject: SUBJECT, correlationId: CORRELATION });
     expect(event.subject).toBe(SUBJECT);
@@ -57,6 +70,7 @@ describe('parseEnvelope round-trip', () => {
   it('parseEnvelope(buildEnvelope().payload) equals the original event', () => {
     const { event, payload } = buildEnvelope(SOURCE, WorkspaceCreatedSchema, {}, { subject: SUBJECT, correlationId: CORRELATION });
     const parsed = parseEnvelope(payload);
+    expect(parsed.id).toBe(event.id);
     expect(parsed.subject).toBe(event.subject);
     expect(parsed.source).toBe(event.source);
     expect(parsed.correlationId).toBe(event.correlationId);

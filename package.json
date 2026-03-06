@@ -83,7 +83,7 @@
     "@bufbuild/protobuf": "^2.11.0",
     "@fastify/cors": "^11.2.0",
     "@mercuriusjs/federation": "^5.0.0",
-    "@nauticalstream/proto": "^2.0.0",
+    "@nauticalstream/proto": "^3.0.0",
     "@nauticalstream/sdk": "^3.1.1",
     "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/auto-instrumentations-node": "^0.53.0",
@@ -107,7 +107,8 @@
     "nats": "^2.29.3",
     "opossum": "^9.0.0",
     "p-retry": "^7.1.1",
-    "pino": "^10.3.1"
+    "pino": "^10.3.1",
+    "uuid": "^13.0.0"
   },
   "peerDependencies": {
     "fastify": "^5.0.0",

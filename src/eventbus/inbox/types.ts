@@ -9,7 +9,8 @@
  * Maps from Event envelope to database fields.
  */
 export interface ProcessedEventData {
-  correlationId: string;
+  eventId: string;          // Unique event ID (for deduplication)
+  correlationId: string;    // Correlation ID (for tracing)
   subject: string;          // NATS subject that identifies the event
   streamName: string;       // From JetStream metadata (or 'core-nats' for ephemeral)
   sequenceNumber: bigint;   // From JetStream metadata (or 0n for ephemeral)
@@ -61,7 +62,7 @@ export interface IdempotentHandlerOptions {
 export type PrismaTransaction = {
   processedEvent: {
     findUnique: (args: {
-      where: { correlationId_consumerName: { correlationId: string; consumerName: string } };
+      where: { eventId_consumerName: { eventId: string; consumerName: string } };
     }) => Promise<{ id: string } | null>;
     create: (args: { data: ProcessedEventData }) => Promise<unknown>;
   };

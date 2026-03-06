@@ -12,13 +12,13 @@ import type { PrismaTransaction, ProcessedEventData } from './types';
  * Check if an event has already been processed by this consumer.
  *
  * @param tx - Prisma transaction
- * @param correlationId - Event correlation ID
+ * @param eventId - Event ID (unique per event instance)
  * @param consumerName - Consumer name (e.g., 'article-consumer')
  * @returns true if event was already processed
  *
  * @example
  * ```typescript
- * const alreadyProcessed = await isEventProcessed(tx, event.correlationId, 'article-consumer');
+ * const alreadyProcessed = await isEventProcessed(tx, event.id, 'article-consumer');
  * if (alreadyProcessed) {
  *   return; // Skip processing
  * }
@@ -26,13 +26,13 @@ import type { PrismaTransaction, ProcessedEventData } from './types';
  */
 export async function isEventProcessed(
   tx: PrismaTransaction,
-  correlationId: string,
+  eventId: string,
   consumerName: string
 ): Promise<boolean> {
   const existing = await tx.processedEvent.findUnique({
     where: {
-      correlationId_consumerName: {
-        correlationId,
+      eventId_consumerName: {
+        eventId,
         consumerName,
       },
     },
@@ -68,6 +68,7 @@ export async function markEventProcessed(
   metadata?: { streamName: string; sequenceNumber: bigint }
 ): Promise<void> {
   const data: ProcessedEventData = {
+    eventId: event.id,
     correlationId: event.correlationId,
     subject: event.subject,
     streamName: metadata?.streamName ?? 'core-nats',

@@ -61,9 +61,19 @@ export type {
   ProcessedEventData,
   JetStreamMetadata,
   IdempotentHandlerOptions,
-  PrismaTransaction,
-  PrismaClient,
+  PrismaTransaction as InboxPrismaTransaction,
+  PrismaClient as InboxPrismaClient,
 } from './inbox';
+
+// ── Outbox Pattern (transactional publishing) ─────────────────────────────────
+export { OutboxPublisher } from './outbox';
+export { buildOutboxRecord } from './outbox';
+export type {
+  OutboxRecord,
+  PrismaTransaction as OutboxPrismaTransaction,
+  EventSchema,
+  EventData,
+} from './outbox';
 
 // ── Core NATS patterns (advanced) ─────────────────────────────────────────────
 export { publish } from './nats/publish';

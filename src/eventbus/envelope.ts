@@ -5,6 +5,7 @@ import { EventSchema, type Event } from '@nauticalstream/proto/platform/v1/event
 import { createPublishHeaders } from './observability/tracing';
 import { peekCorrelationId, generateCorrelationId } from '../telemetry/utils/context';
 import { deriveSubject } from './utils/derive-subject';
+import { IDGenerator as ID } from '../crypto';
 import type { MsgHdrs } from 'nats';
 
 export type { Event };
@@ -21,9 +22,10 @@ const decoder = new TextDecoder();
 /**
  * Wrap any proto message in a platform.v1.Event and encode it for the wire.
  *
- * - type          = NATS subject (doubles as the event type discriminator)
+ * - id            = unique event identifier (UUID) — globally unique for THIS event instance
+ * - subject       = NATS subject (doubles as the event type discriminator)
  * - source        = publishing service name
- * - correlationId = caller-supplied or propagated from async context
+ * - correlationId = caller-supplied or propagated from async context (traces entire flow)
  * - timestamp     = UTC ISO-8601 at call time
  * - data          = toJson(schema, data) — human-readable, schema-validated JSON
  *
@@ -31,6 +33,10 @@ const decoder = new TextDecoder();
  * via `deriveSubject` (e.g. 'workspace.v1.WorkspaceCreated' → 'workspace.v1.workspace-created').
  * Pass an explicit subject only for request/reply or other cases where the
  * routing key differs from the message type name.
+ *
+ * NOTE: id vs correlationId
+ * - id: Unique per EVENT (used for deduplication, outbox primary key)
+ * - correlationId: Same across MULTIPLE events in one business flow (distributed tracing)
  *
  * Wire format: toJsonString(EventSchema, event) → UTF-8 bytes
  */
@@ -45,6 +51,7 @@ export function buildEnvelope<T extends Message>(
 
   const message = create(schema, data);
   const event = create(EventSchema, {
+    id: ID.generate('uuid'), // Unique event ID (UUID v7)
     subject: subject,
     source,
     correlationId,

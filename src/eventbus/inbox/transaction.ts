@@ -88,11 +88,12 @@ export async function withIdempotentHandler<T>(
   const { skipMarkProcessed = false, metadata, logger } = options;
 
   return prisma.$transaction(async (tx) => {
-    // Step 1: Check if already processed (idempotency check)
-    const alreadyProcessed = await isEventProcessed(tx, event.correlationId, consumerName);
+    // Step 1: Check if already processed (idempotency check by eventId)
+    const alreadyProcessed = await isEventProcessed(tx, event.id, consumerName);
 
     if (alreadyProcessed) {
       logger?.info('Event already processed, skipping', {
+        eventId: event.id,
         correlationId: event.correlationId,
         consumerName,
         subject: event.subject,
@@ -102,6 +103,7 @@ export async function withIdempotentHandler<T>(
 
     // Step 2: Execute business logic
     logger?.info('Processing event', {
+      eventId: event.id,
       correlationId: event.correlationId,
       consumerName,
       subject: event.subject,
@@ -114,6 +116,7 @@ export async function withIdempotentHandler<T>(
     if (!skipMarkProcessed) {
       await markEventProcessed(tx, event, consumerName, metadata);
       logger?.info('Event marked as processed', {
+        eventId: event.id,
         correlationId: event.correlationId,
         consumerName,
       });
