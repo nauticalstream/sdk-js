@@ -54,6 +54,17 @@ export type { JetStreamPublishOptions } from './jetstream/publish';
 export { subscribe as jetStreamSubscribe, defaultErrorClassifier } from './jetstream/subscribe';
 export type { SubscriberConfig, ErrorAction, ErrorClassifier } from './jetstream/subscribe';
 
+// ── Inbox Pattern (idempotent consumption) ────────────────────────────────────
+export { withIdempotentHandler, EventProcessor } from './inbox';
+export { isEventProcessed, markEventProcessed } from './inbox';
+export type {
+  ProcessedEventData,
+  JetStreamMetadata,
+  IdempotentHandlerOptions,
+  PrismaTransaction,
+  PrismaClient,
+} from './inbox';
+
 // ── Core NATS patterns (advanced) ─────────────────────────────────────────────
 export { publish } from './nats/publish';
 export { subscribe } from './nats/subscribe';
