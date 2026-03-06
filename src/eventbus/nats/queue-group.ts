@@ -51,7 +51,7 @@ export async function queueGroup<T extends Message>(
             correlationId: envelope.correlationId || generateCorrelationId(),
             source: envelope.source,
             timestamp: envelope.timestamp,
-            type: schema.typeName,
+            subject: envelope.subject,
           },
           workspaceId,
           userId
