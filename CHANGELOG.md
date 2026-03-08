@@ -1,3 +1,18 @@
+# [5.0.0](https://github.com/nauticalstream/sdk-js/compare/v4.0.3...v5.0.0) (2026-03-08)
+
+
+* feat(realtime)!: add user-scoped chat command topics and platform user topic ([77ba0af](https://github.com/nauticalstream/sdk-js/commit/77ba0af6fe7d50122600d34fb8a1176689a0a874))
+
+
+### BREAKING CHANGES
+
+* Chat command topics changed from commands/chat/{action} to commands/chat/user/{userId}/{action}. User topic moved from TOPICS.CHAT.user() to TOPICS.PLATFORM.user().
+
+- change chat command topics to commands/chat/user/{userId}/{action}
+- add markDelivered chat command topic
+- move user topic to platformTopics.user(userId)
+- export TOPICS.PLATFORM and update realtime topic tests
+
 ## [4.0.3](https://github.com/nauticalstream/sdk-js/compare/v4.0.2...v4.0.3) (2026-03-06)
 
 
