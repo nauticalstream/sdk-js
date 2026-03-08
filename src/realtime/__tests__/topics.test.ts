@@ -1,25 +1,31 @@
 import { describe, it, expect } from 'vitest';
-import { chatTopics, presenceTopics, notificationTopics, workspaceTopics, TOPICS } from '../topics';
+import { chatTopics, platformTopics, presenceTopics, notificationTopics, workspaceTopics, TOPICS } from '../topics';
 
 describe('chatTopics', () => {
-  it('user(userId) returns user/{userId}', () => {
-    expect(chatTopics.user('u123')).toBe('user/u123');
-  });
-
   it('conversation(id) returns conv/{id}', () => {
     expect(chatTopics.conversation('c456')).toBe('conv/c456');
   });
 
-  it('commands.sendMessage() returns commands/chat/send', () => {
-    expect(chatTopics.commands.sendMessage()).toBe('commands/chat/send');
+  it('commands.sendMessage(userId) returns commands/chat/user/{userId}/send', () => {
+    expect(chatTopics.commands.sendMessage('u123')).toBe('commands/chat/user/u123/send');
   });
 
-  it('commands.markRead() returns commands/chat/read', () => {
-    expect(chatTopics.commands.markRead()).toBe('commands/chat/read');
+  it('commands.markRead(userId) returns commands/chat/user/{userId}/read', () => {
+    expect(chatTopics.commands.markRead('u123')).toBe('commands/chat/user/u123/read');
   });
 
-  it('commands.typing() returns commands/chat/typing', () => {
-    expect(chatTopics.commands.typing()).toBe('commands/chat/typing');
+  it('commands.markDelivered(userId) returns commands/chat/user/{userId}/delivered', () => {
+    expect(chatTopics.commands.markDelivered('u123')).toBe('commands/chat/user/u123/delivered');
+  });
+
+  it('commands.typing(userId) returns commands/chat/user/{userId}/typing', () => {
+    expect(chatTopics.commands.typing('u123')).toBe('commands/chat/user/u123/typing');
+  });
+});
+
+describe('platformTopics', () => {
+  it('user(userId) returns user/{userId}', () => {
+    expect(platformTopics.user('u123')).toBe('user/u123');
   });
 });
 
@@ -58,6 +64,10 @@ describe('TOPICS (barrel)', () => {
     expect(TOPICS.CHAT).toBe(chatTopics);
   });
 
+  it('TOPICS.PLATFORM is platformTopics', () => {
+    expect(TOPICS.PLATFORM).toBe(platformTopics);
+  });
+
   it('TOPICS.PRESENCE is presenceTopics', () => {
     expect(TOPICS.PRESENCE).toBe(presenceTopics);
   });
@@ -70,7 +80,7 @@ describe('TOPICS (barrel)', () => {
     expect(TOPICS.WORKSPACE).toBe(workspaceTopics);
   });
 
-  it('TOPICS.CHAT.user produces correct topic through barrel', () => {
-    expect(TOPICS.CHAT.user('test')).toBe('user/test');
+  it('TOPICS.PLATFORM.user(userId) produces correct topic through barrel', () => {
+    expect(TOPICS.PLATFORM.user('test')).toBe('user/test');
   });
 });
