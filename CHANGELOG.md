@@ -1,3 +1,10 @@
+## [5.0.1](https://github.com/nauticalstream/sdk-js/compare/v5.0.0...v5.0.1) (2026-03-10)
+
+
+### Bug Fixes
+
+* update deriveStream to use uppercase stream names matching NATS convention ([a23819f](https://github.com/nauticalstream/sdk-js/commit/a23819fc5bd83e082f58b4771941a1c769f67945))
+
 # [5.0.0](https://github.com/nauticalstream/sdk-js/compare/v4.0.3...v5.0.0) (2026-03-08)
 
 
