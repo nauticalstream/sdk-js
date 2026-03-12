@@ -1,3 +1,10 @@
+## [5.0.2](https://github.com/nauticalstream/sdk-js/compare/v5.0.1...v5.0.2) (2026-03-12)
+
+
+### Bug Fixes
+
+* auto-convert ZodError to ValidationError in GraphQL error formatter ([e24f6a6](https://github.com/nauticalstream/sdk-js/commit/e24f6a6e53cc94098652fe361a3ef8e61ccf532b))
+
 ## [5.0.1](https://github.com/nauticalstream/sdk-js/compare/v5.0.0...v5.0.1) (2026-03-10)
 
 
