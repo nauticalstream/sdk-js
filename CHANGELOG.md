@@ -1,3 +1,20 @@
+# [6.0.0](https://github.com/nauticalstream/sdk-js/compare/v5.1.3...v6.0.0) (2026-03-20)
+
+
+### Bug Fixes
+
+* add correlationId option to toProtoError for test compatibility ([8b3f68b](https://github.com/nauticalstream/sdk-js/commit/8b3f68b3fab2d9dfb9884a797018296eabe2ec78))
+
+
+### Features
+
+* add conditional exports and centralized logger for browser compatibility ([4f50809](https://github.com/nauticalstream/sdk-js/commit/4f50809bd9c15079ab4787b494f9db6664d4f89d))
+
+
+### BREAKING CHANGES
+
+* None - fully backward compatible with existing services
+
 ## [5.1.3](https://github.com/nauticalstream/sdk-js/compare/v5.1.2...v5.1.3) (2026-03-20)
 
 
