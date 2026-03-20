@@ -56,6 +56,16 @@
       "types": "./dist/realtime/index.d.ts",
       "default": "./dist/realtime/index.js"
     },
+    "./realtime/jwt": {
+      "node": {
+        "types": "./dist/realtime/jwt/index.d.ts",
+        "default": "./dist/realtime/jwt/index.js"
+      },
+      "default": {
+        "types": "./dist/realtime/jwt/browser-stub.d.ts",
+        "default": "./dist/realtime/jwt/browser-stub.js"
+      }
+    },
     "./resilience": {
       "types": "./dist/resilience/index.d.ts",
       "default": "./dist/resilience/index.js"

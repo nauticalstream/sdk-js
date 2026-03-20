@@ -13,6 +13,8 @@ export default defineConfig({
     'permissions/index': 'src/permissions/index.ts',
     'crypto/index': 'src/crypto/index.ts',
     'realtime/index': 'src/realtime/index.ts',
+    'realtime/jwt/index': 'src/realtime/jwt/index.ts',
+    'realtime/jwt/browser-stub': 'src/realtime/jwt/browser-stub.ts',
     'resilience/index': 'src/resilience/index.ts',
     'server/fastify/index': 'src/server/fastify/index.ts',
     'server/fastify/browser-stub': 'src/server/fastify/browser-stub.ts',
