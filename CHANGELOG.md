@@ -1,3 +1,11 @@
+## [5.1.3](https://github.com/nauticalstream/sdk-js/compare/v5.1.2...v5.1.3) (2026-03-20)
+
+
+### Bug Fixes
+
+* exclude Sentry profiling-node from bundle ([5f49017](https://github.com/nauticalstream/sdk-js/commit/5f49017575a0a851c02aca9acb6bfa953e534ad8))
+* externalize Sentry to prevent bundling native bindings ([821b603](https://github.com/nauticalstream/sdk-js/commit/821b6030ebb34731d1cc4384f6aef9614bb90d6c))
+
 ## [5.1.2](https://github.com/nauticalstream/sdk-js/compare/v5.1.1...v5.1.2) (2026-03-20)
 
 
