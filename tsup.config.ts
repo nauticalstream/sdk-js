@@ -23,5 +23,9 @@ export default defineConfig({
   platform: 'node',
   target: 'es2022',
   skipNodeModulesBundle: true,
+  external: [
+    '@sentry/node',
+    '@sentry-internal/node-cpu-profiler'
+  ],
   shims: false,
 });
