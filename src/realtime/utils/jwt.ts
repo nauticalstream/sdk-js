@@ -5,9 +5,10 @@ import type { StringValue } from 'ms';
  * Type definition for the payload of a realtime JWT.
  */
 export interface RealtimeJwtPayload {
-  userId?: string; // Optional for microservices or frontend apps
+  userId: string;
+  type: 'user' | 'service';
   workspaceId?: string; // Optional for microservices or frontend apps
-  clientId: string;
+  clientId?: string; // Optional - MQTT connection provides this separately
   iat?: number; // Issued at timestamp
   exp?: number; // Expiration timestamp
 }

@@ -58,6 +58,7 @@ export {
 export { serialize, deserialize } from './utils/serialization';
 export { createPublishProperties, withPublishSpan, withMessageSpan } from './core/telemetry';
 export { JwtUtils, type RealtimeJwtPayload } from './utils/jwt';
+export { generateClientId } from './utils/client-id';
 
 // Production features - Observability & Resilience
 export { resetBreaker, getBreakerMetrics } from './core/circuit-breaker';
