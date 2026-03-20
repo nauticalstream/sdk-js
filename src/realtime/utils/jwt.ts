@@ -1,4 +1,5 @@
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
+import type { StringValue } from 'ms';
 
 /**
  * Type definition for the payload of a realtime JWT.
@@ -28,8 +29,9 @@ export class JwtUtils {
    * @param expiresIn - The expiration time for the JWT (default: 30 seconds).
    * @returns The signed JWT token.
    */
-  sign(payload: RealtimeJwtPayload, expiresIn = '30s'): string {
-    return jwt.sign(payload, this.secret, { expiresIn });
+  sign(payload: RealtimeJwtPayload, expiresIn: StringValue | number = '30s'): string {
+    const options: SignOptions = { expiresIn };
+    return jwt.sign(payload, this.secret, options);
   }
 
   /**
@@ -44,7 +46,10 @@ export class JwtUtils {
       const decoded = jwt.verify(token, this.secret);
       return decoded as RealtimeJwtPayload;
     } catch (error) {
-      throw new Error(`Invalid JWT: ${error.message}`);
+      if (error instanceof Error) {
+        throw new Error(`Invalid JWT: ${error.message}`);
+      }
+      throw error; // Re-throw if not an Error instance
     }
   }
 
@@ -63,7 +68,10 @@ export class JwtUtils {
       }
       return payload as RealtimeJwtPayload;
     } catch (error) {
-      throw new Error(`Failed to decode JWT: ${error.message}`);
+      if (error instanceof Error) {
+        throw new Error(`Failed to decode JWT: ${error.message}`);
+      }
+      throw error; // Re-throw if not an Error instance
     }
   }
 }
