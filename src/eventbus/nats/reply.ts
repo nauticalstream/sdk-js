@@ -1,7 +1,7 @@
 import { create, fromJson, type Message, type MessageInitShape, toJsonString } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
 import type { Subscription } from 'nats';
-import type { Logger } from 'pino';
+import type { Logger } from '../../logger';
 import type { NatsClient } from '../client/nats-client';
 import { EventSchema } from '@nauticalstream/proto/platform/v1/event_pb';
 import { buildEnvelope, parseEnvelope, type Event } from '../envelope';

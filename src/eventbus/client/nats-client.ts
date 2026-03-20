@@ -1,5 +1,5 @@
 import { connect, type NatsConnection, type JetStreamClient } from 'nats';
-import type { Logger } from 'pino';
+import type { Logger } from '../../logger';
 
 export interface NatsClientConfig {
   servers: string[];

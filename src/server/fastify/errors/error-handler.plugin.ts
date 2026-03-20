@@ -1,5 +1,5 @@
 import type { FastifyInstance, FastifyError, FastifyRequest, FastifyReply } from 'fastify';
-import type { Logger } from 'pino';
+import type { Logger } from '../../../logger';
 import { formatHttpError } from '../../../errors';
 import { isZodError, mapZodError } from './zod-mapper';
 import { getCorrelationId } from '../../../telemetry';

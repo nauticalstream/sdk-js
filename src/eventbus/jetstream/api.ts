@@ -1,7 +1,7 @@
 import { fromJson, type Message, type MessageInitShape } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
 import type { KV, ObjectStore } from 'nats';
-import type { Logger } from 'pino';
+import type { Logger } from '../../logger';
 import type { NatsClient } from '../client/nats-client';
 import type { Event } from '@nauticalstream/proto/platform/v1/event_pb';
 import { publish as jsPublish, type JetStreamPublishOptions } from './publish';

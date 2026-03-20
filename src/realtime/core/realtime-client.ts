@@ -5,8 +5,7 @@ import { classifyMQTTError } from '../errors';
 import { publishLatency, publishSuccess, publishAttempts, retryAttempts, publishErrorsByType, circuitBreakerState } from './metrics';
 import { resilientOperation, getOrCreateCircuitBreaker, shouldRetry, DEFAULT_CIRCUIT_BREAKER_CONFIG, type ResilientCircuitBreaker } from '../../resilience';
 import { DEFAULT_RETRY_CONFIG, type RetryConfig, type RealtimeClientConfig, type PublishOptions, type QoS } from './config';
-import { defaultLogger } from '../utils/logger';
-import type { Logger } from 'pino';
+import { createConsoleLogger, type Logger } from '../../logger';
 import type { IClientPublishOptions } from 'mqtt';
 
 /**
@@ -25,7 +24,7 @@ export class RealtimeClient {
   constructor(config: RealtimeClientConfig) {
     this.name = config.name;
     this.brokerUrl = config.brokerUrl;
-    this.logger = config.logger || defaultLogger.child({ service: config.name });
+    this.logger = config.logger || createConsoleLogger({ service: config.name });
     this.retryConfig = { ...DEFAULT_RETRY_CONFIG, ...config.retryConfig } as RetryConfig & { operationTimeout: number };
     this.breaker = getOrCreateCircuitBreaker(this.brokerUrl, { ...DEFAULT_CIRCUIT_BREAKER_CONFIG, stateMetric: circuitBreakerState });
 

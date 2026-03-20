@@ -1,5 +1,5 @@
 import type { JsMsg, Consumer } from 'nats';
-import type { Logger } from 'pino';
+import type { Logger } from '../../logger';
 import type { NatsClient } from '../client/nats-client';
 import { ensureConsumer } from './consumer';
 

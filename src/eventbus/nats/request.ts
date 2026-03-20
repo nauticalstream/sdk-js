@@ -1,6 +1,6 @@
 import { fromJson, type Message, type MessageInitShape } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
-import type { Logger } from 'pino';
+import type { Logger } from '../../logger';
 import type { NatsClient } from '../client/nats-client';
 import { buildEnvelope, parseEnvelope } from '../envelope';
 import { deriveSubject } from '../utils/derive-subject';

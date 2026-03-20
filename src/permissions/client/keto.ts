@@ -12,7 +12,7 @@ import {
   type Relationship,
   type Relationships,
 } from '@ory/keto-client';
-import type { Logger } from 'pino';
+import type { Logger } from '../../logger';
 import type { PermissionsConfig } from '../types';
 import { defaultLogger } from '../utils/logger';
 import { classifyKetoError } from '../errors/classifyKetoError';

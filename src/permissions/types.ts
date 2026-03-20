@@ -4,7 +4,7 @@ import { PostPermission } from '@nauticalstream/proto/permissions/v1/post_permis
 import { FilePermission } from '@nauticalstream/proto/permissions/v1/file_permissions_pb';
 import { ArticlePermission } from '@nauticalstream/proto/permissions/v1/article_permissions_pb';
 import { WorkspacePermission } from '@nauticalstream/proto/permissions/v1/workspace_permissions_pb';
-import type { Logger } from 'pino';
+import type { Logger } from '../logger';
 import type { RetryConfig, CircuitBreakerConfig } from './core/config';
 
 export {

@@ -1,7 +1,7 @@
 import { fromJson, type Message } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
 import type { Subscription, Msg } from 'nats';
-import type { Logger } from 'pino';
+import type { Logger } from '../../logger';
 import type { NatsClient } from '../client/nats-client';
 import { parseEnvelope, type Event } from '../envelope';
 import { withSubscribeSpan } from '../observability/tracing';

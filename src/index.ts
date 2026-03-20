@@ -1,4 +1,5 @@
 // Main entry point - re-export all modules
+export * as logger from './logger';
 export * as telemetry from './telemetry';
 export * as errors from './errors';
 export * as eventbus from './eventbus';

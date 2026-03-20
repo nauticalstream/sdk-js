@@ -1,7 +1,7 @@
 import type { MongoDBInstrumentationConfig } from '@opentelemetry/instrumentation-mongodb';
 import type { HttpInstrumentationConfig } from '@opentelemetry/instrumentation-http';
 import type { DnsInstrumentationConfig } from '@opentelemetry/instrumentation-dns';
-import type { Logger } from 'pino';
+import type { Logger } from '../logger';
 
 export interface OTLPExporterConfig {
   endpoint: string;

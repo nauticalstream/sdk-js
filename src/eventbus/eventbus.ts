@@ -1,6 +1,6 @@
 import type { Message, MessageInitShape } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
-import type { Logger } from 'pino';
+import type { Logger } from '../logger';
 import { NatsClient } from './client/nats-client';
 import { JetStreamAPI } from './jetstream/api';
 import * as natsPublish from './nats/publish';

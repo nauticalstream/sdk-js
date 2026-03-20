@@ -1,5 +1,5 @@
 import mqtt, { MqttClient, IClientOptions } from 'mqtt';
-import type { Logger } from 'pino';
+import type { Logger } from '../../logger';
 
 export interface MQTTClientConfig {
   brokerUrl: string;

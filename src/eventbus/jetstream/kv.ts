@@ -1,5 +1,5 @@
 import type { KV, ObjectStore } from 'nats';
-import type { Logger } from 'pino';
+import type { Logger } from '../../logger';
 import type { NatsClient } from '../client/nats-client';
 
 /**

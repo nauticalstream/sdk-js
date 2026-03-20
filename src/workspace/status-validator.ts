@@ -1,5 +1,5 @@
 import type { EventBus } from '../eventbus/index.js';
-import type { Logger } from 'pino';
+import type { Logger } from '../logger';
 import {
   GetWorkspacesStatusRequestSchema,
   GetWorkspacesStatusResponseSchema,

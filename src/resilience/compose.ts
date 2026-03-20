@@ -3,7 +3,7 @@
  * Layering: timeout → retry → circuit breaker → metrics
  */
 
-import type { Logger } from 'pino';
+import type { Logger } from '../logger';
 import type { Counter, Histogram } from '@opentelemetry/api';
 import { retryOperation, type RetryConfig, DEFAULT_RETRY_CONFIG } from './retry';
 import { ResilientCircuitBreaker } from './circuit-breaker';

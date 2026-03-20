@@ -1,7 +1,6 @@
 import { create } from '@bufbuild/protobuf';
 import { Error as ProtoError, ErrorSchema } from '@nauticalstream/proto/error/v1/error_pb';
 import { ResourceType } from '@nauticalstream/proto/error/v1/codes_pb';
-import { getCorrelationId } from '../../telemetry';
 import type { DomainException } from '../base/DomainException';
 import type { SystemException } from '../base/SystemException';
 
@@ -64,8 +63,21 @@ export function toProtoError(
   error: DomainException | SystemException,
   options: ToProtoErrorOptions = {}
 ): ProtoError {
+  // Generate correlation ID inline - services should ideally pass this from context
+  const correlationId = (() => {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    // Fallback for older environments
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  })();
+
   return create(ErrorSchema, {
-    correlationId: getCorrelationId(),
+    correlationId,
     optimisticId: options.optimisticId ?? '',
     code: error.errorCode,
     severity: error.severity,
