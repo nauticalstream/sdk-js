@@ -64,16 +64,17 @@ describe('toProtoError', () => {
     expect(proto.message).toBe('down');
   });
 
-  it('uses correlationId from getCorrelationId()', async () => {
+  it('uses correlationId from options when provided', async () => {
     const { getCorrelationId } = await import('../../telemetry');
     const err = new ValidationError('bad');
-    toProtoError(err);
+    const correlationId = getCorrelationId();
+    toProtoError(err, { correlationId });
     expect(getCorrelationId).toHaveBeenCalledOnce();
   });
 
   it('sets correlationId on proto message', () => {
     const err = new ValidationError('bad');
-    const proto = toProtoError(err);
+    const proto = toProtoError(err, { correlationId: 'test-correlation-id' });
     expect(proto.correlationId).toBe('test-correlation-id');
   });
 

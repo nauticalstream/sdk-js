@@ -9,6 +9,19 @@ import type { SystemException } from '../base/SystemException';
  */
 export interface ToProtoErrorOptions {
   /**
+   * Correlation ID from telemetry context (for distributed tracing)
+   * If not provided, will generate a new UUID
+   * 
+   * Services should pass this from their telemetry context:
+   * @example
+   * ```typescript
+   * import { getCorrelationId } from '@nauticalstream/sdk/telemetry';
+   * toProtoError(error, { correlationId: getCorrelationId() });
+   * ```
+   */
+  correlationId?: string;
+
+  /**
    * Optimistic UI message ID (for frontend to remove failed optimistic updates)
    * Only set for message/operation-specific errors
    */
@@ -63,8 +76,8 @@ export function toProtoError(
   error: DomainException | SystemException,
   options: ToProtoErrorOptions = {}
 ): ProtoError {
-  // Generate correlation ID inline - services should ideally pass this from context
-  const correlationId = (() => {
+  // Use provided correlationId or generate a new one
+  const correlationId = options.correlationId ?? (() => {
     if (typeof crypto !== 'undefined' && crypto.randomUUID) {
       return crypto.randomUUID();
     }
