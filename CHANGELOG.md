@@ -1,3 +1,10 @@
+## [5.0.4](https://github.com/nauticalstream/sdk-js/compare/v5.0.3...v5.0.4) (2026-03-20)
+
+
+### Bug Fixes
+
+* export JwtUtils from realtime module ([8209733](https://github.com/nauticalstream/sdk-js/commit/82097337d728e65dfb9e62452b352521dc3eb8f4))
+
 ## [5.0.3](https://github.com/nauticalstream/sdk-js/compare/v5.0.2...v5.0.3) (2026-03-20)
 
 
