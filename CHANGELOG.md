@@ -1,3 +1,15 @@
+# [7.0.0](https://github.com/nauticalstream/sdk-js/compare/v6.0.0...v7.0.0) (2026-03-20)
+
+
+### Bug Fixes
+
+* move JwtUtils to conditional export for browser compatibility ([adfcec8](https://github.com/nauticalstream/sdk-js/commit/adfcec8e545d3f06c6ac8918d495ef7967f442d7))
+
+
+### BREAKING CHANGES
+
+* JwtUtils moved from '@nauticalstream/sdk/realtime' to '@nauticalstream/sdk/realtime/jwt'
+
 # [6.0.0](https://github.com/nauticalstream/sdk-js/compare/v5.1.3...v6.0.0) (2026-03-20)
 
 
