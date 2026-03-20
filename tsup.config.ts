@@ -25,6 +25,7 @@ export default defineConfig({
   skipNodeModulesBundle: true,
   external: [
     '@sentry/node',
+    '@sentry/profiling-node',
     '@sentry-internal/node-cpu-profiler'
   ],
   shims: false,
