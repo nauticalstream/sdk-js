@@ -1,3 +1,11 @@
+## [5.0.3](https://github.com/nauticalstream/sdk-js/compare/v5.0.2...v5.0.3) (2026-03-20)
+
+
+### Bug Fixes
+
+* resolve JWT type issues and add proper types for jsonwebtoken ([f8b34b3](https://github.com/nauticalstream/sdk-js/commit/f8b34b319bc3b87890dd8663ac3e560a96da01c0))
+* update JWT utilities and refactor realtime SDK ([1f15630](https://github.com/nauticalstream/sdk-js/commit/1f156307b04dabe19bc7a796ea73756600e8bc5e))
+
 ## [5.0.2](https://github.com/nauticalstream/sdk-js/compare/v5.0.1...v5.0.2) (2026-03-12)
 
 
