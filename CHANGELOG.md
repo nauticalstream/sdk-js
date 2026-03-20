@@ -1,3 +1,10 @@
+# [5.1.0](https://github.com/nauticalstream/sdk-js/compare/v5.0.4...v5.1.0) (2026-03-20)
+
+
+### Features
+
+* add generateClientId utility for unique MQTT connections ([1ba57d3](https://github.com/nauticalstream/sdk-js/commit/1ba57d35cb7dcd00d4456539d79352030f0c0887))
+
 ## [5.0.4](https://github.com/nauticalstream/sdk-js/compare/v5.0.3...v5.0.4) (2026-03-20)
 
 
