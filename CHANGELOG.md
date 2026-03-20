@@ -1,3 +1,10 @@
+## [5.1.2](https://github.com/nauticalstream/sdk-js/compare/v5.1.1...v5.1.2) (2026-03-20)
+
+
+### Bug Fixes
+
+* update proto dependency to latest version with ESM imports ([287bce3](https://github.com/nauticalstream/sdk-js/commit/287bce3797475d68a06c85b3888e690fe537d6dc))
+
 ## [5.1.1](https://github.com/nauticalstream/sdk-js/compare/v5.1.0...v5.1.1) (2026-03-20)
 
 
