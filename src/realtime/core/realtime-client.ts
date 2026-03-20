@@ -28,11 +28,13 @@ export class RealtimeClient {
     this.logger = config.logger || defaultLogger.child({ service: config.name });
     this.retryConfig = { ...DEFAULT_RETRY_CONFIG, ...config.retryConfig } as RetryConfig & { operationTimeout: number };
     this.breaker = getOrCreateCircuitBreaker(this.brokerUrl, { ...DEFAULT_CIRCUIT_BREAKER_CONFIG, stateMetric: circuitBreakerState });
+
+    // Directly use the password provided in the configuration
     this.mqttClient = new MQTTClientManager({
       brokerUrl: config.brokerUrl,
       clientId: config.clientId,
       username: config.username,
-      password: config.password,
+      password: config.password, // Password must now be pre-generated and passed in
       reconnectPeriod: config.reconnectPeriod,
       connectTimeout: config.connectTimeout,
       clean: config.clean,
