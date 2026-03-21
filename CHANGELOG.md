@@ -1,3 +1,10 @@
+# [7.1.0](https://github.com/nauticalstream/sdk-js/compare/v7.0.0...v7.1.0) (2026-03-21)
+
+
+### Features
+
+* **realtime:** add deriveSubject utility for schema-based event names ([5636e7b](https://github.com/nauticalstream/sdk-js/commit/5636e7bde011bf77c5de9eda694ac2acfa7a745c))
+
 # [7.0.0](https://github.com/nauticalstream/sdk-js/compare/v6.0.0...v7.0.0) (2026-03-20)
 
 
