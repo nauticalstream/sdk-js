@@ -58,6 +58,7 @@ export {
 export { serialize, deserialize } from './utils/serialization';
 export { createPublishProperties, withPublishSpan, withMessageSpan } from './core/telemetry';
 export { generateClientId } from './utils/client-id';
+export { deriveSubject } from './utils/derive-subject';
 
 // NOTE: JwtUtils moved to @nauticalstream/sdk/realtime/jwt (Node.js only)
 // For server-side JWT signing, import from '@nauticalstream/sdk/realtime/jwt'
