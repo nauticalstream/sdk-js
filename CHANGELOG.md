@@ -1,3 +1,10 @@
+## [7.1.1](https://github.com/nauticalstream/sdk-js/compare/v7.1.0...v7.1.1) (2026-03-23)
+
+
+### Bug Fixes
+
+* **context:** normalize empty strings to undefined for userId and workspaceId ([c8ebcef](https://github.com/nauticalstream/sdk-js/commit/c8ebcefe397539ac68dc8ce269bbd9fa708738f4))
+
 # [7.1.0](https://github.com/nauticalstream/sdk-js/compare/v7.0.0...v7.1.0) (2026-03-21)
 
 
