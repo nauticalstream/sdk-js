@@ -85,7 +85,7 @@ describe('createContext (from Fastify request)', () => {
     const ctx = createContext(request);
 
     expect(ctx.userId).toBeUndefined();
-    expect(ctx.workspaceId).toBe('');
+    expect(ctx.workspaceId).toBeUndefined();
     expect(ctx.actorId).toBeNull();
     expect(ctx.isUserAction).toBe(false);
     expect(ctx.isSystemAction).toBe(true);
@@ -124,7 +124,7 @@ describe('createContext (from Fastify request)', () => {
     const ctx = createContext(request);
 
     expect(ctx.userId).toBe('user-only');
-    expect(ctx.workspaceId).toBe('');
+    expect(ctx.workspaceId).toBeUndefined();
     expect(ctx.correlationId).toBeDefined();
   });
 });
