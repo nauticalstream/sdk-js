@@ -29,7 +29,10 @@ function enrichContext(partial: {
     eventType?: string;
   };
 }): Context {
-  const { userId, workspaceId, source } = partial;
+  // Normalize empty strings to undefined (never allow empty strings in context)
+  const userId = partial.userId && partial.userId !== '' ? partial.userId : undefined;
+  const workspaceId = partial.workspaceId && partial.workspaceId !== '' ? partial.workspaceId : undefined;
+  const { source } = partial;
   
   // Compute audit fields once
   const actorId = userId ?? null;
@@ -49,8 +52,8 @@ function enrichContext(partial: {
     
     // Business
     userId,
-    workspaceId: workspaceId ?? '',
-    tenantId: workspaceId,
+    workspaceId,
+    tenantId: undefined,
     
     // Audit (pre-computed)
     source,

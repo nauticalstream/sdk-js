@@ -41,10 +41,10 @@ export interface Context {
   /** User ID from authentication (undefined for system actions) */
   userId?: string;
   
-  /** Workspace/tenant ID */
+  /** Workspace ID */
   workspaceId?: string;
   
-  /** Alias for workspaceId (industry standard) */
+  /** Tenant ID (separate from workspace, extend context to populate) */
   tenantId?: string;
   
   // ── Audit Fields (Pre-computed) ────────────────────────────────────────────
