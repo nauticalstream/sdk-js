@@ -7,10 +7,10 @@
  * ```typescript
  * import { createPinoLogger, type Logger } from '@nauticalstream/sdk/logger';
  * 
- * // Node.js services (default - uses pino)
+ * // Services (default - uses pino)
  * const logger = createPinoLogger({ name: 'my-service', level: 'info' });
  * 
- * // Browser fallback (console-based)
+ * // Lightweight console logger
  * import { createConsoleLogger } from '@nauticalstream/sdk/logger';
  * const logger = createConsoleLogger({ service: 'my-app' });
  * ```

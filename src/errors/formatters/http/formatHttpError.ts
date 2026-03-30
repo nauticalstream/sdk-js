@@ -1,4 +1,4 @@
-// Browser-safe UUID generation
+// Runtime-safe UUID generation
 const getCorrelationId = (): string => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
     return crypto.randomUUID();

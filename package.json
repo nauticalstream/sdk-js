@@ -7,42 +7,24 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "node": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      },
-      "default": {
-        "types": "./dist/browser-index.d.ts",
-        "default": "./dist/browser-index.js"
-      }
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     },
     "./logger": {
       "types": "./dist/logger/index.d.ts",
       "default": "./dist/logger/index.js"
     },
     "./telemetry": {
-      "node": {
-        "types": "./dist/telemetry/index.d.ts",
-        "default": "./dist/telemetry/index.js"
-      },
-      "default": {
-        "types": "./dist/telemetry/browser-stub.d.ts",
-        "default": "./dist/telemetry/browser-stub.js"
-      }
+      "types": "./dist/telemetry/index.d.ts",
+      "default": "./dist/telemetry/index.js"
     },
     "./errors": {
       "types": "./dist/errors/index.d.ts",
       "default": "./dist/errors/index.js"
     },
     "./eventbus": {
-      "node": {
-        "types": "./dist/eventbus/index.d.ts",
-        "default": "./dist/eventbus/index.js"
-      },
-      "default": {
-        "types": "./dist/eventbus/browser-stub.d.ts",
-        "default": "./dist/eventbus/browser-stub.js"
-      }
+      "types": "./dist/eventbus/index.d.ts",
+      "default": "./dist/eventbus/index.js"
     },
     "./permissions": {
       "types": "./dist/permissions/index.d.ts",
@@ -57,28 +39,16 @@
       "default": "./dist/realtime/index.js"
     },
     "./realtime/jwt": {
-      "node": {
-        "types": "./dist/realtime/jwt/index.d.ts",
-        "default": "./dist/realtime/jwt/index.js"
-      },
-      "default": {
-        "types": "./dist/realtime/jwt/browser-stub.d.ts",
-        "default": "./dist/realtime/jwt/browser-stub.js"
-      }
+      "types": "./dist/realtime/jwt/index.d.ts",
+      "default": "./dist/realtime/jwt/index.js"
     },
     "./resilience": {
       "types": "./dist/resilience/index.d.ts",
       "default": "./dist/resilience/index.js"
     },
     "./server/fastify": {
-      "node": {
-        "types": "./dist/server/fastify/index.d.ts",
-        "default": "./dist/server/fastify/index.js"
-      },
-      "default": {
-        "types": "./dist/server/fastify/browser-stub.d.ts",
-        "default": "./dist/server/fastify/browser-stub.js"
-      }
+      "types": "./dist/server/fastify/index.d.ts",
+      "default": "./dist/server/fastify/index.js"
     },
     "./workspace": {
       "types": "./dist/workspace/index.d.ts",
@@ -89,8 +59,8 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run clean && npm run build",
     "test": "vitest run",
@@ -164,7 +134,6 @@
     "@types/opossum": "^8.1.9",
     "@vitest/coverage-v8": "^4.0.18",
     "semantic-release": "^25.0.3",
-    "tsup": "^8.5.1",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18",
     "zod": "^4.3.6"

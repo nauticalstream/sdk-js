@@ -5,7 +5,7 @@ import { randomUUID } from 'crypto';
  * 
  * Each MQTT connection requires a unique clientId. If duplicate clientIds connect,
  * the broker will disconnect the previous connection. This is especially important for:
- * - Web applications where users may have multiple browser tabs
+ * - Client applications where users may have multiple concurrent sessions
  * - Microservices running multiple pods/instances
  * 
  * Format: `{prefix}:{identifier}:{uuid}`

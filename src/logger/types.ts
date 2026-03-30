@@ -1,6 +1,6 @@
 /**
  * Logger interface compatible with Pino, console, and other loggers
- * Browser-safe - no dependencies on Node.js-specific packages
+ * Kept dependency-light so it can be reused across SDK modules
  */
 export interface Logger {
   level: string;
@@ -25,5 +25,5 @@ export interface Logger {
   fatal(obj: object, msg?: string, ...args: any[]): void;
   fatal(msg: string, ...args: any[]): void;
   
-  child(bindings: object): Logger;
+  child(bindings: object, options?: object): Logger;
 }

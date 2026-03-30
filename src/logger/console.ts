@@ -3,7 +3,7 @@ import type { Logger } from './types';
 /**
  * Simple console-based logger implementation
  * Used as fallback when no logger is provided
- * Works in both Node.js and browser environments
+ * Works in runtime environments without pino
  */
 class ConsoleLogger implements Logger {
   public level: string = 'info';
@@ -59,7 +59,7 @@ class ConsoleLogger implements Logger {
     // No-op for silent
   }
 
-  child(bindings: object): Logger {
+  child(bindings: object, _options?: object): Logger {
     return new ConsoleLogger({ ...this.bindings, ...bindings });
   }
 }
