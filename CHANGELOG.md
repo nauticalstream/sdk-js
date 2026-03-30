@@ -1,3 +1,13 @@
+# [9.0.0](https://github.com/nauticalstream/sdk-js/compare/v8.0.0...v9.0.0) (2026-03-30)
+
+
+* refactor!: remove browser compatibility build ([b9e7aee](https://github.com/nauticalstream/sdk-js/commit/b9e7aeeecfb7509c0b9d4234058626070cbf40b7))
+
+
+### BREAKING CHANGES
+
+* Browser-compatible conditional exports and browser stub entrypoints were removed from the SDK package. Consumers must no longer import server-only SDK modules in browser runtimes.
+
 # [8.0.0](https://github.com/nauticalstream/sdk-js/compare/v7.1.1...v8.0.0) (2026-03-30)
 
 
