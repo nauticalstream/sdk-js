@@ -1,3 +1,13 @@
+# [8.0.0](https://github.com/nauticalstream/sdk-js/compare/v7.1.1...v8.0.0) (2026-03-30)
+
+
+* feat!: migrate permissions SDK to shared permissions service ([3cf729d](https://github.com/nauticalstream/sdk-js/commit/3cf729d50c63fdde906e97844f502ad0397d9ccf))
+
+
+### BREAKING CHANGES
+
+* replace the Keto-specific permissions client and exports with the shared permissions service client, lowercase schema namespaces, and generic resource domains.
+
 ## [7.1.1](https://github.com/nauticalstream/sdk-js/compare/v7.1.0...v7.1.1) (2026-03-23)
 
 
