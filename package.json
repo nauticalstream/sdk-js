@@ -118,10 +118,12 @@
     "access": "restricted"
   },
   "dependencies": {
+    "@authzed/authzed-node": "^1.6.1",
     "@bufbuild/protobuf": "^2.11.0",
     "@fastify/cors": "^11.2.0",
+    "@grpc/grpc-js": "^1.14.3",
     "@mercuriusjs/federation": "^5.0.0",
-    "@nauticalstream/proto": "^7.0.1",
+    "@nauticalstream/proto": "^8.0.0",
     "@nauticalstream/sdk": "^3.1.1",
     "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/auto-instrumentations-node": "^0.53.0",

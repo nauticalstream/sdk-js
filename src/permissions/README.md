@@ -1,20 +1,19 @@
 # Permissions
 
-Ory Keto-backed permission checks and grants. Three namespaces: **platform** (global admin/moderator roles), **workspace** (owner/admin/member roles), **resource** (per-object view/edit/delete/manage).
+Permission checks and grants across three namespaces: **platform** (global admin/moderator roles), **workspace** (owner/admin/member roles), **resource** (per-object view/edit/delete/manage).
+
+See [RESOURCE_MODEL.md](./RESOURCE_MODEL.md) for the current rule set on when a service domain should be modeled as a standalone permission resource, when it should inherit from a parent resource, and when workspace or platform scope is enough.
 
 ---
 
 ## Setup
 
 ```typescript
-import { Permissions } from '@nauticalstream/sdk/permissions';
+import { Permissions } from "@nauticalstream/sdk/permissions";
 
 const permissions = new Permissions({
-  url: process.env.KETO_URL ?? 'http://localhost:4467',
+  endpoint: process.env.PERMISSIONS_ENDPOINT ?? "localhost:50051",
 });
-
-// Bootstrap namespace config once at startup
-await permissions.bootstrap();
 ```
 
 ---
@@ -22,8 +21,10 @@ await permissions.bootstrap();
 ## Platform permissions
 
 ```typescript
+import { PlatformRole } from "@nauticalstream/sdk/permissions";
+
 const isAdmin = await permissions.platform.hasAdmin(userId);
-const isMod   = await permissions.platform.hasModerator(userId);
+const isSupport = await permissions.platform.hasSupport(userId);
 
 await permissions.platform.grantRole(userId, PlatformRole.ADMIN);
 await permissions.platform.revokeRole(userId, PlatformRole.ADMIN);
@@ -34,13 +35,23 @@ await permissions.platform.revokeRole(userId, PlatformRole.ADMIN);
 ## Workspace permissions
 
 ```typescript
-import { WorkspaceRole } from '@nauticalstream/sdk/permissions';
+import {
+  WorkspaceRole,
+  WorkspacePermission,
+} from "@nauticalstream/sdk/permissions";
 
-const canEdit = await permissions.workspace.hasPermission(workspaceId, userId, 'edit');
-const role    = await permissions.workspace.getRole(workspaceId, userId);
+const canView = await permissions.workspace.hasPermission(
+  workspaceId,
+  userId,
+  WorkspacePermission.VIEW,
+);
 
 await permissions.workspace.grantRole(workspaceId, userId, WorkspaceRole.OWNER);
-await permissions.workspace.revokeRole(workspaceId, userId, WorkspaceRole.MEMBER);
+await permissions.workspace.revokeRole(
+  workspaceId,
+  userId,
+  WorkspaceRole.MEMBER,
+);
 ```
 
 ---
@@ -48,21 +59,33 @@ await permissions.workspace.revokeRole(workspaceId, userId, WorkspaceRole.MEMBER
 ## Resource permissions
 
 ```typescript
-import { ResourcePermission } from '@nauticalstream/sdk/permissions';
+import {
+  PermissionNamespace,
+  PostPermission,
+} from "@nauticalstream/sdk/permissions";
 
-const canView = await permissions.resource.hasPermission('Post', postId, userId, 'view');
+const canView = await permissions.posts.hasPermission(
+  postId,
+  userId,
+  PostPermission.VIEW,
+);
 
-await permissions.resource.grant('Post', postId, userId, ResourcePermission.EDIT);
-await permissions.resource.linkToWorkspace('Post', postId, workspaceId);
+await permissions.posts.grantPermission(postId, userId, PostPermission.EDIT);
+await permissions.posts.linkToWorkspace(postId, workspaceId);
+
+const resourceCanView = await permissions.posts.hasPermission(
+  postId,
+  userId,
+  PostPermission.VIEW,
+);
+
+const directCheck = await permissions.posts.hasPermission(
+  postId,
+  userId,
+  PostPermission.VIEW,
+);
+
+const genericNamespace = PermissionNamespace.POST;
 ```
 
----
-
-## Health check
-
-```typescript
-import { checkHealth } from '@nauticalstream/sdk/permissions';
-
-const status = await checkHealth(permissions);
-// { status: 'ok' | 'degraded' | 'down', latencyMs: number }
-```
+For cross-service resources, prefer the explicit domain names exposed by the SDK, for example `permissions.leadStages`, `permissions.chatConversations`, `permissions.chatMessages`, `permissions.articleTopics`, `permissions.eventTicketSpecifications`, and `permissions.chatMessageRequests`.

@@ -69,7 +69,7 @@ export const permissionsRetryAttempts = meter.createCounter('permissions.retry.a
 });
 
 /**
- * Circuit breaker state for Keto endpoints
+ * Circuit breaker state for the permissions backend endpoints
  */
 export const permissionsCircuitBreakerState = meter.createUpDownCounter('permissions.circuit_breaker.state', {
   description: 'Permission circuit breaker state (1=closed, 0=open)',

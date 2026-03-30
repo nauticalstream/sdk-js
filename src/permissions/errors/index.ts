@@ -1,1 +1,1 @@
-export { classifyKetoError } from './classifyKetoError';
+export { classifyPermissionError } from './classifyPermissionError';

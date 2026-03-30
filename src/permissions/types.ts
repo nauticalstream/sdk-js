@@ -1,25 +1,21 @@
-import { PlatformRole, WorkspaceRole } from '@nauticalstream/proto/permissions/v1/roles_pb';
-import { PermissionNamespace } from '@nauticalstream/proto/permissions/v1/namespaces_pb';
-import { PostPermission } from '@nauticalstream/proto/permissions/v1/post_permissions_pb';
-import { FilePermission } from '@nauticalstream/proto/permissions/v1/file_permissions_pb';
-import { ArticlePermission } from '@nauticalstream/proto/permissions/v1/article_permissions_pb';
-import { WorkspacePermission } from '@nauticalstream/proto/permissions/v1/workspace_permissions_pb';
 import type { Logger } from '../logger';
 import type { RetryConfig, CircuitBreakerConfig } from './core/config';
 
-export {
-  PlatformRole,
-  WorkspaceRole,
-  PermissionNamespace,
-  PostPermission,
-  FilePermission,
-  ArticlePermission,
-  WorkspacePermission,
-};
+export type PermissionsSecurity = 'secure' | 'insecure-localhost' | 'insecure-plaintext';
 
 export interface PermissionsConfig {
-  readUrl: string;
-  writeUrl: string;
+  /** Preferred permissions endpoint, e.g. permissions:50051 */
+  endpoint?: string;
+  /** Optional permissions service token */
+  token?: string;
+  /** Explicit transport security mode */
+  security?: PermissionsSecurity;
+  /** Shortcut for insecure plaintext transport inside trusted networks */
+  insecure?: boolean;
+  /** Legacy alias retained for transition compatibility. If provided, it is treated as the permissions endpoint. */
+  readUrl?: string;
+  /** Legacy alias retained for transition compatibility. If provided, it is treated as the permissions endpoint. */
+  writeUrl?: string;
   /** Optional Pino logger (uses default if not provided) */
   logger?: Logger;
   /** Retry configuration (uses defaults if not provided) */
@@ -60,7 +56,7 @@ export interface DeleteRelationshipParams {
 }
 
 export interface ListRelationshipsParams {
-  namespace: string;
+  namespace?: string;
   object?: string;
   relation?: string;
   subjectId?: string;

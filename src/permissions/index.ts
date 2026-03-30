@@ -1,13 +1,13 @@
 /**
  * @nauticalstream/sdk - Permissions Module
  * 
- * Comprehensive permission management using Ory Keto.
+ * Comprehensive permission management using a shared permissions backend.
  * 
  * @example
  * ```typescript
  * import { Permissions } from '@nauticalstream/sdk/permissions';
  * 
- * const permissions = new Permissions({ readUrl: '...', writeUrl: '...' });
+ * const permissions = new Permissions({ endpoint: 'permissions:50051', token: '...' });
  * 
  * // Platform permissions
  * const isAdmin = await permissions.platform.hasAdmin(userId);
@@ -25,6 +25,9 @@
  * 
  * // File permissions
  * await permissions.files.requirePermission(fileId, userId, FilePermission.DELETE);
+ *
+ * // Generic resource permissions for new schema types
+ * await permissions.resource('comment').requirePermission(commentId, userId, 'edit');
  * ```
  */
 
@@ -40,28 +43,58 @@ export type {
   ListRelationshipsParams,
 } from './types';
 
-export {
-  PlatformRole,
-  WorkspaceRole,
-  WorkspacePermission,
-  PermissionNamespace,
-  PostPermission,
-  FilePermission,
-  ArticlePermission,
-} from './types';
+export { PlatformRole } from './domains/platform';
+export { WorkspacePermission, WorkspaceRole } from './domains/workspace';
 
 // Re-export commonly used errors from centralized errors library
 export { ForbiddenError, ValidationError } from '../errors';
 
 // Client (for advanced usage)
-export { KetoClient } from './client/keto';
+export { PermissionClient } from './client/permission-client';
 
 // Domain modules (for advanced usage / testing)
 export * as platform from './core/platform';
 export * as workspace from './core/workspace';
-export { PostsPermissions } from './domains/posts';
-export { ArticlesPermissions } from './domains/articles';
-export { FilesPermissions } from './domains/files';
+export {
+  PermissionNamespace,
+  ResourcePermissions,
+  PostsPermissions,
+  ArticlesPermissions,
+  FilesPermissions,
+  PostPermission,
+  FilePermission,
+  ArticlePermission,
+} from './domains/resource';
+export type {
+  ArticleTopicPermission,
+  BoatPermission,
+  BusinessPermission,
+  CatalogProductPermission,
+  CollectionPermission,
+  ChatMessageRequestPermission,
+  CommentPermission,
+  ConnectedEmailAccountPermission,
+  LikePermission,
+  FollowPermission,
+  StorageCollectionPermission,
+  WorkspaceCategoryPermission,
+  WorkspaceFeaturePermission,
+  EventPermission,
+  EventTicketSpecificationPermission,
+  TourPermission,
+  CruisePermission,
+  ItineraryPermission,
+  CustomerPermission,
+  LeadPermission,
+  LeadStagePermission,
+  ChatConversationPermission,
+  ChatMessagePermission,
+  PlacePermission,
+  PriceConfigurationPermission,
+  StreamPermission,
+  NotePermission,
+  VerificationSessionPermission,
+} from './domains/resource';
 
 // Production features - Observability & Resilience
 export type { RetryConfig, CircuitBreakerConfig } from './core/config';
@@ -80,4 +113,4 @@ export {
 export { withPermissionSpan } from './core/telemetry';
 
 // Error utilities
-export { classifyKetoError } from './errors/classifyKetoError';
+export { classifyPermissionError } from './errors/classifyPermissionError';

@@ -1,49 +1,29 @@
-import type { KetoClient } from '../client/keto';
-import { WorkspaceRole, WorkspacePermission } from '../types';
+import type { PermissionClient } from '../client/permission-client';
+import { WorkspacePermission, WorkspaceRole } from '../domains/workspace';
 import { ForbiddenError, ValidationError, NotFoundError } from '../../errors';
+import { assertNonEmpty } from '../utils/validation';
 
-const NAMESPACE = 'Workspace';
+const NAMESPACE = 'workspace';
 
-/**
- * Convert WorkspacePermission enum to the Keto permit name (for checkPermission calls).
- */
-function workspacePermissionToPermit(permission: WorkspacePermission | string): string {
-  if (typeof permission === 'string') return permission;
-  switch (permission) {
-    case WorkspacePermission.VIEW:           return 'view';
-    case WorkspacePermission.MEMBER:         return 'member';
-    case WorkspacePermission.ADMIN:          return 'admin';
-    case WorkspacePermission.OWNER:          return 'owner';
-    case WorkspacePermission.INVITE_MEMBER:  return 'invite_member';
-    case WorkspacePermission.REMOVE_MEMBER:  return 'remove_member';
-    case WorkspacePermission.UPDATE_SETTINGS: return 'update_settings';
-    case WorkspacePermission.DELETE:         return 'delete';
-    default: throw new ValidationError(`Invalid workspace permission: ${permission}`);
+function workspaceRoleToRelation(role: WorkspaceRole): string {
+  if (role === WorkspaceRole.UNSPECIFIED) {
+    throw new ValidationError(`Invalid workspace role: ${role}`);
   }
-}
 
-/** Zero-trust guard: rejects empty or whitespace-only IDs before they reach Keto */
-function assertNonEmpty(value: string, name: string): void {
-  if (!value || value.trim().length === 0) {
-    throw new ValidationError(`${name} must not be empty`);
-  }
+  return role;
 }
-
 /**
  * Check if user has a specific workspace role
  */
 export async function hasRole(
-  client: KetoClient,
+  client: PermissionClient,
   workspaceId: string,
   userId: string,
   role: WorkspaceRole
 ): Promise<boolean> {
   assertNonEmpty(workspaceId, 'workspaceId');
   assertNonEmpty(userId, 'userId');
-  const relation = roleToRelation(role);
-  if (!relation) {
-    throw new ValidationError(`Invalid workspace role: ${role}`);
-  }
+  const relation = workspaceRoleToRelation(role);
 
   const result = await client.permission.checkPermission({
     namespace: NAMESPACE,
@@ -58,7 +38,7 @@ export async function hasRole(
  * Require specific workspace role (throws if not authorized)
  */
 export async function requireRole(
-  client: KetoClient,
+  client: PermissionClient,
   workspaceId: string,
   userId: string,
   role: WorkspaceRole
@@ -75,14 +55,14 @@ export async function requireRole(
  * Check if user has a specific permission in a workspace
  */
 export async function hasPermission(
-  client: KetoClient,
+  client: PermissionClient,
   workspaceId: string,
   userId: string,
   permission: WorkspacePermission | string
 ): Promise<boolean> {
   assertNonEmpty(workspaceId, 'workspaceId');
   assertNonEmpty(userId, 'userId');
-  const permit = workspacePermissionToPermit(permission);
+  const permit = String(permission);
   assertNonEmpty(permit, 'permission');
   const result = await client.permission.checkPermission({
     namespace: NAMESPACE,
@@ -97,7 +77,7 @@ export async function hasPermission(
  * Require specific workspace permission (throws if not authorized)
  */
 export async function requirePermission(
-  client: KetoClient,
+  client: PermissionClient,
   workspaceId: string,
   userId: string,
   permission: WorkspacePermission | string
@@ -114,37 +94,32 @@ export async function requirePermission(
  * List all workspaces where user has a specific permission
  */
 export async function listWorkspaces(
-  client: KetoClient,
+  client: PermissionClient,
   userId: string,
   permission: WorkspacePermission | string = WorkspacePermission.VIEW
 ): Promise<string[]> {
   assertNonEmpty(userId, 'userId');
-  const permit = workspacePermissionToPermit(permission);
+  const permit = String(permission);
   assertNonEmpty(permit, 'permission');
-  const result = await client.relationship.getRelationships({
+  return client.lookupResources({
     namespace: NAMESPACE,
-    relation: permit,
+    permission: permit,
     subjectId: userId,
   });
-
-  return (result.data.relation_tuples || []).map((tuple) => tuple.object || '').filter(Boolean);
 }
 
 /**
  * Grant workspace role to user
  */
 export async function grantRole(
-  client: KetoClient,
+  client: PermissionClient,
   workspaceId: string,
   userId: string,
   role: WorkspaceRole
 ): Promise<void> {
   assertNonEmpty(workspaceId, 'workspaceId');
   assertNonEmpty(userId, 'userId');
-  const relation = roleToRelation(role);
-  if (!relation) {
-    throw new ValidationError(`Invalid workspace role: ${role}`);
-  }
+  const relation = workspaceRoleToRelation(role);
 
   await client.relationship.createRelationship({
     createRelationshipBody: {
@@ -160,15 +135,12 @@ export async function grantRole(
  * Revoke workspace role from user
  */
 export async function revokeRole(
-  client: KetoClient,
+  client: PermissionClient,
   workspaceId: string,
   userId: string,
   role: WorkspaceRole
 ): Promise<void> {
-  const relation = roleToRelation(role);
-  if (!relation) {
-    throw new ValidationError(`Invalid workspace role: ${role}`);
-  }
+  const relation = workspaceRoleToRelation(role);
 
   await client.relationship.deleteRelationships({
     namespace: NAMESPACE,
@@ -182,7 +154,7 @@ export async function revokeRole(
  * Revoke all workspace roles from user
  */
 export async function revokeAllRoles(
-  client: KetoClient,
+  client: PermissionClient,
   workspaceId: string,
   userId: string
 ): Promise<void> {
@@ -210,20 +182,3 @@ export async function revokeAllRoles(
   );
 }
 
-/**
- * Convert workspace role enum to Keto relation name
- */
-function roleToRelation(role: WorkspaceRole): string | null {
-  switch (role) {
-    case WorkspaceRole.OWNER:
-      return 'owners';
-    case WorkspaceRole.ADMIN:
-      return 'admins';
-    case WorkspaceRole.MEMBER:
-      return 'members';
-    case WorkspaceRole.VIEWER:
-      return 'viewers';
-    default:
-      return null;
-  }
-}

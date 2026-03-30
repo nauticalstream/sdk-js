@@ -1,9 +1,9 @@
-import type { KetoClient } from '../client/keto';
-import { PlatformRole } from '../types';
-import { ForbiddenError, ValidationError } from '../../errors';
+import type { PermissionClient } from '../client/permission-client';
+import { PlatformRole } from '../domains/platform';
+import { ForbiddenError } from '../../errors';
 
 const PLATFORM_ID = 'global'; // Singleton platform object
-const NAMESPACE = 'Platform';
+const NAMESPACE = 'platform';
 
 /**
  * Guard: throws ForbiddenError so unauthenticated callers get a 403,
@@ -19,20 +19,16 @@ function assertUserId(userId: string | undefined | null): asserts userId is stri
  * Check if user has a specific platform role
  */
 export async function hasRole(
-  client: KetoClient,
+  client: PermissionClient,
   userId: string | undefined | null,
   role: PlatformRole
 ): Promise<boolean> {
   assertUserId(userId);
-  const relation = roleToRelation(role);
-  if (!relation) {
-    throw new ValidationError(`Invalid platform role: ${role}`);
-  }
 
   const result = await client.permission.checkPermission({
     namespace: NAMESPACE,
     object: PLATFORM_ID,
-    relation,
+    relation: role,
     subjectId: userId,
   });
   return result.data.allowed === true;
@@ -42,7 +38,7 @@ export async function hasRole(
  * Require specific platform role (throws if not authorized)
  */
 export async function requireRole(
-  client: KetoClient,
+  client: PermissionClient,
   userId: string | undefined | null,
   role: PlatformRole
 ): Promise<void> {
@@ -55,21 +51,21 @@ export async function requireRole(
 /**
  * Check if user has platform admin role
  */
-export async function hasAdmin(client: KetoClient, userId: string | undefined | null): Promise<boolean> {
+export async function hasAdmin(client: PermissionClient, userId: string | undefined | null): Promise<boolean> {
   return hasRole(client, userId, PlatformRole.ADMIN);
 }
 
 /**
  * Check if user has platform support role
  */
-export async function hasSupport(client: KetoClient, userId: string | undefined | null): Promise<boolean> {
+export async function hasSupport(client: PermissionClient, userId: string | undefined | null): Promise<boolean> {
   return hasRole(client, userId, PlatformRole.SUPPORT);
 }
 
 /**
  * Require platform admin role (throws if not authorized)
  */
-export async function requireAdmin(client: KetoClient, userId: string | undefined | null): Promise<void> {
+export async function requireAdmin(client: PermissionClient, userId: string | undefined | null): Promise<void> {
   const allowed = await hasAdmin(client, userId);
   if (!allowed) {
     throw new ForbiddenError('Platform admin permission required');
@@ -79,7 +75,7 @@ export async function requireAdmin(client: KetoClient, userId: string | undefine
 /**
  * Require platform support role (throws if not authorized)
  */
-export async function requireSupport(client: KetoClient, userId: string | undefined | null): Promise<void> {
+export async function requireSupport(client: PermissionClient, userId: string | undefined | null): Promise<void> {
   const allowed = await hasSupport(client, userId);
   if (!allowed) {
     throw new ForbiddenError('Platform support permission required');
@@ -90,21 +86,17 @@ export async function requireSupport(client: KetoClient, userId: string | undefi
  * Grant platform role to user
  */
 export async function grantRole(
-  client: KetoClient,
+  client: PermissionClient,
   userId: string,
   role: PlatformRole
 ): Promise<void> {
   assertUserId(userId);
-  const relation = roleToRelation(role);
-  if (!relation) {
-    throw new ValidationError(`Invalid platform role: ${role}`);
-  }
 
   await client.relationship.createRelationship({
     createRelationshipBody: {
       namespace: NAMESPACE,
       object: PLATFORM_ID,
-      relation,
+      relation: role,
       subject_id: userId,
     },
   });
@@ -114,34 +106,17 @@ export async function grantRole(
  * Revoke platform role from user
  */
 export async function revokeRole(
-  client: KetoClient,
+  client: PermissionClient,
   userId: string,
   role: PlatformRole
 ): Promise<void> {
   assertUserId(userId);
-  const relation = roleToRelation(role);
-  if (!relation) {
-    throw new ValidationError(`Invalid platform role: ${role}`);
-  }
 
   await client.relationship.deleteRelationships({
     namespace: NAMESPACE,
     object: PLATFORM_ID,
-    relation,
+    relation: role,
     subjectId: userId,
   });
 }
 
-/**
- * Convert platform role enum to Keto relation name
- */
-function roleToRelation(role: PlatformRole): string | null {
-  switch (role) {
-    case PlatformRole.ADMIN:
-      return 'admins';
-    case PlatformRole.SUPPORT:
-      return 'support';
-    default:
-      return null;
-  }
-}
