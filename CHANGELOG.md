@@ -1,3 +1,10 @@
+## [9.0.1](https://github.com/nauticalstream/sdk-js/compare/v9.0.0...v9.0.1) (2026-04-01)
+
+
+### Bug Fixes
+
+* make sdk NodeNext-compatible ([3a36ced](https://github.com/nauticalstream/sdk-js/commit/3a36ced3e28f611991c8b9425ba75c2ab0627882))
+
 # [9.0.0](https://github.com/nauticalstream/sdk-js/compare/v8.0.0...v9.0.0) (2026-03-30)
 
 
