@@ -1,9 +1,9 @@
 import { type Message, type MessageInitShape } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
-import type { Logger } from '../../logger';
-import type { NatsClient } from '../client/nats-client';
-import { buildEnvelope } from '../envelope';
-import { classifyNatsError } from '../errors/classify';
+import type { Logger } from '../../logger/index.js';
+import type { NatsClient } from '../client/nats-client.js';
+import { buildEnvelope } from '../envelope.js';
+import { classifyNatsError } from '../errors/classify.js';
 import {
   jetstreamPublishLatency,
   jetstreamPublishSuccess,
@@ -11,10 +11,10 @@ import {
   jetstreamRetryAttempts,
   jetstreamPublishErrors,
   jetstreamCircuitBreakerState,
-} from '../observability/metrics';
-import { resilientOperation, getOrCreateCircuitBreaker, shouldRetry, DEFAULT_CIRCUIT_BREAKER_CONFIG, type ResilientCircuitBreaker } from '../../resilience';
-import { DEFAULT_RETRY_CONFIG, type RetryConfig } from '../config';
-import { resetCircuitBreaker } from '../../resilience';
+} from '../observability/metrics.js';
+import { resilientOperation, getOrCreateCircuitBreaker, shouldRetry, DEFAULT_CIRCUIT_BREAKER_CONFIG, type ResilientCircuitBreaker } from '../../resilience/index.js';
+import { DEFAULT_RETRY_CONFIG, type RetryConfig } from '../config.js';
+import { resetCircuitBreaker } from '../../resilience/index.js';
 
 export interface JetStreamPublishOptions {
   /** Override the auto-derived subject. */

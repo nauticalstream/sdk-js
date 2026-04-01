@@ -5,7 +5,7 @@ import {
   recordGauge,
   createObservableGauge,
   startTimer,
-} from '../utils/metrics';
+} from '../utils/metrics.js';
 
 // All metric helpers wrap OTel API calls in try-catch and use the no-op
 // provider in tests, so they must never throw.

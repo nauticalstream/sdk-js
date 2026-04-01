@@ -1,4 +1,4 @@
-import { ValidationError } from '../../errors';
+import { ValidationError } from '../../errors/index.js';
 
 export function assertNonEmpty(value: string, name: string): void {
   if (!value || value.trim().length === 0) {

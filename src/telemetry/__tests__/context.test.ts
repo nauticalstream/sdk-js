@@ -11,7 +11,7 @@ import {
   getTraceId,
   getSpanId,
   getActiveSpan,
-} from '../utils/context';
+} from '../utils/context.js';
 
 // OTel requires a real async-aware context manager for context propagation through await.
 // The default no-op manager (used when no SDK is initialized) drops context on async boundaries.

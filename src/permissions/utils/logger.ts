@@ -1,4 +1,4 @@
-import { createLogger } from '../../telemetry';
+import { createLogger } from '../../telemetry/index.js';
 
 /**
  * Default logger for @nauticalstream/permissions package

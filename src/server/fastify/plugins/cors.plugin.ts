@@ -1,6 +1,6 @@
 import fp from 'fastify-plugin';
 import type { FastifyPluginAsync } from 'fastify';
-import type { FastifyServerOptions } from '../types';
+import type { FastifyServerOptions } from '../types.js';
 
 export type CorsOptions = NonNullable<FastifyServerOptions['cors']>;
 

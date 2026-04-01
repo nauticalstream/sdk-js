@@ -3,4 +3,4 @@
  * Cryptographic utilities for Nauticalstream microservices
  */
 
-export { IDGenerator } from './id-generator';
+export { IDGenerator } from './id-generator.js';

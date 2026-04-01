@@ -1,16 +1,16 @@
-import { Error as ProtoError } from '@nauticalstream/proto/error/v1/error_pb';
+import type { Error as ProtoError } from '@nauticalstream/proto/error/v1/error_pb';
 import { ErrorCode, ErrorSeverity } from '@nauticalstream/proto/error/v1/codes_pb';
-import { NotFoundError } from '../domain/NotFoundError';
-import { UnauthorizedError } from '../domain/UnauthorizedError';
-import { ForbiddenError } from '../domain/ForbiddenError';
-import { ValidationError } from '../domain/ValidationError';
-import { ConflictError } from '../domain/ConflictError';
-import { OperationError } from '../domain/OperationError';
-import { DatabaseError } from '../system/DatabaseError';
-import { ServiceUnavailableError } from '../system/ServiceUnavailableError';
-import { TimeoutError } from '../system/TimeoutError';
-import type { DomainException } from '../base/DomainException';
-import type { SystemException } from '../base/SystemException';
+import { NotFoundError } from '../domain/NotFoundError.js';
+import { UnauthorizedError } from '../domain/UnauthorizedError.js';
+import { ForbiddenError } from '../domain/ForbiddenError.js';
+import { ValidationError } from '../domain/ValidationError.js';
+import { ConflictError } from '../domain/ConflictError.js';
+import { OperationError } from '../domain/OperationError.js';
+import { DatabaseError } from '../system/DatabaseError.js';
+import { ServiceUnavailableError } from '../system/ServiceUnavailableError.js';
+import { TimeoutError } from '../system/TimeoutError.js';
+import type { DomainException } from '../base/DomainException.js';
+import type { SystemException } from '../base/SystemException.js';
 
 /**
  * Convert Proto Error message back to DomainException or SystemException

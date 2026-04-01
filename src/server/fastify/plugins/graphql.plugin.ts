@@ -1,8 +1,8 @@
 import fp from 'fastify-plugin';
 import mercuriusFederation from '@mercuriusjs/federation';
 import type { FastifyInstance } from 'fastify';
-import type { GraphQLPluginOptions } from '../types';
-import { createGraphQLErrorFormatter } from '../errors/formatter';
+import type { GraphQLPluginOptions } from '../types.js';
+import { createGraphQLErrorFormatter } from '../errors/formatter.js';
 
 /**
  * Creates a Mercurius GraphQL Federation plugin with automatic error formatting.

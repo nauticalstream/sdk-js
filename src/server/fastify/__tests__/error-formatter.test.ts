@@ -2,9 +2,9 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { context } from '@opentelemetry/api';
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks';
 import { GraphQLError } from 'graphql';
-import { createGraphQLErrorFormatter } from '../errors/formatter';
-import { NotFoundError, UnauthorizedError, ErrorCode } from '../../../errors';
-import { setCorrelationId } from '../../../telemetry/utils/context';
+import { createGraphQLErrorFormatter } from '../errors/formatter.js';
+import { NotFoundError, UnauthorizedError, ErrorCode } from '../../../errors/index.js';
+import { setCorrelationId } from '../../../telemetry/utils/context.js';
 
 beforeEach(() => {
   const manager = new AsyncLocalStorageContextManager();

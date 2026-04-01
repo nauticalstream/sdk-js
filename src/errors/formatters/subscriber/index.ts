@@ -1,1 +1,1 @@
-export { withErrorBoundary } from './withErrorBoundary';
+export { withErrorBoundary } from './withErrorBoundary.js';

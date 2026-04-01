@@ -6,12 +6,12 @@ import {
   createUserContext,
   createSystemContext,
   createContextFromEvent,
-} from '../context';
+} from '../context.js';
 import {
   createContext,
   createContextBuilder,
-} from '../context/builder';
-import { setCorrelationId } from '../../../telemetry/utils/context';
+} from '../context/builder.js';
+import { setCorrelationId } from '../../../telemetry/utils/context.js';
 
 // Setup OTel context manager
 beforeAll(() => {

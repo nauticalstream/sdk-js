@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
-import { PermissionNamespace, PostPermission } from '../domains/resource';
-import { WorkspacePermission, WorkspaceRole } from '../domains/workspace';
-import * as workspace from '../core/workspace';
-import * as resource from '../core/resource';
+import { PermissionNamespace, PostPermission } from '../domains/resource.js';
+import { WorkspacePermission, WorkspaceRole } from '../domains/workspace.js';
+import * as workspace from '../core/workspace.js';
+import * as resource from '../core/resource.js';
 
 describe('Permission mappings', () => {
   it('maps new workspace-scoped permissions to schema names', async () => {
@@ -55,7 +55,7 @@ describe('Permission mappings', () => {
       createRelationshipBody: {
         namespace: 'workspace',
         object: 'ws-1',
-        relation: 'member',
+        relation: 'member_role',
         subject_id: 'user-1',
       },
     });

@@ -1,14 +1,14 @@
 import { fromJson, type Message } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
 import type { Subscription, Msg } from 'nats';
-import type { Logger } from '../../logger';
-import type { NatsClient } from '../client/nats-client';
-import { parseEnvelope } from '../envelope';
-import { withSubscribeSpan } from '../observability/tracing';
-import { withCorrelationId, generateCorrelationId } from '../../telemetry/utils/context';
-import { createContextFromEvent, withContext } from '../../server/fastify/context';
-import { deriveSubject } from '../utils/derive-subject';
-import type { QueueGroupOptions, Unsubscribe, EventHandler } from '../types';
+import type { Logger } from '../../logger/index.js';
+import type { NatsClient } from '../client/nats-client.js';
+import { parseEnvelope } from '../envelope.js';
+import { withSubscribeSpan } from '../observability/tracing.js';
+import { withCorrelationId, generateCorrelationId } from '../../telemetry/utils/context.js';
+import { createContextFromEvent, withContext } from '../../server/fastify/context.js';
+import { deriveSubject } from '../utils/derive-subject.js';
+import type { QueueGroupOptions, Unsubscribe, EventHandler } from '../types.js';
 
 /**
  * Subscribe with a NATS queue group (load-balanced, ephemeral).

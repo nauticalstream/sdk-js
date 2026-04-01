@@ -5,7 +5,7 @@ import {
   getTracer,
   getMeter,
   withSpan,
-} from '../telemetry';
+} from '../telemetry.js';
 
 /** Minimal config that starts fast — no exporters, no instrumentations */
 const MINIMAL_CONFIG = {

@@ -1,6 +1,6 @@
-import { PermissionClient } from '../client/permission-client';
-import * as platform from './platform';
-import * as workspace from './workspace';
+import { PermissionClient } from '../client/permission-client.js';
+import * as platform from './platform.js';
+import * as workspace from './workspace.js';
 import {
   ArticlesPermissions,
   FilesPermissions,
@@ -35,14 +35,14 @@ import {
   type VerificationSessionPermission,
   type WorkspaceCategoryPermission,
   type WorkspaceFeaturePermission,
-} from '../domains/resource';
-import { PlatformRole } from '../domains/platform';
-import type { WorkspacePermission } from '../domains/workspace';
-import { WorkspaceRole } from '../domains/workspace';
-import { resetCircuitBreaker } from '../../resilience';
+} from '../domains/resource.js';
+import { PlatformRole } from '../domains/platform.js';
+import type { WorkspacePermission } from '../domains/workspace.js';
+import { WorkspaceRole } from '../domains/workspace.js';
+import { resetCircuitBreaker } from '../../resilience/index.js';
 import type {
   PermissionsConfig,
-} from '../types';
+} from '../types.js';
 
 /** Permissions - shared permission management */
 export class Permissions {

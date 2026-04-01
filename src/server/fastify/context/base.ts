@@ -1,6 +1,6 @@
 import type { FastifyRequest } from 'fastify';
-import { getCorrelationId, getTraceId, getSpanId } from '../../../telemetry';
-import type { Context } from '../types';
+import { getCorrelationId, getTraceId, getSpanId } from '../../../telemetry/index.js';
+import type { Context } from '../types.js';
 
 /**
  * Builds base telemetry context from the incoming request.

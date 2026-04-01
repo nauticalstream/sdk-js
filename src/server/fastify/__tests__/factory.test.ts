@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { context } from '@opentelemetry/api';
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks';
-import { createFastifyServer } from '../factory';
+import { createFastifyServer } from '../factory.js';
 import type { FastifyInstance } from 'fastify';
 
 let app: FastifyInstance | null = null;

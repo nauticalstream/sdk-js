@@ -1,5 +1,6 @@
-import mqtt, { MqttClient, IClientOptions } from 'mqtt';
-import type { Logger } from '../../logger';
+import mqtt, { MqttClient } from 'mqtt';
+import type { IClientOptions } from 'mqtt';
+import type { Logger } from '../../logger/index.js';
 
 export interface MQTTClientConfig {
   brokerUrl: string;

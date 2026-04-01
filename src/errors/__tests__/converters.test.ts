@@ -4,18 +4,18 @@ import { ErrorSchema } from '@nauticalstream/proto/error/v1/error_pb';
 import { ErrorCode, ErrorSeverity, ResourceType } from '@nauticalstream/proto/error/v1/codes_pb';
 import type { Error as ProtoError } from '@nauticalstream/proto/error/v1/error_pb';
 
-import { toProtoError } from '../converters/toProtoError';
-import { fromProtoError } from '../converters/fromProtoError';
+import { toProtoError } from '../converters/toProtoError.js';
+import { fromProtoError } from '../converters/fromProtoError.js';
 
-import { ValidationError } from '../domain/ValidationError';
-import { NotFoundError } from '../domain/NotFoundError';
-import { UnauthorizedError } from '../domain/UnauthorizedError';
-import { ForbiddenError } from '../domain/ForbiddenError';
-import { ConflictError } from '../domain/ConflictError';
-import { OperationError } from '../domain/OperationError';
-import { ServiceUnavailableError } from '../system/ServiceUnavailableError';
-import { DatabaseError } from '../system/DatabaseError';
-import { TimeoutError } from '../system/TimeoutError';
+import { ValidationError } from '../domain/ValidationError.js';
+import { NotFoundError } from '../domain/NotFoundError.js';
+import { UnauthorizedError } from '../domain/UnauthorizedError.js';
+import { ForbiddenError } from '../domain/ForbiddenError.js';
+import { ConflictError } from '../domain/ConflictError.js';
+import { OperationError } from '../domain/OperationError.js';
+import { ServiceUnavailableError } from '../system/ServiceUnavailableError.js';
+import { DatabaseError } from '../system/DatabaseError.js';
+import { TimeoutError } from '../system/TimeoutError.js';
 
 // Mock telemetry so toProtoError doesn't require a live OTel context
 vi.mock('../../telemetry', () => ({
@@ -65,7 +65,7 @@ describe('toProtoError', () => {
   });
 
   it('uses correlationId from options when provided', async () => {
-    const { getCorrelationId } = await import('../../telemetry');
+    const { getCorrelationId } = await import('../../telemetry/index.js');
     const err = new ValidationError('bad');
     const correlationId = getCorrelationId();
     toProtoError(err, { correlationId });

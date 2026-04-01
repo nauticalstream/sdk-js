@@ -1,3 +1,3 @@
-export * from './graphql';
-export * from './http';
-export * from './subscriber';
+export * from './graphql/index.js';
+export * from './http/index.js';
+export * from './subscriber/index.js';

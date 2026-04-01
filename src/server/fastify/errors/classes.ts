@@ -1,5 +1,5 @@
 // Base exception classes
-export { DomainException, SystemException } from '../../../errors';
+export { DomainException, SystemException } from '../../../errors/index.js';
 
 // Domain exceptions (client errors - non-retryable)
 export {
@@ -9,7 +9,7 @@ export {
   ValidationError,
   ConflictError,
   OperationError,
-} from '../../../errors';
+} from '../../../errors/index.js';
 
 // System exceptions (infrastructure errors - retryable)
 export {
@@ -17,7 +17,7 @@ export {
   ServiceUnavailableError,
   NetworkError,
   TimeoutError,
-} from '../../../errors';
+} from '../../../errors/index.js';
 
 // Error codes and types
-export { ErrorCode, ErrorSeverity, ResourceType } from '../../../errors';
+export { ErrorCode, ErrorSeverity, ResourceType } from '../../../errors/index.js';

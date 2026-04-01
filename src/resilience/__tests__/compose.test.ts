@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import type { Counter, Histogram } from '@opentelemetry/api';
-import { resilientOperation } from '../compose';
-import { shouldRetry } from '../errors';
-import { ResilientCircuitBreaker, clearAllCircuitBreakers } from '../circuit-breaker';
-import { ServiceUnavailableError } from '../../errors/system/ServiceUnavailableError';
-import { NetworkError } from '../../errors/system/NetworkError';
-import { ValidationError } from '../../errors/domain/ValidationError';
+import { resilientOperation } from '../compose.js';
+import { shouldRetry } from '../errors.js';
+import { ResilientCircuitBreaker, clearAllCircuitBreakers } from '../circuit-breaker.js';
+import { ServiceUnavailableError } from '../../errors/system/ServiceUnavailableError.js';
+import { NetworkError } from '../../errors/system/NetworkError.js';
+import { ValidationError } from '../../errors/domain/ValidationError.js';
 
 afterEach(() => {
   clearAllCircuitBreakers();

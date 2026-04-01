@@ -1,1 +1,1 @@
-export { classifyPermissionError } from './classifyPermissionError';
+export { classifyPermissionError } from './classifyPermissionError.js';

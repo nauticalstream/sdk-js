@@ -3,7 +3,7 @@ import { Writable } from 'node:stream';
 import type { FastifyInstance } from 'fastify';
 import { context } from '@opentelemetry/api';
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks';
-import { createFastifyServer } from '../factory';
+import { createFastifyServer } from '../factory.js';
 
 beforeAll(() => {
   const manager = new AsyncLocalStorageContextManager();

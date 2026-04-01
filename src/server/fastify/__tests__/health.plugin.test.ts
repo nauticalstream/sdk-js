@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import Fastify, { type FastifyInstance } from 'fastify';
-import { createHealthPlugin } from '../plugins/health.plugin';
+import { createHealthPlugin } from '../plugins/health.plugin.js';
 
 let app: FastifyInstance | null = null;
 

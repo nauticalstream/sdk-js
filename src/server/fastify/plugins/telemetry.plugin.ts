@@ -5,7 +5,7 @@ import {
   setCorrelationId,
   generateCorrelationId,
   getCorrelationId,
-} from '../../../telemetry/utils/context';
+} from '../../../telemetry/utils/context.js';
 
 declare module 'fastify' {
   interface FastifyRequest {

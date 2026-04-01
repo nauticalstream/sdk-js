@@ -1,6 +1,6 @@
 import pino, { type LoggerOptions, type DestinationStream } from 'pino';
-import type { Logger } from '../../logger';
-import { peekCorrelationId, getTraceId, getSpanId } from './context';
+import type { Logger } from '../../logger/index.js';
+import { peekCorrelationId, getTraceId, getSpanId } from './context.js';
 // NOTE: Sentry import is lazy-loaded to avoid circular dependencies during initialization
 import type * as SentryType from '@sentry/node';
 

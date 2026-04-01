@@ -1,18 +1,18 @@
 import { fromJson, type Message, type MessageInitShape } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
 import type { KV, ObjectStore } from 'nats';
-import type { Logger } from '../../logger';
-import type { NatsClient } from '../client/nats-client';
+import type { Logger } from '../../logger/index.js';
+import type { NatsClient } from '../client/nats-client.js';
 import type { Event } from '@nauticalstream/proto/platform/v1/event_pb';
-import { publish as jsPublish, type JetStreamPublishOptions } from './publish';
-import { subscribe as jsSubscribe, defaultErrorClassifier, type ErrorClassifier } from './subscribe';
-import { ensureEphemeralConsumer } from './consumer';
-import { getKvBucket, getObjectStore } from './kv';
-import { parseEnvelope } from '../envelope';
-import { withSubscribeSpan } from '../observability/tracing';
-import { deriveSubject } from '../utils/derive-subject';
-import { deriveStream } from '../utils/derive-stream';
-import { deriveConsumer } from '../utils/derive-consumer';
+import { publish as jsPublish, type JetStreamPublishOptions } from './publish.js';
+import { subscribe as jsSubscribe, defaultErrorClassifier, type ErrorClassifier } from './subscribe.js';
+import { ensureEphemeralConsumer } from './consumer.js';
+import { getKvBucket, getObjectStore } from './kv.js';
+import { parseEnvelope } from '../envelope.js';
+import { withSubscribeSpan } from '../observability/tracing.js';
+import { deriveSubject } from '../utils/derive-subject.js';
+import { deriveStream } from '../utils/derive-stream.js';
+import { deriveConsumer } from '../utils/derive-consumer.js';
 
 /**
  * High-level JetStream API — persistent, durable, at-least-once delivery.

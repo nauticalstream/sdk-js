@@ -1,6 +1,6 @@
-export { NotFoundError } from './NotFoundError';
-export { UnauthorizedError } from './UnauthorizedError';
-export { ForbiddenError } from './ForbiddenError';
-export { ValidationError } from './ValidationError';
-export { ConflictError } from './ConflictError';
-export { OperationError } from './OperationError';
+export { NotFoundError } from './NotFoundError.js';
+export { UnauthorizedError } from './UnauthorizedError.js';
+export { ForbiddenError } from './ForbiddenError.js';
+export { ValidationError } from './ValidationError.js';
+export { ConflictError } from './ConflictError.js';
+export { OperationError } from './OperationError.js';

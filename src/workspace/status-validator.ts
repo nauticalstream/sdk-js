@@ -1,5 +1,5 @@
 import type { EventBus } from '../eventbus/index.js';
-import type { Logger } from '../logger';
+import type { Logger } from '../logger/index.js';
 import {
   GetWorkspacesStatusRequestSchema,
   GetWorkspacesStatusResponseSchema,

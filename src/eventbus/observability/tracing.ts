@@ -12,4 +12,4 @@
 export {
   injectTraceHeaders as createPublishHeaders,
   withConsumerSpan as withSubscribeSpan,
-} from '../../telemetry/utils/tracing';
+} from '../../telemetry/utils/tracing.js';

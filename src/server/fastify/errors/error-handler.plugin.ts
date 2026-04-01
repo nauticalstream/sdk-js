@@ -1,8 +1,8 @@
 import type { FastifyInstance, FastifyError, FastifyRequest, FastifyReply } from 'fastify';
-import type { Logger } from '../../../logger';
-import { formatHttpError } from '../../../errors';
-import { isZodError, mapZodError } from './zod-mapper';
-import { getCorrelationId } from '../../../telemetry';
+import type { Logger } from '../../../logger/index.js';
+import { formatHttpError } from '../../../errors/index.js';
+import { isZodError, mapZodError } from './zod-mapper.js';
+import { getCorrelationId } from '../../../telemetry/index.js';
 
 /**
  * Fastify error handler plugin

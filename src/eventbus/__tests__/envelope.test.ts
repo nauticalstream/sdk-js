@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildEnvelope, parseEnvelope } from '../envelope';
+import { buildEnvelope, parseEnvelope } from '../envelope.js';
 import { WorkspaceCreatedSchema } from '@nauticalstream/proto/workspace/v1/workspace_events_pb';
 
 // Minimal stand-in if the real proto isn't available — swap for any real schema

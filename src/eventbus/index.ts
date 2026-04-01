@@ -22,8 +22,8 @@
  */
 
 // ── Main facade ──────────────────────────────────────────────────────────────
-export { EventBus } from './eventbus';
-export type { EventBusConfig } from './eventbus';
+export { EventBus } from './eventbus.js';
+export type { EventBusConfig } from './eventbus.js';
 
 // ── Option types ─────────────────────────────────────────────────────────────
 export type {
@@ -33,55 +33,55 @@ export type {
   RequestOptions,
   ReplyOptions,
   Unsubscribe,
-} from './types';
+} from './types.js';
 
 // ── Config / constants ────────────────────────────────────────────────────────
-export type { RetryConfig } from './config';
-export { DEFAULT_RETRY_CONFIG, DEFAULT_REQUEST_TIMEOUT_MS } from './config';
+export type { RetryConfig } from './config.js';
+export { DEFAULT_RETRY_CONFIG, DEFAULT_REQUEST_TIMEOUT_MS } from './config.js';
 
 // ── Envelope & proto Event ────────────────────────────────────────────────────
-export type { Envelope, Event } from './envelope';
-export { buildEnvelope, parseEnvelope } from './envelope';
+export type { Envelope, Event } from './envelope.js';
+export { buildEnvelope, parseEnvelope } from './envelope.js';
 
 // ── Client ────────────────────────────────────────────────────────────────────
-export { NatsClient } from './client/nats-client';
-export type { NatsClientConfig } from './client/nats-client';
+export { NatsClient } from './client/nats-client.js';
+export type { NatsClientConfig } from './client/nats-client.js';
 
 // ── JetStream (advanced) ──────────────────────────────────────────────────────
-export { JetStreamAPI } from './jetstream/api';
-export { publish as jetStreamPublish, resetBreaker } from './jetstream/publish';
-export type { JetStreamPublishOptions } from './jetstream/publish';
-export { subscribe as jetStreamSubscribe, defaultErrorClassifier } from './jetstream/subscribe';
-export type { SubscriberConfig, ErrorAction, ErrorClassifier } from './jetstream/subscribe';
+export { JetStreamAPI } from './jetstream/api.js';
+export { publish as jetStreamPublish, resetBreaker } from './jetstream/publish.js';
+export type { JetStreamPublishOptions } from './jetstream/publish.js';
+export { subscribe as jetStreamSubscribe, defaultErrorClassifier } from './jetstream/subscribe.js';
+export type { SubscriberConfig, ErrorAction, ErrorClassifier } from './jetstream/subscribe.js';
 
 // ── Inbox Pattern (idempotent consumption) ────────────────────────────────────
-export { withIdempotentHandler, EventProcessor } from './inbox';
-export { isEventProcessed, markEventProcessed } from './inbox';
+export { withIdempotentHandler, EventProcessor } from './inbox/index.js';
+export { isEventProcessed, markEventProcessed } from './inbox/index.js';
 export type {
   ProcessedEventData,
   JetStreamMetadata,
   IdempotentHandlerOptions,
   PrismaTransaction as InboxPrismaTransaction,
   PrismaClient as InboxPrismaClient,
-} from './inbox';
+} from './inbox/index.js';
 
 // ── Outbox Pattern (transactional publishing) ─────────────────────────────────
-export { OutboxPublisher } from './outbox';
-export { buildOutboxRecord } from './outbox';
+export { OutboxPublisher } from './outbox/index.js';
+export { buildOutboxRecord } from './outbox/index.js';
 export type {
   OutboxRecord,
   PrismaTransaction as OutboxPrismaTransaction,
   EventSchema,
   EventData,
-} from './outbox';
+} from './outbox/index.js';
 
 // ── Core NATS patterns (advanced) ─────────────────────────────────────────────
-export { publish } from './nats/publish';
-export { subscribe } from './nats/subscribe';
-export { queueGroup } from './nats/queue-group';
-export { request } from './nats/request';
-export { reply } from './nats/reply';
-export type { ReplyHandlerConfig } from './nats/reply';
+export { publish } from './nats/publish.js';
+export { subscribe } from './nats/subscribe.js';
+export { queueGroup } from './nats/queue-group.js';
+export { request } from './nats/request.js';
+export { reply } from './nats/reply.js';
+export type { ReplyHandlerConfig } from './nats/reply.js';
 
 // ── Observability ─────────────────────────────────────────────────────────────
 export {
@@ -91,10 +91,10 @@ export {
   jetstreamRetryAttempts,
   jetstreamPublishErrors,
   jetstreamCircuitBreakerState,
-} from './observability/metrics';
+} from './observability/metrics.js';
 
 // ── Errors ────────────────────────────────────────────────────────────────────
-export { classifyNatsError } from './errors/classify';
+export { classifyNatsError } from './errors/classify.js';
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
-export { deriveSubject } from './utils/derive-subject';
+export { deriveSubject } from './utils/derive-subject.js';

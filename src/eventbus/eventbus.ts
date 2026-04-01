@@ -1,15 +1,15 @@
 import type { Message, MessageInitShape } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
-import type { Logger } from '../logger';
-import { NatsClient } from './client/nats-client';
-import { JetStreamAPI } from './jetstream/api';
-import * as natsPublish from './nats/publish';
-import * as natsSubscribe from './nats/subscribe';
-import * as natsQueueGroup from './nats/queue-group';
-import * as natsRequest from './nats/request';
-import * as natsReply from './nats/reply';
-import { defaultLogger } from './utils/logger';
-import type { Event } from './envelope';
+import type { Logger } from '../logger/index.js';
+import { NatsClient } from './client/nats-client.js';
+import { JetStreamAPI } from './jetstream/api.js';
+import * as natsPublish from './nats/publish.js';
+import * as natsSubscribe from './nats/subscribe.js';
+import * as natsQueueGroup from './nats/queue-group.js';
+import * as natsRequest from './nats/request.js';
+import * as natsReply from './nats/reply.js';
+import { defaultLogger } from './utils/logger.js';
+import type { Event } from './envelope.js';
 import type {
   PublishOptions,
   QueueGroupOptions,
@@ -17,7 +17,7 @@ import type {
   ReplyOptions,
   Unsubscribe,
   EventHandler,
-} from './types';
+} from './types.js';
 
 export interface EventBusConfig {
   servers: string[];

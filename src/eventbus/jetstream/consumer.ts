@@ -1,7 +1,7 @@
 import type { Consumer, JetStreamClient } from 'nats';
 import { AckPolicy, DeliverPolicy } from 'nats';
 
-type JetStreamManager = Awaited<ReturnType<import('../client/nats-client').NatsClient['getJetStreamManager']>>;
+type JetStreamManager = Awaited<ReturnType<import('../client/nats-client.js').NatsClient['getJetStreamManager']>>;
 
 export interface ConsumerOptions {
   maxDeliveries?: number;

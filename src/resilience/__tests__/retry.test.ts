@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
-import { retryOperation, withRetry } from '../retry';
-import { SystemException } from '../../errors';
-import { ServiceUnavailableError } from '../../errors/system/ServiceUnavailableError';
-import { ValidationError } from '../../errors/domain/ValidationError';
+import { retryOperation, withRetry } from '../retry.js';
+import { SystemException } from '../../errors/index.js';
+import { ServiceUnavailableError } from '../../errors/system/ServiceUnavailableError.js';
+import { ValidationError } from '../../errors/domain/ValidationError.js';
 
 /** True only for infrastructure (retryable) errors */
 const retryIfSystem = (e: Error) => e instanceof SystemException;

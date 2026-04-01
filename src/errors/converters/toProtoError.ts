@@ -1,8 +1,9 @@
 import { create } from '@bufbuild/protobuf';
-import { Error as ProtoError, ErrorSchema } from '@nauticalstream/proto/error/v1/error_pb';
+import type { Error as ProtoError } from '@nauticalstream/proto/error/v1/error_pb';
+import { ErrorSchema } from '@nauticalstream/proto/error/v1/error_pb';
 import { ResourceType } from '@nauticalstream/proto/error/v1/codes_pb';
-import type { DomainException } from '../base/DomainException';
-import type { SystemException } from '../base/SystemException';
+import type { DomainException } from '../base/DomainException.js';
+import type { SystemException } from '../base/SystemException.js';
 
 /**
  * Options for converting exception to Proto Error

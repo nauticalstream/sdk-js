@@ -3,11 +3,11 @@
  * Layering: timeout → retry → circuit breaker → metrics
  */
 
-import type { Logger } from '../logger';
+import type { Logger } from '../logger/index.js';
 import type { Counter, Histogram } from '@opentelemetry/api';
-import { retryOperation, type RetryConfig, DEFAULT_RETRY_CONFIG } from './retry';
-import { ResilientCircuitBreaker } from './circuit-breaker';
-import { executeWithTimeout } from './timeout';
+import { retryOperation, type RetryConfig, DEFAULT_RETRY_CONFIG } from './retry.js';
+import { ResilientCircuitBreaker } from './circuit-breaker.js';
+import { executeWithTimeout } from './timeout.js';
 
 export type ErrorClassifier<E extends Error = Error> = (error: unknown) => E;
 

@@ -5,7 +5,7 @@ import {
   httpRequestDuration,
   httpActiveRequests,
   httpErrorsTotal,
-} from '../observability/metrics';
+} from '../observability/metrics.js';
 
 /**
  * Records OTel metrics for every HTTP request.

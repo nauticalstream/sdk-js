@@ -4,8 +4,8 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { WorkspaceCreatedSchema } from '@nauticalstream/proto/workspace/v1/workspace_events_pb';
-import { OutboxPublisher, buildOutboxRecord } from '../index';
-import type { PrismaTransaction, OutboxRecord } from '../types';
+import { OutboxPublisher, buildOutboxRecord } from '../index.js';
+import type { PrismaTransaction, OutboxRecord } from '../types.js';
 
 // ── Mock Data ────────────────────────────────────────────────────────────────
 

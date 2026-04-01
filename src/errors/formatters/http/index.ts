@@ -1,1 +1,1 @@
-export { formatHttpError, type HttpErrorResponse } from './formatHttpError';
+export { formatHttpError, type HttpErrorResponse } from './formatHttpError.js';

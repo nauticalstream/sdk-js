@@ -1,5 +1,5 @@
-import type { PermissionClient } from '../client/permission-client';
-import * as resource from '../core/resource';
+import type { PermissionClient } from '../client/permission-client.js';
+import * as resource from '../core/resource.js';
 
 export enum PermissionNamespace {
   USER = 'user',

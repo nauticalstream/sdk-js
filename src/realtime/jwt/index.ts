@@ -12,4 +12,4 @@
  * ```
  */
 
-export { JwtUtils, type RealtimeJwtPayload } from '../utils/jwt';
+export { JwtUtils, type RealtimeJwtPayload } from '../utils/jwt.js';

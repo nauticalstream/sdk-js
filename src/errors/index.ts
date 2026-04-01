@@ -32,31 +32,31 @@
  */
 
 // Base classes
-export { DomainException } from './base/DomainException';
-export { SystemException } from './base/SystemException';
+export { DomainException } from './base/DomainException.js';
+export { SystemException } from './base/SystemException.js';
 
 // Domain exceptions (client errors — non-retryable)
-export { NotFoundError } from './domain/NotFoundError';
-export { UnauthorizedError } from './domain/UnauthorizedError';
-export { ForbiddenError } from './domain/ForbiddenError';
-export { ValidationError } from './domain/ValidationError';
-export { ConflictError } from './domain/ConflictError';
-export { OperationError } from './domain/OperationError';
+export { NotFoundError } from './domain/NotFoundError.js';
+export { UnauthorizedError } from './domain/UnauthorizedError.js';
+export { ForbiddenError } from './domain/ForbiddenError.js';
+export { ValidationError } from './domain/ValidationError.js';
+export { ConflictError } from './domain/ConflictError.js';
+export { OperationError } from './domain/OperationError.js';
 
 // System exceptions (infrastructure errors — retryable)
-export { DatabaseError } from './system/DatabaseError';
-export { ServiceUnavailableError } from './system/ServiceUnavailableError';
-export { NetworkError } from './system/NetworkError';
-export { TimeoutError } from './system/TimeoutError';
+export { DatabaseError } from './system/DatabaseError.js';
+export { ServiceUnavailableError } from './system/ServiceUnavailableError.js';
+export { NetworkError } from './system/NetworkError.js';
+export { TimeoutError } from './system/TimeoutError.js';
 
 // Converters (exception ↔ proto error)
-export { toProtoError, type ToProtoErrorOptions } from './converters/toProtoError';
-export { fromProtoError } from './converters/fromProtoError';
+export { toProtoError, type ToProtoErrorOptions } from './converters/toProtoError.js';
+export { fromProtoError } from './converters/fromProtoError.js';
 
 // Formatters (exception → GraphQL/HTTP/JetStream)
-export { formatGraphQLError } from './formatters/graphql/formatGraphQLError';
-export { formatHttpError, type HttpErrorResponse } from './formatters/http/formatHttpError';
-export { withErrorBoundary } from './formatters/subscriber/withErrorBoundary';
+export { formatGraphQLError } from './formatters/graphql/formatGraphQLError.js';
+export { formatHttpError, type HttpErrorResponse } from './formatters/http/formatHttpError.js';
+export { withErrorBoundary } from './formatters/subscriber/withErrorBoundary.js';
 
 // Proto types
 export { ErrorCode, ErrorSeverity, ResourceType } from '@nauticalstream/proto/error/v1/codes_pb';

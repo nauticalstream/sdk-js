@@ -1,4 +1,4 @@
-import type { Context } from '../server/fastify/types';
+import type { Context } from '../server/fastify/types.js';
 
 /** Options for publishing messages. */
 export interface PublishOptions {

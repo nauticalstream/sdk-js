@@ -1,4 +1,5 @@
-import jwt, { SignOptions } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
+import type { SignOptions } from 'jsonwebtoken';
 import type { StringValue } from 'ms';
 
 /**

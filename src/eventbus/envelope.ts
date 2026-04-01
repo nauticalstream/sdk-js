@@ -2,10 +2,10 @@ import { toJson, toJsonString, fromJsonString, create } from '@bufbuild/protobuf
 import type { Message, MessageInitShape, JsonObject } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
 import { EventSchema, type Event } from '@nauticalstream/proto/platform/v1/event_pb';
-import { createPublishHeaders } from './observability/tracing';
-import { peekCorrelationId, generateCorrelationId } from '../telemetry/utils/context';
-import { deriveSubject } from './utils/derive-subject';
-import { IDGenerator as ID } from '../crypto';
+import { createPublishHeaders } from './observability/tracing.js';
+import { peekCorrelationId, generateCorrelationId } from '../telemetry/utils/context.js';
+import { deriveSubject } from './utils/derive-subject.js';
+import { IDGenerator as ID } from '../crypto/index.js';
 import type { MsgHdrs } from 'nats';
 
 export type { Event };

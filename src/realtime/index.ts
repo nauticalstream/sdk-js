@@ -32,7 +32,7 @@
  */
 
 // Main API
-export { RealtimeClient } from './core/realtime-client';
+export { RealtimeClient } from './core/realtime-client.js';
 
 // Configuration
 export type { 
@@ -40,10 +40,10 @@ export type {
   RealtimeClientConfig, 
   PublishOptions, 
   QoS 
-} from './core/config';
+} from './core/config.js';
 
 // Client (for advanced usage)
-export { MQTTClientManager, type MQTTClientConfig } from './client/mqtt-client';
+export { MQTTClientManager, type MQTTClientConfig } from './client/mqtt-client.js';
 
 // Topics
 export { 
@@ -52,19 +52,19 @@ export {
   presenceTopics, 
   notificationTopics, 
   workspaceTopics 
-} from './topics';
+} from './topics/index.js';
 
 // Utilities
-export { serialize, deserialize } from './utils/serialization';
-export { createPublishProperties, withPublishSpan, withMessageSpan } from './core/telemetry';
-export { generateClientId } from './utils/client-id';
-export { deriveSubject } from './utils/derive-subject';
+export { serialize, deserialize } from './utils/serialization.js';
+export { createPublishProperties, withPublishSpan, withMessageSpan } from './core/telemetry.js';
+export { generateClientId } from './utils/client-id.js';
+export { deriveSubject } from './utils/derive-subject.js';
 
 // NOTE: JwtUtils moved to @nauticalstream/sdk/realtime/jwt (Node.js only)
 // For server-side JWT signing, import from '@nauticalstream/sdk/realtime/jwt'
 
 // Production features - Observability & Resilience
-export { resetBreaker, getBreakerMetrics } from './core/circuit-breaker';
+export { resetBreaker, getBreakerMetrics } from './core/circuit-breaker.js';
 export {
   publishLatency,
   publishSuccess,
@@ -72,7 +72,7 @@ export {
   retryAttempts,
   publishErrorsByType,
   circuitBreakerState,
-} from './core/metrics';
+} from './core/metrics.js';
 
 // Error utilities
-export { classifyMQTTError } from './errors/classifyMQTTError';
+export { classifyMQTTError } from './errors/classifyMQTTError.js';

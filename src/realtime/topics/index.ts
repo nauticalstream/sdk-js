@@ -1,7 +1,7 @@
-import { chatTopics, platformTopics } from './chat';
-import { presenceTopics } from './presence';
-import { notificationTopics } from './notification';
-import { workspaceTopics } from './workspace';
+import { chatTopics, platformTopics } from './chat.js';
+import { presenceTopics } from './presence.js';
+import { notificationTopics } from './notification.js';
+import { workspaceTopics } from './workspace.js';
 
 /**
  * Centralized MQTT topic definitions for all NauticalStream services.

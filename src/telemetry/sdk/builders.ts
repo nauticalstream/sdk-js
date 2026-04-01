@@ -25,8 +25,8 @@ import { containerDetector } from '@opentelemetry/resource-detector-container';
 import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
 import { hostname } from 'node:os';
 import type { Instrumentation } from '@opentelemetry/instrumentation';
-import type { TelemetryConfig } from '../config';
-import { DEFAULT_CONFIG } from '../config';
+import type { TelemetryConfig } from '../config.js';
+import { DEFAULT_CONFIG } from '../config.js';
 
 // ── Config ────────────────────────────────────────────────────────────────────
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { MQTTClientManager } from '../client/mqtt-client';
+import { MQTTClientManager } from '../client/mqtt-client.js';
 
 // ---------------------------------------------------------------------------
 // Minimal mqtt mock

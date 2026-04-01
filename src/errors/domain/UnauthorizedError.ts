@@ -1,5 +1,5 @@
 import { ErrorCode, ErrorSeverity } from '@nauticalstream/proto/error/v1/codes_pb';
-import { DomainException } from '../base/DomainException';
+import { DomainException } from '../base/DomainException.js';
 
 /**
  * UnauthorizedError

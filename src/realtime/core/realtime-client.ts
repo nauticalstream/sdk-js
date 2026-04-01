@@ -1,11 +1,11 @@
-import { MQTTClientManager } from '../client/mqtt-client';
-import { serialize, deserialize } from '../utils/serialization';
-import { createPublishProperties, withPublishSpan, withMessageSpan } from './telemetry';
-import { classifyMQTTError } from '../errors';
-import { publishLatency, publishSuccess, publishAttempts, retryAttempts, publishErrorsByType, circuitBreakerState } from './metrics';
-import { resilientOperation, getOrCreateCircuitBreaker, shouldRetry, DEFAULT_CIRCUIT_BREAKER_CONFIG, type ResilientCircuitBreaker } from '../../resilience';
-import { DEFAULT_RETRY_CONFIG, type RetryConfig, type RealtimeClientConfig, type PublishOptions, type QoS } from './config';
-import { createConsoleLogger, type Logger } from '../../logger';
+import { MQTTClientManager } from '../client/mqtt-client.js';
+import { serialize, deserialize } from '../utils/serialization.js';
+import { createPublishProperties, withPublishSpan, withMessageSpan } from './telemetry.js';
+import { classifyMQTTError } from '../errors/index.js';
+import { publishLatency, publishSuccess, publishAttempts, retryAttempts, publishErrorsByType, circuitBreakerState } from './metrics.js';
+import { resilientOperation, getOrCreateCircuitBreaker, shouldRetry, DEFAULT_CIRCUIT_BREAKER_CONFIG, type ResilientCircuitBreaker } from '../../resilience/index.js';
+import { DEFAULT_RETRY_CONFIG, type RetryConfig, type RealtimeClientConfig, type PublishOptions, type QoS } from './config.js';
+import { createConsoleLogger, type Logger } from '../../logger/index.js';
 import type { IClientPublishOptions } from 'mqtt';
 
 /**

@@ -60,6 +60,7 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
     "dev": "tsc -p tsconfig.json --watch",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run clean && npm run build",
@@ -94,7 +95,6 @@
     "@grpc/grpc-js": "^1.14.3",
     "@mercuriusjs/federation": "^5.0.0",
     "@nauticalstream/proto": "^8.0.0",
-    "@nauticalstream/sdk": "^3.1.1",
     "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/auto-instrumentations-node": "^0.53.0",
     "@opentelemetry/exporter-trace-otlp-grpc": "^0.212.0",

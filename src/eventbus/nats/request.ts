@@ -1,11 +1,11 @@
 import { fromJson, type Message, type MessageInitShape } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
-import type { Logger } from '../../logger';
-import type { NatsClient } from '../client/nats-client';
-import { buildEnvelope, parseEnvelope } from '../envelope';
-import { deriveSubject } from '../utils/derive-subject';
-import { DEFAULT_REQUEST_TIMEOUT_MS } from '../config';
-import type { RequestOptions } from '../types';
+import type { Logger } from '../../logger/index.js';
+import type { NatsClient } from '../client/nats-client.js';
+import { buildEnvelope, parseEnvelope } from '../envelope.js';
+import { deriveSubject } from '../utils/derive-subject.js';
+import { DEFAULT_REQUEST_TIMEOUT_MS } from '../config.js';
+import type { RequestOptions } from '../types.js';
 
 /**
  * NATS Core request/reply — synchronous RPC caller side.

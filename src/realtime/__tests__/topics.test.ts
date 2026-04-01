@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { chatTopics, platformTopics, presenceTopics, notificationTopics, workspaceTopics, TOPICS } from '../topics';
+import { chatTopics, platformTopics, presenceTopics, notificationTopics, workspaceTopics, TOPICS } from '../topics/index.js';
 
 describe('chatTopics', () => {
   it('conversation(id) returns conv/{id}', () => {

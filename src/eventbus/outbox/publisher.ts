@@ -6,8 +6,8 @@
  */
 
 import type { Message } from '@bufbuild/protobuf';
-import type { PrismaTransaction, EventSchema, EventData } from './types';
-import { buildOutboxRecord } from './helpers';
+import type { PrismaTransaction, EventSchema, EventData } from './types.js';
+import { buildOutboxRecord } from './helpers.js';
 
 /**
  * Outbox publisher with pre-configured source.

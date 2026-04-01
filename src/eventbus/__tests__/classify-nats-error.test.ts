@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { classifyNatsError } from '../errors/classify';
+import { classifyNatsError } from '../errors/classify.js';
 import {
   SystemException,
   DomainException,
@@ -8,7 +8,7 @@ import {
   UnauthorizedError,
   ValidationError,
   TimeoutError,
-} from '../../errors';
+} from '../../errors/index.js';
 
 describe('classifyNatsError', () => {
   describe('pass-through for already-classified errors', () => {

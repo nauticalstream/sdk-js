@@ -9,7 +9,7 @@ import {
   NotFoundError,
   ValidationError,
   ServiceUnavailableError,
-} from '../../errors';
+} from '../../errors/index.js';
 
 function asGrpcCode(error: Error): number | null {
   const candidate = (error as Error & { code?: unknown }).code;

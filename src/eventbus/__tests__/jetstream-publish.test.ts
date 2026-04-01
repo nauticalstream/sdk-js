@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { publish } from '../jetstream/publish';
-import type { NatsClient } from '../client/nats-client';
+import { publish } from '../jetstream/publish.js';
+import type { NatsClient } from '../client/nats-client.js';
 
 vi.mock('../envelope', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../envelope')>();
+  const actual = await importOriginal<typeof import('../envelope.js')>();
   return {
     ...actual,
     buildEnvelope: vi.fn().mockImplementation((_source, _schema, _data, options) => {

@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { publish } from '../nats/publish';
-import { buildEnvelope } from '../envelope';
-import type { NatsClient } from '../client/nats-client';
+import { publish } from '../nats/publish.js';
+import { buildEnvelope } from '../envelope.js';
+import type { NatsClient } from '../client/nats-client.js';
 
 vi.mock('../envelope', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../envelope')>();
+  const actual = await importOriginal<typeof import('../envelope.js')>();
   return {
     ...actual,
     buildEnvelope: vi.fn().mockReturnValue({

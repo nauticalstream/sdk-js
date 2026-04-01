@@ -17,8 +17,8 @@ import { SpanStatusCode } from '@opentelemetry/api';
 // vi.mock is hoisted above imports by vitest, so this runs first.
 vi.mock('../utils/tracing');
 
-import { withServiceSpan } from '../utils/service';
-import * as tracingModule from '../utils/tracing';
+import { withServiceSpan } from '../utils/service.js';
+import * as tracingModule from '../utils/tracing.js';
 
 // ── Fake span factory ─────────────────────────────────────────────────────────
 

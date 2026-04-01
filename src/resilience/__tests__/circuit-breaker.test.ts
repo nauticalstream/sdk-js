@@ -5,7 +5,7 @@ import {
   getCircuitBreaker,
   resetCircuitBreaker,
   clearAllCircuitBreakers,
-} from '../circuit-breaker';
+} from '../circuit-breaker.js';
 
 afterEach(() => {
   clearAllCircuitBreakers();

@@ -1,6 +1,6 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { peekCorrelationId, generateCorrelationId } from '../../telemetry/utils/context';
-import type { Context, ActionSource } from './types';
+import { peekCorrelationId, generateCorrelationId } from '../../telemetry/utils/context.js';
+import type { Context, ActionSource } from './types.js';
 
 const contextStorage = new AsyncLocalStorage<Context>();
 

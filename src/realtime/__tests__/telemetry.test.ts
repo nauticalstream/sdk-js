@@ -5,7 +5,7 @@ import {
   SimpleSpanProcessor,
 } from '@opentelemetry/sdk-trace-node';
 import { SpanStatusCode, trace, context } from '@opentelemetry/api';
-import { createPublishProperties, withPublishSpan, withMessageSpan } from '../core/telemetry';
+import { createPublishProperties, withPublishSpan, withMessageSpan } from '../core/telemetry.js';
 
 // ---------------------------------------------------------------------------
 // Setup an in-process tracer so spans are captured without a real collector

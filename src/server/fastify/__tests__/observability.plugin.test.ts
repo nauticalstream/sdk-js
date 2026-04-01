@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import Fastify, { type FastifyInstance } from 'fastify';
-import { fastifyObservability } from '../plugins/observability.plugin';
+import { fastifyObservability } from '../plugins/observability.plugin.js';
 
 // ─── OTel metric mocks ───────────────────────────────────────────────────────
 // vi.mock factory is hoisted; use vi.hoisted so the refs are initialised before

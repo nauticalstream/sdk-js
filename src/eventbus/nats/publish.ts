@@ -1,9 +1,9 @@
 import { type Message, type MessageInitShape } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
-import type { Logger } from '../../logger';
-import type { NatsClient } from '../client/nats-client';
-import { buildEnvelope } from '../envelope';
-import type { PublishOptions } from '../types';
+import type { Logger } from '../../logger/index.js';
+import type { NatsClient } from '../client/nats-client.js';
+import { buildEnvelope } from '../envelope.js';
+import type { PublishOptions } from '../types.js';
 
 /**
  * Publish a proto message to a NATS Core subject (ephemeral, fire-and-forget).

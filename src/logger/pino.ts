@@ -1,5 +1,5 @@
 import pino, { type LoggerOptions } from 'pino';
-import type { Logger } from './types';
+import type { Logger } from './types.js';
 
 /**
  * Options for creating a pino logger with telemetry

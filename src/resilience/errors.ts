@@ -2,7 +2,7 @@
  * Error handling utilities for resilience patterns
  */
 
-import { SystemException } from '../errors';
+import { SystemException } from '../errors/index.js';
 
 /**
  * Determines if an error should trigger a retry

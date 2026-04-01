@@ -1,6 +1,6 @@
 import type { KV, ObjectStore } from 'nats';
-import type { Logger } from '../../logger';
-import type { NatsClient } from '../client/nats-client';
+import type { Logger } from '../../logger/index.js';
+import type { NatsClient } from '../client/nats-client.js';
 
 /**
  * Returns true only for genuine "bucket / stream not found" NATS errors.

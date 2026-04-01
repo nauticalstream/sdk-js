@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ensureConsumer } from '../jetstream/consumer';
+import { ensureConsumer } from '../jetstream/consumer.js';
 import { AckPolicy, DeliverPolicy } from 'nats';
 
 const mockGet = vi.fn();

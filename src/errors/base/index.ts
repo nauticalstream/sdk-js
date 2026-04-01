@@ -1,2 +1,2 @@
-export { DomainException } from './DomainException';
-export { SystemException } from './SystemException';
+export { DomainException } from './DomainException.js';
+export { SystemException } from './SystemException.js';

@@ -1,4 +1,4 @@
-export { DatabaseError } from './DatabaseError';
-export { ServiceUnavailableError } from './ServiceUnavailableError';
-export { NetworkError } from './NetworkError';
-export { TimeoutError } from './TimeoutError';
+export { DatabaseError } from './DatabaseError.js';
+export { ServiceUnavailableError } from './ServiceUnavailableError.js';
+export { NetworkError } from './NetworkError.js';
+export { TimeoutError } from './TimeoutError.js';

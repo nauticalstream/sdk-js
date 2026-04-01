@@ -1,12 +1,12 @@
 import fastify, { type FastifyInstance } from 'fastify';
-import { createLogger } from '../../telemetry/utils/logging';
-import { createFastifyLoggerAdapter } from './logger/adapter';
-import { fastifyTelemetry } from './plugins/telemetry.plugin';
-import { fastifyRequestLogging } from './plugins/logging.plugin';
-import { fastifyObservability } from './plugins/observability.plugin';
-import { fastifyCors } from './plugins/cors.plugin';
-import { DEFAULT_SERVICE_NAME, DEFAULT_REQUEST_LOGGING } from './config';
-import type { FastifyServerOptions } from './types';
+import { createLogger } from '../../telemetry/utils/logging.js';
+import { createFastifyLoggerAdapter } from './logger/adapter.js';
+import { fastifyTelemetry } from './plugins/telemetry.plugin.js';
+import { fastifyRequestLogging } from './plugins/logging.plugin.js';
+import { fastifyObservability } from './plugins/observability.plugin.js';
+import { fastifyCors } from './plugins/cors.plugin.js';
+import { DEFAULT_SERVICE_NAME, DEFAULT_REQUEST_LOGGING } from './config.js';
+import type { FastifyServerOptions } from './types.js';
 
 /**
  * Creates a Fastify server with automatic telemetry integration.

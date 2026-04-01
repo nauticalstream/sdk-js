@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { reply } from '../nats/reply';
-import { parseEnvelope } from '../envelope';
-import type { NatsClient } from '../client/nats-client';
+import { reply } from '../nats/reply.js';
+import { parseEnvelope } from '../envelope.js';
+import type { NatsClient } from '../client/nats-client.js';
 import { EventSchema } from '@nauticalstream/proto/platform/v1/event_pb';
 import { create, toJsonString } from '@bufbuild/protobuf';
 

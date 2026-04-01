@@ -1,7 +1,7 @@
-import type { PermissionClient } from '../client/permission-client';
-import { WorkspacePermission, WorkspaceRole } from '../domains/workspace';
-import { ForbiddenError, ValidationError, NotFoundError } from '../../errors';
-import { assertNonEmpty } from '../utils/validation';
+import type { PermissionClient } from '../client/permission-client.js';
+import { WorkspacePermission, WorkspaceRole } from '../domains/workspace.js';
+import { ForbiddenError, ValidationError, NotFoundError } from '../../errors/index.js';
+import { assertNonEmpty } from '../utils/validation.js';
 
 const NAMESPACE = 'workspace';
 
@@ -10,7 +10,7 @@ function workspaceRoleToRelation(role: WorkspaceRole): string {
     throw new ValidationError(`Invalid workspace role: ${role}`);
   }
 
-  return role;
+  return `${role}_role`;
 }
 /**
  * Check if user has a specific workspace role

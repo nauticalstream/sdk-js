@@ -1,7 +1,7 @@
 import type { FastifyRequest } from 'fastify';
-import type { Context, ContextExtractor } from '../types';
-import { createUserContext } from '../context';
-import { getTraceId, getSpanId } from '../../../telemetry';
+import type { Context, ContextExtractor } from '../types.js';
+import { createUserContext } from '../context.js';
+import { getTraceId, getSpanId } from '../../../telemetry/index.js';
 
 /**
  * Builds the universal context (telemetry + business + audit) for a request.

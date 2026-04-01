@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { Permissions } from '../core/permissions';
-import { PostPermission, PostsPermissions, ResourcePermissions } from '../domains/resource';
+import { Permissions } from '../core/permissions.js';
+import { PostPermission, PostsPermissions, ResourcePermissions } from '../domains/resource.js';
 
 function getPermissionsClient(permissions: Permissions): any {
   return (permissions as any).client;

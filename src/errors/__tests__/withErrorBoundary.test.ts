@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
-import { withErrorBoundary } from '../formatters/subscriber/withErrorBoundary';
-import { ValidationError } from '../domain/ValidationError';
-import { NotFoundError } from '../domain/NotFoundError';
-import { ServiceUnavailableError } from '../system/ServiceUnavailableError';
-import { DatabaseError } from '../system/DatabaseError';
-import { DomainException } from '../base/DomainException';
+import { withErrorBoundary } from '../formatters/subscriber/withErrorBoundary.js';
+import { ValidationError } from '../domain/ValidationError.js';
+import { NotFoundError } from '../domain/NotFoundError.js';
+import { ServiceUnavailableError } from '../system/ServiceUnavailableError.js';
+import { DatabaseError } from '../system/DatabaseError.js';
+import { DomainException } from '../base/DomainException.js';
 import { ErrorCode, ErrorSeverity } from '@nauticalstream/proto/error/v1/codes_pb';
 
 /** A DomainException that is marked RETRYABLE — tests the rare retryable-domain path */

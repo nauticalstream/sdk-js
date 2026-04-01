@@ -1,4 +1,4 @@
-import { NetworkError, TimeoutError, ServiceUnavailableError, ValidationError, UnauthorizedError, SystemException, DomainException } from '../../errors';
+import { NetworkError, TimeoutError, ServiceUnavailableError, ValidationError, UnauthorizedError, SystemException, DomainException } from '../../errors/index.js';
 
 /**
  * Classify MQTT errors to determine if they should be retried

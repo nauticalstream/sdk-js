@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { classifyMQTTError } from '../errors/classifyMQTTError';
+import { classifyMQTTError } from '../errors/classifyMQTTError.js';
 import {
   SystemException,
   DomainException,
@@ -8,7 +8,7 @@ import {
   UnauthorizedError,
   ValidationError,
   TimeoutError,
-} from '../../errors';
+} from '../../errors/index.js';
 
 function errWithCode(message: string, code: number): Error {
   const e = new Error(message) as Error & { code: number };

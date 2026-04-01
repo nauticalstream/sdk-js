@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { deriveSubject } from '../utils/derive-subject';
+import { deriveSubject } from '../utils/derive-subject.js';
 
 describe('deriveSubject', () => {
   describe('standard conversions', () => {

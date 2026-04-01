@@ -41,10 +41,10 @@
  */
 
 // ── Main API ─────────────────────────────────────────────────────────────────
-export { OutboxPublisher } from './publisher';
+export { OutboxPublisher } from './publisher.js';
 
 // ── Low-level helpers ────────────────────────────────────────────────────────
-export { buildOutboxRecord } from './helpers';
+export { buildOutboxRecord } from './helpers.js';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 export type {
@@ -52,4 +52,4 @@ export type {
   PrismaTransaction,
   EventSchema,
   EventData,
-} from './types';
+} from './types.js';

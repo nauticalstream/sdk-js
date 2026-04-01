@@ -34,7 +34,7 @@
  */
 
 import type { Span } from '@opentelemetry/api';
-import { withSpan } from './tracing';
+import { withSpan } from './tracing.js';
 
 /** Minimal context shape accepted by `withServiceSpan`. */
 export interface ServiceSpanContext {

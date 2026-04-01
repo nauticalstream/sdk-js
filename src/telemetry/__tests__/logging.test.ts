@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createLogger } from '../utils/logging';
+import { createLogger } from '../utils/logging.js';
 
 describe('createLogger', () => {
   it('creates a logger without options', () => {
@@ -95,7 +95,7 @@ describe('createLogger', () => {
 
       const userLogMethodCalled = vi.fn();
 
-      const { createLogger: createLoggerFresh } = await import('../utils/logging');
+      const { createLogger: createLoggerFresh } = await import('../utils/logging.js');
       const log = createLoggerFresh({
         level: 'error',
         hooks: {
@@ -125,7 +125,7 @@ describe('createLogger', () => {
       const withScope = vi.fn((fn: (s: any) => void) => fn({ setContext: vi.fn(), setTag: vi.fn() }));
       vi.doMock('@sentry/node', () => ({ captureException, withScope }));
 
-      const { createLogger: createLoggerFresh } = await import('../utils/logging');
+      const { createLogger: createLoggerFresh } = await import('../utils/logging.js');
       const log = createLoggerFresh({
         level: 'error',
         sentry: { enabled: true, minLevel: 'error' },
@@ -142,7 +142,7 @@ describe('createLogger', () => {
         withScope: vi.fn((fn: (s: any) => void) => fn({ setContext: vi.fn(), setTag: vi.fn() })),
       }));
 
-      const { createLogger: createLoggerFresh } = await import('../utils/logging');
+      const { createLogger: createLoggerFresh } = await import('../utils/logging.js');
       const log = createLoggerFresh({
         level: 'trace',
         sentry: { enabled: true, minLevel: 'error' },

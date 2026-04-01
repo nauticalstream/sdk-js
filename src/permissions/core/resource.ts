@@ -1,7 +1,7 @@
-import type { PermissionClient } from '../client/permission-client';
-import { ForbiddenError } from '../../errors';
-import { PermissionNamespace, type PostPermission, type ArticlePermission, type FilePermission } from '../domains/resource';
-import { assertNonEmpty } from '../utils/validation';
+import type { PermissionClient } from '../client/permission-client.js';
+import { ForbiddenError } from '../../errors/index.js';
+import { PermissionNamespace, type PostPermission, type ArticlePermission, type FilePermission } from '../domains/resource.js';
+import { assertNonEmpty } from '../utils/validation.js';
 
 /** Internal union — callers use domain-specific resource permission types. */
 type ResourcePermission = PostPermission | ArticlePermission | FilePermission;

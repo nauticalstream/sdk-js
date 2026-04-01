@@ -3,7 +3,7 @@
  * Wraps resilience module functions for module-specific breaker management
  */
 
-import { resetCircuitBreaker, getCircuitBreaker, type BreakerMetrics } from '../../resilience';
+import { resetCircuitBreaker, getCircuitBreaker, type BreakerMetrics } from '../../resilience/index.js';
 
 /**
  * Reset the circuit breaker for a specific MQTT broker.

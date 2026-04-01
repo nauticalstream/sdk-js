@@ -14,7 +14,7 @@ export {
   AbortError,
   DEFAULT_RETRY_CONFIG,
   type RetryConfig,
-} from './retry';
+} from './retry.js';
 
 export {
   ResilientCircuitBreaker,
@@ -26,14 +26,14 @@ export {
   type BreakerState,
   type CircuitBreakerConfig,
   type BreakerMetrics,
-} from './circuit-breaker';
+} from './circuit-breaker.js';
 
 export {
   executeWithTimeout,
   createTimeoutSignal,
   withTimeout,
   TimeoutError,
-} from './timeout';
+} from './timeout.js';
 
 export {
   resilientOperation,
@@ -41,6 +41,6 @@ export {
   type ErrorClassifier,
   type ResilienceConfig,
   type ResilienceMetrics,
-} from './compose';
+} from './compose.js';
 
-export { shouldRetry } from './errors';
+export { shouldRetry } from './errors.js';

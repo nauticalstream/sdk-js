@@ -1,7 +1,7 @@
 import type { FastifyPluginAsync, FastifyRequest, FastifyReply } from 'fastify';
 import fp from 'fastify-plugin';
 import { context } from '@opentelemetry/api';
-import { setCorrelationId } from '../../../telemetry/utils/context';
+import { setCorrelationId } from '../../../telemetry/utils/context.js';
 
 /** Logs requests/responses with the correct correlationId in the Pino mixin. */
 const fastifyRequestLoggingPlugin: FastifyPluginAsync = async (fastify) => {

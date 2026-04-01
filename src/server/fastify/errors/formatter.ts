@@ -1,5 +1,5 @@
-import { getCorrelationId, generateCorrelationId } from '../../../telemetry';
-import { formatGraphQLError } from '../../../errors';
+import { getCorrelationId, generateCorrelationId } from '../../../telemetry/index.js';
+import { formatGraphQLError } from '../../../errors/index.js';
 
 /** Mercurius error formatter response shape */
 export interface MercuriusErrorFormatterResponse {

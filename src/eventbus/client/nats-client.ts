@@ -1,5 +1,5 @@
 import { connect, type NatsConnection, type JetStreamClient } from 'nats';
-import type { Logger } from '../../logger';
+import type { Logger } from '../../logger/index.js';
 
 export interface NatsClientConfig {
   servers: string[];

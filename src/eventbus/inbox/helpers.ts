@@ -5,8 +5,8 @@
  * Most users should use `withIdempotentHandler()` instead.
  */
 
-import type { Event } from '../envelope';
-import type { PrismaTransaction, ProcessedEventData } from './types';
+import type { Event } from '../envelope.js';
+import type { PrismaTransaction, ProcessedEventData } from './types.js';
 
 /**
  * Check if an event has already been processed by this consumer.

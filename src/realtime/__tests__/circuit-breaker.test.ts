@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { resetBreaker, getBreakerMetrics } from '../core/circuit-breaker';
-import { getOrCreateCircuitBreaker, clearAllCircuitBreakers } from '../../resilience';
+import { resetBreaker, getBreakerMetrics } from '../core/circuit-breaker.js';
+import { getOrCreateCircuitBreaker, clearAllCircuitBreakers } from '../../resilience/index.js';
 
 afterEach(() => {
   clearAllCircuitBreakers();

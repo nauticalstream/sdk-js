@@ -1,5 +1,5 @@
-import { DomainException } from '../../base/DomainException';
-import { SystemException } from '../../base/SystemException';
+import { DomainException } from '../../base/DomainException.js';
+import { SystemException } from '../../base/SystemException.js';
 
 /**
  * Logger interface (compatible with Pino, Winston, console)

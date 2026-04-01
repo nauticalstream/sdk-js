@@ -1,13 +1,13 @@
-import type { Logger } from '../../logger';
-import type { RetryConfig } from '../../resilience';
+import type { Logger } from '../../logger/index.js';
+import type { RetryConfig } from '../../resilience/index.js';
 
 /**
  * Realtime module configuration
  * Re-exports resilience config for consistency
  */
 
-export type { RetryConfig } from '../../resilience';
-export { DEFAULT_RETRY_CONFIG } from '../../resilience';
+export type { RetryConfig } from '../../resilience/index.js';
+export { DEFAULT_RETRY_CONFIG } from '../../resilience/index.js';
 
 /**
  * MQTT Quality of Service levels

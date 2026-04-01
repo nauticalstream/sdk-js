@@ -1,13 +1,13 @@
 import { fromJson, type Message } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
 import type { Subscription, Msg } from 'nats';
-import type { Logger } from '../../logger';
-import type { NatsClient } from '../client/nats-client';
-import { parseEnvelope, type Event } from '../envelope';
-import { withSubscribeSpan } from '../observability/tracing';
-import { withCorrelationId, generateCorrelationId } from '../../telemetry/utils/context';
-import { deriveSubject } from '../utils/derive-subject';
-import type { Unsubscribe } from '../types';
+import type { Logger } from '../../logger/index.js';
+import type { NatsClient } from '../client/nats-client.js';
+import { parseEnvelope, type Event } from '../envelope.js';
+import { withSubscribeSpan } from '../observability/tracing.js';
+import { withCorrelationId, generateCorrelationId } from '../../telemetry/utils/context.js';
+import { deriveSubject } from '../utils/derive-subject.js';
+import type { Unsubscribe } from '../types.js';
 
 /**
  * Subscribe to a NATS Core subject (ephemeral — no persistence).

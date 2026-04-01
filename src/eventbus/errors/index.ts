@@ -1,1 +1,1 @@
-export { classifyNatsError } from './classify';
+export { classifyNatsError } from './classify.js';

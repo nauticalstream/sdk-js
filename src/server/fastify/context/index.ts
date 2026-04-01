@@ -1,2 +1,2 @@
-export { createBaseContext, extractBusinessContext } from './base';
-export { createContext, createContextBuilder } from './builder';
+export { createBaseContext, extractBusinessContext } from './base.js';
+export { createContext, createContextBuilder } from './builder.js';

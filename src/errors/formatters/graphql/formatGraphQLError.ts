@@ -1,8 +1,8 @@
 import { GraphQLError } from 'graphql';
 import { ZodError } from 'zod';
-import { DomainException } from '../../base/DomainException';
-import { SystemException } from '../../base/SystemException';
-import { ValidationError } from '../../domain/ValidationError';
+import { DomainException } from '../../base/DomainException.js';
+import { SystemException } from '../../base/SystemException.js';
+import { ValidationError } from '../../domain/ValidationError.js';
 
 /**
  * Format GraphQL errors for Mercurius/Apollo Server

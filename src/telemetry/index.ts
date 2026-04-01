@@ -8,7 +8,7 @@ export {
   withSpan,
   tracer,
   meter,
-} from './telemetry';
+} from './telemetry.js';
 
 // Configuration types
 export type {
@@ -20,7 +20,7 @@ export type {
   SamplingConfig,
   BatchProcessorConfig,
   ResourceDetectorStrategy,
-} from './config';
+} from './config.js';
 
 // Context utilities
 export {
@@ -36,10 +36,10 @@ export {
   getActiveSpan,
   setCorrelationIdInBaggage,
   getCorrelationIdFromBaggage,
-} from './utils/context';
+} from './utils/context.js';
 
 // Logger with telemetry
-export { createLogger, type TelemetryLoggerOptions } from './utils/logging';
+export { createLogger, type TelemetryLoggerOptions } from './utils/logging.js';
 
 // Metric helpers
 export {
@@ -49,7 +49,7 @@ export {
   addUpDownCounter,
   createObservableGauge,
   startTimer,
-} from './utils/metrics';
+} from './utils/metrics.js';
 
 // Span helpers
 export {
@@ -60,12 +60,12 @@ export {
   withProducerSpan,
   withTracedPublish,
   injectTraceHeaders,
-} from './utils/tracing';
+} from './utils/tracing.js';
 
 // Service-layer span helper
-export { withServiceSpan, type ServiceSpanContext } from './utils/service';
+export { withServiceSpan, type ServiceSpanContext } from './utils/service.js';
 
 // Sentry integration
-export { initSentry, getSentry, closeSentry, Sentry } from './sentry/index';
-export type { SentryConfig } from './sentry/config';
-export { DEFAULT_SENTRY_CONFIG } from './sentry/config';
+export { initSentry, getSentry, closeSentry, Sentry } from './sentry/index.js';
+export type { SentryConfig } from './sentry/config.js';
+export { DEFAULT_SENTRY_CONFIG } from './sentry/config.js';

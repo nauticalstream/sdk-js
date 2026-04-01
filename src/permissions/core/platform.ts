@@ -1,9 +1,13 @@
-import type { PermissionClient } from '../client/permission-client';
-import { PlatformRole } from '../domains/platform';
-import { ForbiddenError } from '../../errors';
+import type { PermissionClient } from '../client/permission-client.js';
+import { PlatformRole } from '../domains/platform.js';
+import { ForbiddenError } from '../../errors/index.js';
 
 const PLATFORM_ID = 'global'; // Singleton platform object
 const NAMESPACE = 'platform';
+
+function platformRoleToRelation(role: PlatformRole): string {
+  return `${role}_role`;
+}
 
 /**
  * Guard: throws ForbiddenError so unauthenticated callers get a 403,
@@ -91,12 +95,13 @@ export async function grantRole(
   role: PlatformRole
 ): Promise<void> {
   assertUserId(userId);
+  const relation = platformRoleToRelation(role);
 
   await client.relationship.createRelationship({
     createRelationshipBody: {
       namespace: NAMESPACE,
       object: PLATFORM_ID,
-      relation: role,
+      relation,
       subject_id: userId,
     },
   });
@@ -111,11 +116,12 @@ export async function revokeRole(
   role: PlatformRole
 ): Promise<void> {
   assertUserId(userId);
+  const relation = platformRoleToRelation(role);
 
   await client.relationship.deleteRelationships({
     namespace: NAMESPACE,
     object: PLATFORM_ID,
-    relation: role,
+    relation,
     subjectId: userId,
   });
 }

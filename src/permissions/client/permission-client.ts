@@ -1,14 +1,14 @@
 import { v1 } from '@authzed/authzed-node';
-import type { Logger } from '../../logger';
+import type { Logger } from '../../logger/index.js';
 import type {
   CheckPermissionParams,
   CreateRelationshipParams,
   DeleteRelationshipParams,
   PermissionsConfig,
-} from '../types';
-import { defaultLogger } from '../utils/logger';
-import { ValidationError } from '../../errors';
-import { classifyPermissionError } from '../errors/classifyPermissionError';
+} from '../types.js';
+import { defaultLogger } from '../utils/logger.js';
+import { ValidationError } from '../../errors/index.js';
+import { classifyPermissionError } from '../errors/classifyPermissionError.js';
 import {
   resilientOperation,
   getOrCreateCircuitBreaker,
@@ -17,7 +17,7 @@ import {
   DEFAULT_CIRCUIT_BREAKER_CONFIG,
   type RetryConfig,
   type ResilientCircuitBreaker,
-} from '../../resilience';
+} from '../../resilience/index.js';
 import {
   permissionsCheckLatency,
   permissionsCheckSuccess,
@@ -27,7 +27,7 @@ import {
   permissionsWriteErrors,
   permissionsRetryAttempts,
   permissionsCircuitBreakerState,
-} from '../core/metrics';
+} from '../core/metrics.js';
 
 type CreateRelationshipRequest = {
   createRelationshipBody: {

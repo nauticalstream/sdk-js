@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import * as grpc from '@grpc/grpc-js';
-import { classifyPermissionError } from '../errors/classifyPermissionError';
+import { classifyPermissionError } from '../errors/classifyPermissionError.js';
 import {
   SystemException,
   DomainException,
@@ -11,7 +11,7 @@ import {
   NotFoundError,
   ServiceUnavailableError,
   TimeoutError,
-} from '../../errors';
+} from '../../errors/index.js';
 
 describe('classifyPermissionError', () => {
   describe('pass-through for already-classified errors', () => {

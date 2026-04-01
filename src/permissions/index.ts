@@ -32,7 +32,7 @@
  */
 
 // Main API
-export { Permissions } from './core/permissions';
+export { Permissions } from './core/permissions.js';
 
 // Types
 export type {
@@ -41,20 +41,20 @@ export type {
   CreateRelationshipParams,
   DeleteRelationshipParams,
   ListRelationshipsParams,
-} from './types';
+} from './types.js';
 
-export { PlatformRole } from './domains/platform';
-export { WorkspacePermission, WorkspaceRole } from './domains/workspace';
+export { PlatformRole } from './domains/platform.js';
+export { WorkspacePermission, WorkspaceRole } from './domains/workspace.js';
 
 // Re-export commonly used errors from centralized errors library
-export { ForbiddenError, ValidationError } from '../errors';
+export { ForbiddenError, ValidationError } from '../errors/index.js';
 
 // Client (for advanced usage)
-export { PermissionClient } from './client/permission-client';
+export { PermissionClient } from './client/permission-client.js';
 
 // Domain modules (for advanced usage / testing)
-export * as platform from './core/platform';
-export * as workspace from './core/workspace';
+export * as platform from './core/platform.js';
+export * as workspace from './core/workspace.js';
 export {
   PermissionNamespace,
   ResourcePermissions,
@@ -64,7 +64,7 @@ export {
   PostPermission,
   FilePermission,
   ArticlePermission,
-} from './domains/resource';
+} from './domains/resource.js';
 export type {
   ArticleTopicPermission,
   BoatPermission,
@@ -94,11 +94,11 @@ export type {
   StreamPermission,
   NotePermission,
   VerificationSessionPermission,
-} from './domains/resource';
+} from './domains/resource.js';
 
 // Production features - Observability & Resilience
-export type { RetryConfig, CircuitBreakerConfig } from './core/config';
-export { DEFAULT_RETRY_CONFIG, DEFAULT_CIRCUIT_BREAKER_CONFIG } from './core/config';
+export type { RetryConfig, CircuitBreakerConfig } from './core/config.js';
+export { DEFAULT_RETRY_CONFIG, DEFAULT_CIRCUIT_BREAKER_CONFIG } from './core/config.js';
 export { 
   permissionsCheckLatency,
   permissionsCheckSuccess,
@@ -109,8 +109,8 @@ export {
   permissionsWriteErrors,
   permissionsRetryAttempts,
   permissionsCircuitBreakerState,
-} from './core/metrics';
-export { withPermissionSpan } from './core/telemetry';
+} from './core/metrics.js';
+export { withPermissionSpan } from './core/telemetry.js';
 
 // Error utilities
-export { classifyPermissionError } from './errors/classifyPermissionError';
+export { classifyPermissionError } from './errors/classifyPermissionError.js';

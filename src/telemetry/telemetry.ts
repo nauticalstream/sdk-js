@@ -1,6 +1,6 @@
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import { trace, metrics, SpanKind, type Tracer, type Meter, type Span } from '@opentelemetry/api';
-import type { TelemetryConfig } from './config';
+import type { TelemetryConfig } from './config.js';
 import {
   mergeConfig,
   buildResource,
@@ -9,8 +9,8 @@ import {
   buildMetricReader,
   buildSampler,
   buildResourceDetectors,
-} from './sdk/builders';
-import { withSpan as _withSpan } from './utils/tracing';
+} from './sdk/builders.js';
+import { withSpan as _withSpan } from './utils/tracing.js';
 
 let sdk: NodeSDK | null = null;
 let isInitialized = false;

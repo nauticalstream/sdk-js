@@ -1,5 +1,5 @@
 import { ZodError } from 'zod';
-import { ValidationError } from '../../../errors';
+import { ValidationError } from '../../../errors/index.js';
 
 /**
  * Map ZodError to ValidationError

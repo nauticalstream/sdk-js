@@ -12,9 +12,9 @@
  * All steps happen in a single atomic database transaction.
  */
 
-import type { Event } from '../envelope';
-import type { PrismaClient, PrismaTransaction, IdempotentHandlerOptions } from './types';
-import { isEventProcessed, markEventProcessed } from './helpers';
+import type { Event } from '../envelope.js';
+import type { PrismaClient, PrismaTransaction, IdempotentHandlerOptions } from './types.js';
+import { isEventProcessed, markEventProcessed } from './helpers.js';
 
 /**
  * Execute event handler with automatic idempotency guarantees.

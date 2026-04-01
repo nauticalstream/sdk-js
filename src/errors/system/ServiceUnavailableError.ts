@@ -1,5 +1,5 @@
 import { ErrorCode } from '@nauticalstream/proto/error/v1/codes_pb';
-import { SystemException } from '../base/SystemException';
+import { SystemException } from '../base/SystemException.js';
 
 /**
  * ServiceUnavailableError

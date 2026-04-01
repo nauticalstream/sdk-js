@@ -6,7 +6,7 @@ import {
   ValidationError,
   UnauthorizedError,
   ServiceUnavailableError,
-} from '../../errors';
+} from '../../errors/index.js';
 
 /**
  * Map a raw NATS/JetStream error to a typed SDK error.

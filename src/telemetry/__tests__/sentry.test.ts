@@ -15,7 +15,7 @@ vi.mock('@sentry/profiling-node', () => ({
 }));
 
 // Import AFTER mocks are registered
-const { initSentry, closeSentry } = await import('../sentry/init');
+const { initSentry, closeSentry } = await import('../sentry/init.js');
 const Sentry = await import('@sentry/node');
 
 beforeEach(() => {

@@ -1,2 +1,2 @@
-export { toProtoError, type ToProtoErrorOptions } from './toProtoError';
-export { fromProtoError } from './fromProtoError';
+export { toProtoError, type ToProtoErrorOptions } from './toProtoError.js';
+export { fromProtoError } from './fromProtoError.js';

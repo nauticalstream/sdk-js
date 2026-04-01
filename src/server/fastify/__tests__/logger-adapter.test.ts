@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { createFastifyLoggerAdapter } from '../logger/adapter';
+import { createFastifyLoggerAdapter } from '../logger/adapter.js';
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 

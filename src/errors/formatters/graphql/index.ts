@@ -1,1 +1,1 @@
-export { formatGraphQLError } from './formatGraphQLError';
+export { formatGraphQLError } from './formatGraphQLError.js';

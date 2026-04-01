@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { executeWithTimeout, withTimeout, createTimeoutSignal, TimeoutError } from '../timeout';
+import { executeWithTimeout, withTimeout, createTimeoutSignal, TimeoutError } from '../timeout.js';
 
 describe('executeWithTimeout', () => {
   it('resolves with the function result when it completes in time', async () => {

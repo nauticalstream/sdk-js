@@ -1,5 +1,5 @@
-import type { Logger } from '../logger';
-import type { RetryConfig, CircuitBreakerConfig } from './core/config';
+import type { Logger } from '../logger/index.js';
+import type { RetryConfig, CircuitBreakerConfig } from './core/config.js';
 
 export type PermissionsSecurity = 'secure' | 'insecure-localhost' | 'insecure-plaintext';
 

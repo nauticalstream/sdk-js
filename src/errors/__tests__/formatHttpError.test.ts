@@ -1,13 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { formatHttpError } from '../formatters/http/formatHttpError';
-import { NotFoundError } from '../domain/NotFoundError';
-import { ValidationError } from '../domain/ValidationError';
-import { UnauthorizedError } from '../domain/UnauthorizedError';
-import { ForbiddenError } from '../domain/ForbiddenError';
-import { ConflictError } from '../domain/ConflictError';
-import { ServiceUnavailableError } from '../system/ServiceUnavailableError';
-import { NetworkError } from '../system/NetworkError';
-import { DatabaseError } from '../system/DatabaseError';
+import { formatHttpError } from '../formatters/http/formatHttpError.js';
+import { NotFoundError } from '../domain/NotFoundError.js';
+import { ValidationError } from '../domain/ValidationError.js';
+import { UnauthorizedError } from '../domain/UnauthorizedError.js';
+import { ForbiddenError } from '../domain/ForbiddenError.js';
+import { ConflictError } from '../domain/ConflictError.js';
+import { ServiceUnavailableError } from '../system/ServiceUnavailableError.js';
+import { NetworkError } from '../system/NetworkError.js';
+import { DatabaseError } from '../system/DatabaseError.js';
 
 describe('formatHttpError', () => {
   describe('DomainException subclasses', () => {

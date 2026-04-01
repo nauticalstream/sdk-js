@@ -5,9 +5,9 @@
  * Useful for services with many event handlers.
  */
 
-import type { Event } from '../envelope';
-import type { PrismaClient, PrismaTransaction, IdempotentHandlerOptions } from './types';
-import { withIdempotentHandler } from './transaction';
+import type { Event } from '../envelope.js';
+import type { PrismaClient, PrismaTransaction, IdempotentHandlerOptions } from './types.js';
+import { withIdempotentHandler } from './transaction.js';
 
 /**
  * Event processor with pre-configured consumer name.

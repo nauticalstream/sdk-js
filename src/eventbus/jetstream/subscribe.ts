@@ -1,7 +1,7 @@
 import type { JsMsg, Consumer } from 'nats';
-import type { Logger } from '../../logger';
-import type { NatsClient } from '../client/nats-client';
-import { ensureConsumer } from './consumer';
+import type { Logger } from '../../logger/index.js';
+import type { NatsClient } from '../client/nats-client.js';
+import { ensureConsumer } from './consumer.js';
 
 /**
  * What to do with a message after handler failure.

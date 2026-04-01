@@ -1,13 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { shouldRetry } from '../errors';
-import { SystemException } from '../../errors';
-import { ServiceUnavailableError } from '../../errors/system/ServiceUnavailableError';
-import { NetworkError } from '../../errors/system/NetworkError';
-import { DatabaseError } from '../../errors/system/DatabaseError';
-import { ValidationError } from '../../errors/domain/ValidationError';
-import { NotFoundError } from '../../errors/domain/NotFoundError';
-import { UnauthorizedError } from '../../errors/domain/UnauthorizedError';
-import { ForbiddenError } from '../../errors/domain/ForbiddenError';
+import { shouldRetry } from '../errors.js';
+import { SystemException } from '../../errors/index.js';
+import { ServiceUnavailableError } from '../../errors/system/ServiceUnavailableError.js';
+import { NetworkError } from '../../errors/system/NetworkError.js';
+import { DatabaseError } from '../../errors/system/DatabaseError.js';
+import { ValidationError } from '../../errors/domain/ValidationError.js';
+import { NotFoundError } from '../../errors/domain/NotFoundError.js';
+import { UnauthorizedError } from '../../errors/domain/UnauthorizedError.js';
+import { ForbiddenError } from '../../errors/domain/ForbiddenError.js';
 
 describe('shouldRetry', () => {
   describe('returns true for SystemException subclasses (infrastructure errors)', () => {

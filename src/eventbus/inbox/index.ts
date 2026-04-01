@@ -44,11 +44,11 @@
  */
 
 // ── Main APIs ────────────────────────────────────────────────────────────────
-export { withIdempotentHandler } from './transaction';
-export { EventProcessor } from './processor';
+export { withIdempotentHandler } from './transaction.js';
+export { EventProcessor } from './processor.js';
 
 // ── Low-level helpers ────────────────────────────────────────────────────────
-export { isEventProcessed, markEventProcessed } from './helpers';
+export { isEventProcessed, markEventProcessed } from './helpers.js';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 export type {
@@ -57,4 +57,4 @@ export type {
   IdempotentHandlerOptions,
   PrismaTransaction,
   PrismaClient,
-} from './types';
+} from './types.js';

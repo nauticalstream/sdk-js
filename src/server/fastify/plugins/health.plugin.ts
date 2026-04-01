@@ -1,6 +1,6 @@
 import fp from 'fastify-plugin';
 import type { FastifyInstance } from 'fastify';
-import type { HealthPluginOptions } from '../types';
+import type { HealthPluginOptions } from '../types.js';
 
 /**
  * Creates a health check endpoint that runs all checks and returns aggregated status.

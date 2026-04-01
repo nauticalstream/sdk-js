@@ -5,9 +5,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { create } from '@bufbuild/protobuf';
 import { EventSchema } from '@nauticalstream/proto/platform/v1/event_pb';
-import { withIdempotentHandler, EventProcessor, isEventProcessed, markEventProcessed } from '../index';
-import type { Event } from '../../envelope';
-import type { PrismaClient, PrismaTransaction } from '../types';
+import { withIdempotentHandler, EventProcessor, isEventProcessed, markEventProcessed } from '../index.js';
+import type { Event } from '../../envelope.js';
+import type { PrismaClient, PrismaTransaction } from '../types.js';
 
 // ── Mock Data ────────────────────────────────────────────────────────────────
 

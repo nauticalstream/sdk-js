@@ -1,6 +1,6 @@
 import type { FastifyBaseLogger } from 'fastify';
 import type { Bindings, ChildLoggerOptions } from 'pino';
-import { createLogger } from '../../../telemetry/utils/logging';
+import { createLogger } from '../../../telemetry/utils/logging.js';
 
 export type TelemetryLogger = ReturnType<typeof createLogger>;
 

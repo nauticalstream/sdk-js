@@ -7,8 +7,8 @@
 import { toJson } from '@bufbuild/protobuf';
 import type { Message } from '@bufbuild/protobuf';
 import { EventSchema } from '@nauticalstream/proto/platform/v1/event_pb';
-import { buildEnvelope } from '../envelope';
-import type { OutboxRecord, EventSchema as SchemaType, EventData } from './types';
+import { buildEnvelope } from '../envelope.js';
+import type { OutboxRecord, EventSchema as SchemaType, EventData } from './types.js';
 
 /**
  * Build an outbox record from event schema and data.

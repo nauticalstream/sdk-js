@@ -1,4 +1,4 @@
-export { createFastifyServer } from './factory';
+export { createFastifyServer } from './factory.js';
 
 export {
   createUserContext,
@@ -6,24 +6,24 @@ export {
   createContextFromEvent,
   withContext,
   getContext,
-} from './context';
+} from './context.js';
 
 export {
   createContext,
   createContextBuilder,
-} from './context/builder';
+} from './context/builder.js';
 
-export { fastifyTelemetry, type FastifyTelemetryOptions } from './plugins/telemetry.plugin';
-export { fastifyRequestLogging } from './plugins/logging.plugin';
-export { fastifyObservability } from './plugins/observability.plugin';
-export { fastifyCors, type FastifyCorsPluginOptions } from './plugins/cors.plugin';
-export { createGraphQLPlugin } from './plugins/graphql.plugin';
-export { createHealthPlugin } from './plugins/health.plugin';
+export { fastifyTelemetry, type FastifyTelemetryOptions } from './plugins/telemetry.plugin.js';
+export { fastifyRequestLogging } from './plugins/logging.plugin.js';
+export { fastifyObservability } from './plugins/observability.plugin.js';
+export { fastifyCors, type FastifyCorsPluginOptions } from './plugins/cors.plugin.js';
+export { createGraphQLPlugin } from './plugins/graphql.plugin.js';
+export { createHealthPlugin } from './plugins/health.plugin.js';
 
-export * from './errors';
-export { fastifyErrorHandler } from './errors/error-handler.plugin';
-export { validateBody, validateQuery, validateParams } from './errors/validation.middleware';
-export { mapZodError, isZodError } from './errors/zod-mapper';
+export * from './errors/index.js';
+export { fastifyErrorHandler } from './errors/error-handler.plugin.js';
+export { validateBody, validateQuery, validateParams } from './errors/validation.middleware.js';
+export { mapZodError, isZodError } from './errors/zod-mapper.js';
 
 // Observability instruments — for services that want to add custom labels
 export {
@@ -31,7 +31,7 @@ export {
   httpRequestDuration,
   httpActiveRequests,
   httpErrorsTotal,
-} from './observability/metrics';
+} from './observability/metrics.js';
 
 export type {
   ActionSource,
@@ -41,10 +41,10 @@ export type {
   GraphQLPluginOptions,
   HealthPluginOptions,
   HealthCheckFn,
-} from './types';
+} from './types.js';
 
 export {
   DEFAULT_SERVICE_NAME,
   DEFAULT_CORRELATION_ID_HEADER,
   DEFAULT_REQUEST_LOGGING,
-} from './config';
+} from './config.js';

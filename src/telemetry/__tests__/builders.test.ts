@@ -10,8 +10,8 @@ import {
   buildSampler,
   buildResourceDetectors,
   buildInstrumentations,
-} from '../sdk/builders';
-import { DEFAULT_CONFIG } from '../config';
+} from '../sdk/builders.js';
+import { DEFAULT_CONFIG } from '../config.js';
 
 // ── mergeConfig ───────────────────────────────────────────────────────────────
 

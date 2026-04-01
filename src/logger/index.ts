@@ -16,6 +16,6 @@
  * ```
  */
 
-export type { Logger } from './types';
-export { createPinoLogger } from './pino';
-export { createConsoleLogger } from './console';
+export type { Logger } from './types.js';
+export { createPinoLogger } from './pino.js';
+export { createConsoleLogger } from './console.js';

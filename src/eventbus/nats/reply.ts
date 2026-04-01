@@ -1,13 +1,13 @@
 import { create, fromJson, type Message, type MessageInitShape, toJsonString } from '@bufbuild/protobuf';
 import type { GenMessage } from '@bufbuild/protobuf/codegenv2';
 import type { Subscription } from 'nats';
-import type { Logger } from '../../logger';
-import type { NatsClient } from '../client/nats-client';
+import type { Logger } from '../../logger/index.js';
+import type { NatsClient } from '../client/nats-client.js';
 import { EventSchema } from '@nauticalstream/proto/platform/v1/event_pb';
-import { buildEnvelope, parseEnvelope, type Event } from '../envelope';
-import { withCorrelationId, generateCorrelationId } from '../../telemetry/utils/context';
-import { deriveSubject } from '../utils/derive-subject';
-import type { ReplyOptions, Unsubscribe } from '../types';
+import { buildEnvelope, parseEnvelope, type Event } from '../envelope.js';
+import { withCorrelationId, generateCorrelationId } from '../../telemetry/utils/context.js';
+import { deriveSubject } from '../utils/derive-subject.js';
+import type { ReplyOptions, Unsubscribe } from '../types.js';
 
 export interface ReplyHandlerConfig<TRequest extends Message, TResponse extends Message> {
   source: string;

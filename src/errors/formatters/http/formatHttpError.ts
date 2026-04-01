@@ -10,8 +10,8 @@ const getCorrelationId = (): string => {
     return v.toString(16);
   });
 };
-import { DomainException } from '../../base/DomainException';
-import { SystemException } from '../../base/SystemException';
+import { DomainException } from '../../base/DomainException.js';
+import { SystemException } from '../../base/SystemException.js';
 
 /**
  * HTTP error response format
