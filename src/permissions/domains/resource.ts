@@ -1,5 +1,6 @@
 import type { PermissionClient } from '../client/permission-client.js';
 import * as resource from '../core/resource.js';
+import type { PermissionConsistency, PermissionWriteResult } from '../types.js';
 
 export enum PermissionNamespace {
   USER = 'user',
@@ -110,19 +111,33 @@ export class ResourcePermissions<TPermission extends ResourcePermissionValue = s
     protected readonly options: ResourcePermissionsOptions<TPermission> = {}
   ) {}
 
-  hasPermission(resourceId: string, userId: string, permission: TPermission | string): Promise<boolean> {
-    return resource.hasPermission(this.client, this.namespace, resourceId, userId, permission);
+  hasPermission(
+    resourceId: string,
+    userId: string,
+    permission: TPermission | string,
+    consistency?: PermissionConsistency
+  ): Promise<boolean> {
+    return resource.hasPermission(this.client, this.namespace, resourceId, userId, permission, consistency);
   }
 
-  requirePermission(resourceId: string, userId: string, permission: TPermission | string): Promise<void> {
-    return resource.requirePermission(this.client, this.namespace, resourceId, userId, permission);
+  requirePermission(
+    resourceId: string,
+    userId: string,
+    permission: TPermission | string,
+    consistency?: PermissionConsistency
+  ): Promise<void> {
+    return resource.requirePermission(this.client, this.namespace, resourceId, userId, permission, consistency);
   }
 
-  grantOwnership(resourceId: string, userId: string): Promise<void> {
+  grantOwnership(resourceId: string, userId: string): Promise<PermissionWriteResult> {
     return resource.grantOwnership(this.client, this.namespace, resourceId, userId);
   }
 
-  grantPermission(resourceId: string, userId: string, permission: TPermission | string): Promise<void> {
+  grantPermission(
+    resourceId: string,
+    userId: string,
+    permission: TPermission | string
+  ): Promise<PermissionWriteResult> {
     return resource.grantPermission(this.client, this.namespace, resourceId, userId, permission);
   }
 
@@ -130,7 +145,7 @@ export class ResourcePermissions<TPermission extends ResourcePermissionValue = s
     return resource.revokePermission(this.client, this.namespace, resourceId, userId, permission);
   }
 
-  linkToWorkspace(resourceId: string, workspaceId: string): Promise<void> {
+  linkToWorkspace(resourceId: string, workspaceId: string): Promise<PermissionWriteResult> {
     return resource.linkToWorkspace(this.client, this.namespace, resourceId, workspaceId);
   }
 
@@ -138,12 +153,17 @@ export class ResourcePermissions<TPermission extends ResourcePermissionValue = s
     return resource.unlinkFromWorkspace(this.client, this.namespace, resourceId, workspaceId);
   }
 
-  list(userId: string, permission?: TPermission | string): Promise<string[]> {
+  list(
+    userId: string,
+    permission?: TPermission | string,
+    consistency?: PermissionConsistency
+  ): Promise<string[]> {
     return resource.listResources(
       this.client,
       this.namespace,
       userId,
-      permission ?? this.options.defaultListPermission ?? 'view'
+      permission ?? this.options.defaultListPermission ?? 'view',
+      consistency
     );
   }
 

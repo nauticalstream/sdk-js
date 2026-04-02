@@ -4,6 +4,7 @@ import type {
   CheckPermissionParams,
   CreateRelationshipParams,
   DeleteRelationshipParams,
+  PermissionConsistency,
   PermissionsConfig,
 } from '../types.js';
 import { defaultLogger } from '../utils/logger.js';
@@ -220,6 +221,46 @@ function mapRelationshipResponse(relationship?: {
   return tuple;
 }
 
+function buildConsistency(consistency?: PermissionConsistency): v1.Consistency | undefined {
+  if (!consistency) {
+    return undefined;
+  }
+
+  if ('minimizeLatency' in consistency) {
+    return v1.Consistency.create({
+      requirement: {
+        oneofKind: 'minimizeLatency',
+        minimizeLatency: consistency.minimizeLatency,
+      },
+    });
+  }
+
+  if ('fullyConsistent' in consistency) {
+    return v1.Consistency.create({
+      requirement: {
+        oneofKind: 'fullyConsistent',
+        fullyConsistent: consistency.fullyConsistent,
+      },
+    });
+  }
+
+  if ('atLeastAsFresh' in consistency) {
+    return v1.Consistency.create({
+      requirement: {
+        oneofKind: 'atLeastAsFresh',
+        atLeastAsFresh: { token: consistency.atLeastAsFresh },
+      },
+    });
+  }
+
+  return v1.Consistency.create({
+    requirement: {
+      oneofKind: 'atExactSnapshot',
+      atExactSnapshot: { token: consistency.atExactSnapshot },
+    },
+  });
+}
+
 export class PermissionClient {
   private readonly client: v1.ZedPromiseClientInterface;
   private readonly logger: Logger;
@@ -255,6 +296,7 @@ export class PermissionClient {
           resource: buildObjectReference(params.namespace, params.object),
           permission: params.relation,
           subject: buildUserSubject(params.subjectId),
+          ...(params.consistency ? { consistency: buildConsistency(params.consistency) } : {}),
         } as any);
 
         return {
@@ -285,10 +327,12 @@ export class PermissionClient {
     );
   }
 
-  async createRelationship(params: CreateRelationshipRequest): Promise<{ data: RelationshipTuple }> {
+  async createRelationship(
+    params: CreateRelationshipRequest
+  ): Promise<{ data: RelationshipTuple; writtenAt?: string }> {
     return resilientOperation(
       async () => {
-        await this.client.writeRelationships({
+        const response = await this.client.writeRelationships({
           updates: [
             {
               operation: v1.RelationshipUpdate_Operation.TOUCH,
@@ -320,6 +364,7 @@ export class PermissionClient {
               ? { subject_id: params.createRelationshipBody.subject_id }
               : { subject_set: params.createRelationshipBody.subject_set }),
           },
+          writtenAt: response.writtenAt?.token,
         };
       },
       {
@@ -429,6 +474,7 @@ export class PermissionClient {
     permission: string;
     subjectId: string;
     limit?: number;
+    consistency?: PermissionConsistency;
   }): Promise<string[]> {
     const result = await resilientOperation(
       () =>
@@ -437,6 +483,7 @@ export class PermissionClient {
           permission: params.permission,
           subject: buildUserSubject(params.subjectId),
           optionalLimit: params.limit ?? 0,
+          ...(params.consistency ? { consistency: buildConsistency(params.consistency) } : {}),
         } as any),
       {
         operation: 'lookupResources',

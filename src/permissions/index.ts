@@ -41,6 +41,8 @@ export type {
   CreateRelationshipParams,
   DeleteRelationshipParams,
   ListRelationshipsParams,
+  PermissionConsistency,
+  PermissionWriteResult,
 } from './types.js';
 
 export { PlatformRole } from './domains/platform.js';

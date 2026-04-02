@@ -42,6 +42,24 @@ describe('Permission mappings', () => {
     });
   });
 
+  it('checks workspace role requirements via hierarchical permission names', async () => {
+    const client = {
+      permission: {
+        checkPermission: vi.fn().mockResolvedValue({ data: { allowed: true } }),
+      },
+    } as any;
+
+    const result = await workspace.hasRole(client, 'ws-1', 'user-1', WorkspaceRole.MEMBER);
+
+    expect(result).toBe(true);
+    expect(client.permission.checkPermission).toHaveBeenCalledWith({
+      namespace: 'workspace',
+      object: 'ws-1',
+      relation: 'member',
+      subjectId: 'user-1',
+    });
+  });
+
   it('grants workspace roles using singular relations', async () => {
     const client = {
       relationship: {

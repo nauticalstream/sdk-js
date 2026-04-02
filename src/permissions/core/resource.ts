@@ -1,6 +1,7 @@
 import type { PermissionClient } from '../client/permission-client.js';
 import { ForbiddenError } from '../../errors/index.js';
 import { PermissionNamespace, type PostPermission, type ArticlePermission, type FilePermission } from '../domains/resource.js';
+import type { PermissionConsistency, PermissionWriteResult } from '../types.js';
 import { assertNonEmpty } from '../utils/validation.js';
 
 /** Internal union — callers use domain-specific resource permission types. */
@@ -31,7 +32,8 @@ export async function hasPermission(
   namespace: PermissionNamespace | string,
   resourceId: string,
   userId: string,
-  permission: ResourcePermission | string
+  permission: ResourcePermission | string,
+  consistency?: PermissionConsistency
 ): Promise<boolean> {
   const ns = String(namespace);
   assertNonEmpty(ns, 'namespace');
@@ -39,11 +41,15 @@ export async function hasPermission(
   assertNonEmpty(userId, 'userId');
   const permit = String(permission);
   assertNonEmpty(permit, 'permission');
-  const result = await client.permission.checkPermission({
+  const checkPermission = client.permission?.checkPermission ?? (client as unknown as {
+    checkPermission?: PermissionClient['permission']['checkPermission'];
+  }).checkPermission;
+  const result = await checkPermission?.({
     namespace: ns,
     object: resourceId,
     relation: permit,
     subjectId: userId,
+    ...(consistency ? { consistency } : {}),
   });
   return result.data.allowed === true;
 }
@@ -56,9 +62,10 @@ export async function requirePermission(
   namespace: PermissionNamespace | string,
   resourceId: string,
   userId: string,
-  permission: ResourcePermission | string
+  permission: ResourcePermission | string,
+  consistency?: PermissionConsistency
 ): Promise<void> {
-  const allowed = await hasPermission(client, namespace, resourceId, userId, permission);
+  const allowed = await hasPermission(client, namespace, resourceId, userId, permission, consistency);
   if (!allowed) {
     throw new ForbiddenError(
       `Permission '${permission}' required for ${String(namespace)}:${resourceId}`
@@ -74,12 +81,12 @@ export async function grantOwnership(
   namespace: PermissionNamespace | string,
   resourceId: string,
   userId: string
-): Promise<void> {
+): Promise<PermissionWriteResult> {
   const ns = String(namespace);
   assertNonEmpty(ns, 'namespace');
   assertNonEmpty(resourceId, 'resourceId');
   assertNonEmpty(userId, 'userId');
-  await client.relationship.createRelationship({
+  const result = await client.relationship.createRelationship({
     createRelationshipBody: {
       namespace: ns,
       object: resourceId,
@@ -87,6 +94,7 @@ export async function grantOwnership(
       subject_id: userId,
     },
   });
+  return { writtenAt: result?.writtenAt };
 }
 
 /**
@@ -98,14 +106,14 @@ export async function grantPermission(
   resourceId: string,
   userId: string,
   permission: ResourcePermission | string
-): Promise<void> {
+): Promise<PermissionWriteResult> {
   const ns = String(namespace);
   assertNonEmpty(ns, 'namespace');
   assertNonEmpty(resourceId, 'resourceId');
   assertNonEmpty(userId, 'userId');
   const relation = resourcePermissionToRelation(permission);
   assertNonEmpty(relation, 'permission');
-  await client.relationship.createRelationship({
+  const result = await client.relationship.createRelationship({
     createRelationshipBody: {
       namespace: ns,
       object: resourceId,
@@ -113,6 +121,7 @@ export async function grantPermission(
       subject_id: userId,
     },
   });
+  return { writtenAt: result?.writtenAt };
 }
 
 /**
@@ -147,12 +156,12 @@ export async function linkToWorkspace(
   namespace: PermissionNamespace | string,
   resourceId: string,
   workspaceId: string
-): Promise<void> {
+): Promise<PermissionWriteResult> {
   const ns = String(namespace);
   assertNonEmpty(ns, 'namespace');
   assertNonEmpty(resourceId, 'resourceId');
   assertNonEmpty(workspaceId, 'workspaceId');
-  await client.relationship.createRelationship({
+  const result = await client.relationship.createRelationship({
     createRelationshipBody: {
       namespace: ns,
       object: resourceId,
@@ -164,6 +173,7 @@ export async function linkToWorkspace(
       },
     },
   });
+  return { writtenAt: result?.writtenAt };
 }
 
 /**
@@ -196,7 +206,8 @@ export async function listResources(
   client: PermissionClient,
   namespace: PermissionNamespace | string,
   userId: string,
-  permission: ResourcePermission | string = 'view'
+  permission: ResourcePermission | string = 'view',
+  consistency?: PermissionConsistency
 ): Promise<string[]> {
   const ns = String(namespace);
   assertNonEmpty(ns, 'namespace');
@@ -207,6 +218,7 @@ export async function listResources(
     namespace: ns,
     permission: permit,
     subjectId: userId,
+    ...(consistency ? { consistency } : {}),
   });
 }
 

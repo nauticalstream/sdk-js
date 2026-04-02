@@ -24,11 +24,22 @@ export interface PermissionsConfig {
   circuitBreaker?: CircuitBreakerConfig;
 }
 
+export type PermissionConsistency =
+  | { minimizeLatency: true }
+  | { fullyConsistent: true }
+  | { atLeastAsFresh: string }
+  | { atExactSnapshot: string };
+
+export interface PermissionWriteResult {
+  writtenAt?: string;
+}
+
 export interface CheckPermissionParams {
   namespace: string;
   object: string;
   relation: string;
   subjectId: string;
+  consistency?: PermissionConsistency;
 }
 
 export interface CreateRelationshipParams {

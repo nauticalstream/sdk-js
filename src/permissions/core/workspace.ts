@@ -12,8 +12,26 @@ function workspaceRoleToRelation(role: WorkspaceRole): string {
 
   return `${role}_role`;
 }
+
+function workspaceRoleToPermission(role: WorkspaceRole): WorkspacePermission {
+  switch (role) {
+    case WorkspaceRole.OWNER:
+      return WorkspacePermission.OWNER;
+    case WorkspaceRole.ADMIN:
+      return WorkspacePermission.ADMIN;
+    case WorkspaceRole.MEMBER:
+      return WorkspacePermission.MEMBER;
+    case WorkspaceRole.VIEWER:
+      return WorkspacePermission.VIEW;
+    default:
+      throw new ValidationError(`Invalid workspace role: ${role}`);
+  }
+}
 /**
- * Check if user has a specific workspace role
+ * Check if user satisfies a specific workspace role requirement.
+ *
+ * This is hierarchical: OWNER satisfies ADMIN/MEMBER/VIEWER,
+ * ADMIN satisfies MEMBER/VIEWER, and MEMBER satisfies VIEWER.
  */
 export async function hasRole(
   client: PermissionClient,
@@ -21,17 +39,7 @@ export async function hasRole(
   userId: string,
   role: WorkspaceRole
 ): Promise<boolean> {
-  assertNonEmpty(workspaceId, 'workspaceId');
-  assertNonEmpty(userId, 'userId');
-  const relation = workspaceRoleToRelation(role);
-
-  const result = await client.permission.checkPermission({
-    namespace: NAMESPACE,
-    object: workspaceId,
-    relation,
-    subjectId: userId,
-  });
-  return result.data.allowed === true;
+  return hasPermission(client, workspaceId, userId, workspaceRoleToPermission(role));
 }
 
 /**

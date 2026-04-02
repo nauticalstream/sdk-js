@@ -272,4 +272,49 @@ describe('Resource permission domains', () => {
       subjectId: 'user-1',
     });
   });
+
+  it('passes consistency options through resource reads and returns write tokens', async () => {
+    const client = {
+      checkPermission: vi.fn().mockResolvedValue({ data: { allowed: true } }),
+      lookupResources: vi.fn().mockResolvedValue(['article-1']),
+      relationship: {
+        createRelationship: vi.fn().mockResolvedValue({ writtenAt: 'zed-token-123' }),
+      },
+    } as any;
+
+    const articles = new ResourcePermissions<'view' | 'edit'>(client, 'article', {
+      defaultListPermission: 'view',
+    });
+
+    const writeResult = await articles.linkToWorkspace('article-1', 'ws-1');
+    await articles.hasPermission('article-1', 'user-1', 'edit', { atLeastAsFresh: 'zed-token-123' });
+    await articles.list('user-1', 'edit', { fullyConsistent: true });
+
+    expect(writeResult).toEqual({ writtenAt: 'zed-token-123' });
+    expect(client.relationship.createRelationship).toHaveBeenCalledWith({
+      createRelationshipBody: {
+        namespace: 'article',
+        object: 'article-1',
+        relation: 'workspace',
+        subject_set: {
+          namespace: 'workspace',
+          object: 'ws-1',
+          relation: '',
+        },
+      },
+    });
+    expect(client.checkPermission).toHaveBeenCalledWith({
+      namespace: 'article',
+      object: 'article-1',
+      relation: 'edit',
+      subjectId: 'user-1',
+      consistency: { atLeastAsFresh: 'zed-token-123' },
+    });
+    expect(client.lookupResources).toHaveBeenCalledWith({
+      namespace: 'article',
+      permission: 'edit',
+      subjectId: 'user-1',
+      consistency: { fullyConsistent: true },
+    });
+  });
 });
