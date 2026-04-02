@@ -1,3 +1,10 @@
+## [9.0.2](https://github.com/nauticalstream/sdk-js/compare/v9.0.1...v9.0.2) (2026-04-02)
+
+
+### Bug Fixes
+
+* **permissions:** support consistent read-after-write checks ([b655dfe](https://github.com/nauticalstream/sdk-js/commit/b655dfece7adf95099cca85fbfff177a8c53ee61))
+
 ## [9.0.1](https://github.com/nauticalstream/sdk-js/compare/v9.0.0...v9.0.1) (2026-04-01)
 
 
