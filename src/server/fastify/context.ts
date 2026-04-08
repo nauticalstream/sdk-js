@@ -1,6 +1,6 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { peekCorrelationId, generateCorrelationId } from '../../telemetry/utils/context.js';
-import type { Context, ActionSource } from './types.js';
+import type { Context, ActionSource, UserInfo } from './types.js';
 
 const contextStorage = new AsyncLocalStorage<Context>();
 
@@ -13,6 +13,7 @@ const contextStorage = new AsyncLocalStorage<Context>();
  * @internal
  */
 function enrichContext(partial: {
+  user?: UserInfo;
   userId?: string;
   workspaceId?: string;
   source: ActionSource;
@@ -29,8 +30,14 @@ function enrichContext(partial: {
     eventType?: string;
   };
 }): Context {
-  // Normalize empty strings to undefined (never allow empty strings in context)
-  const userId = partial.userId && partial.userId !== '' ? partial.userId : undefined;
+  const explicitUserId = partial.userId && partial.userId !== '' ? partial.userId : undefined;
+  const user = partial.user
+    ? {
+        ...partial.user,
+        sub: explicitUserId ?? partial.user.sub,
+      }
+    : (explicitUserId ? { sub: explicitUserId } : undefined);
+  const userId = explicitUserId ?? user?.sub;
   const workspaceId = partial.workspaceId && partial.workspaceId !== '' ? partial.workspaceId : undefined;
   const { source } = partial;
   
@@ -51,6 +58,7 @@ function enrichContext(partial: {
     headers: partial.headers ?? {},
     
     // Business
+    user,
     userId,
     workspaceId,
     tenantId: undefined,
@@ -97,9 +105,11 @@ export function createUserContext(
     headers: Record<string, string | string[] | undefined>;
   },
   userId?: string,
-  workspaceId?: string
+  workspaceId?: string,
+  user?: UserInfo
 ): Context {
   return enrichContext({
+    user,
     userId,
     workspaceId,
     source: 'user',
@@ -125,9 +135,11 @@ export function createUserContext(
  */
 export function createSystemContext(
   workspaceId: string,
-  userId?: string
+  userId?: string,
+  user?: UserInfo
 ): Context {
   return enrichContext({
+    user,
     userId,
     workspaceId,
     source: 'system',
@@ -152,9 +164,11 @@ export function createContextFromEvent(
     subject?: string;
   },
   workspaceId?: string,
-  userId?: string
+  userId?: string,
+  user?: UserInfo
 ): Context {
   return enrichContext({
+    user,
     userId,
     workspaceId,
     source: 'system',

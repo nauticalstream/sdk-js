@@ -8,6 +8,27 @@ import type { DestinationStream } from 'pino';
 /** Action source type for audit tracking */
 export type ActionSource = 'user' | 'system';
 
+export interface UserInfoExt {
+  sub?: string;
+  authenticated?: boolean;
+  guest?: boolean;
+  [key: string]: unknown;
+}
+
+export interface UserInfo {
+  sub: string;
+  client_id?: string;
+  scp?: string[];
+  jti?: string;
+  iss?: string;
+  ext?: UserInfoExt;
+  iat?: number;
+  nbf?: number;
+  aud?: string | string[];
+  exp?: number;
+  [key: string]: unknown;
+}
+
 /**
  * Unified context available in all services.
  * Fully enriched with computed audit fields at creation time.
@@ -37,6 +58,9 @@ export interface Context {
   headers: Record<string, string | string[] | undefined>;
   
   // ── Business Identifiers ───────────────────────────────────────────────────
+
+  /** Parsed authenticated user claims */
+  user?: UserInfo;
   
   /** User ID from authentication (undefined for system actions) */
   userId?: string;

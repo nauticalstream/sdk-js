@@ -41,6 +41,8 @@ export type {
   GraphQLPluginOptions,
   HealthPluginOptions,
   HealthCheckFn,
+  UserInfo,
+  UserInfoExt,
 } from './types.js';
 
 export {

@@ -2,6 +2,7 @@ import type { FastifyRequest } from 'fastify';
 import type { Context, ContextExtractor } from '../types.js';
 import { createUserContext } from '../context.js';
 import { getTraceId, getSpanId } from '../../../telemetry/index.js';
+import { extractUserFromHeaders } from './identity.js';
 
 /**
  * Builds the universal context (telemetry + business + audit) for a request.
@@ -10,7 +11,7 @@ import { getTraceId, getSpanId } from '../../../telemetry/index.js';
  * All audit fields (actorId, actionSource, isUserAction, etc.) are pre-computed.
  */
 export function createContext(request: FastifyRequest): Context {
-  const userId = request.headers['x-user-id'] as string | undefined;
+  const user = extractUserFromHeaders(request.headers);
   const workspaceId = request.headers['x-workspace-id'] as string | undefined;
   
   return createUserContext(
@@ -23,8 +24,9 @@ export function createContext(request: FastifyRequest): Context {
       userAgent: request.headers['user-agent'],
       headers: request.headers,
     },
-    userId,
-    workspaceId
+    user?.sub,
+    workspaceId,
+    user
   );
 }
 

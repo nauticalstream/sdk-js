@@ -33,6 +33,10 @@ function createMockRequest(headers: Record<string, string> = {}): FastifyRequest
   } as any;
 }
 
+function encodeUserinfo(userinfo: Record<string, unknown>): string {
+  return Buffer.from(JSON.stringify(userinfo), 'utf8').toString('base64');
+}
+
 describe('createContext (from Fastify request)', () => {
   it('extracts correlationId from request.correlationId', () => {
     const request = createMockRequest({ 'x-correlation-id': 'test-123' });
@@ -74,6 +78,7 @@ describe('createContext (from Fastify request)', () => {
     const ctx = createContext(request);
 
     expect(ctx.userId).toBe('user-456');
+    expect(ctx.user?.sub).toBe('user-456');
     expect(ctx.workspaceId).toBe('ws-789');
     expect(ctx.actorId).toBe('user-456');
     expect(ctx.isUserAction).toBe(true);
@@ -84,6 +89,7 @@ describe('createContext (from Fastify request)', () => {
     const request = createMockRequest();
     const ctx = createContext(request);
 
+    expect(ctx.user).toBeUndefined();
     expect(ctx.userId).toBeUndefined();
     expect(ctx.workspaceId).toBeUndefined();
     expect(ctx.actorId).toBeNull();
@@ -106,6 +112,7 @@ describe('createContext (from Fastify request)', () => {
     expect(ctx.userAgent).toBe('test-agent/1.0');
 
     // Business
+    expect(ctx.user?.sub).toBe('user-999');
     expect(ctx.userId).toBe('user-999');
     expect(ctx.workspaceId).toBe('ws-888');
     
@@ -123,9 +130,66 @@ describe('createContext (from Fastify request)', () => {
 
     const ctx = createContext(request);
 
+    expect(ctx.user?.sub).toBe('user-only');
     expect(ctx.userId).toBe('user-only');
     expect(ctx.workspaceId).toBeUndefined();
     expect(ctx.correlationId).toBeDefined();
+  });
+
+  it('falls back to x-userinfo sub when x-user-id is missing', () => {
+    const request = createMockRequest({
+      'x-userinfo': encodeUserinfo({ sub: 'user-from-userinfo' }),
+      'x-workspace-id': 'ws-789',
+    });
+
+    const ctx = createContext(request);
+
+    expect(ctx.user?.sub).toBe('user-from-userinfo');
+    expect(ctx.userId).toBe('user-from-userinfo');
+    expect(ctx.workspaceId).toBe('ws-789');
+    expect(ctx.actorId).toBe('user-from-userinfo');
+  });
+
+  it('stores parsed userinfo claims on ctx.user', () => {
+    const request = createMockRequest({
+      'x-userinfo': encodeUserinfo({
+        client_id: 'web-public-staging',
+        sub: 'user-from-userinfo',
+        ext: { authenticated: true, guest: false },
+      }),
+    });
+
+    const ctx = createContext(request);
+
+    expect(ctx.user).toEqual({
+      client_id: 'web-public-staging',
+      sub: 'user-from-userinfo',
+      ext: { authenticated: true, guest: false },
+    });
+  });
+
+  it('prefers x-user-id over x-userinfo when both are present', () => {
+    const request = createMockRequest({
+      'x-user-id': 'trusted-user-id',
+      'x-userinfo': encodeUserinfo({ client_id: 'web-public-staging', sub: 'userinfo-user-id' }),
+    });
+
+    const ctx = createContext(request);
+
+    expect(ctx.user).toEqual({ client_id: 'web-public-staging', sub: 'trusted-user-id' });
+    expect(ctx.userId).toBe('trusted-user-id');
+  });
+
+  it('ignores malformed x-userinfo values', () => {
+    const request = createMockRequest({
+      'x-userinfo': 'not-base64-json',
+    });
+
+    const ctx = createContext(request);
+
+    expect(ctx.user).toBeUndefined();
+    expect(ctx.userId).toBeUndefined();
+    expect(ctx.actorId).toBeNull();
   });
 });
 
@@ -145,6 +209,7 @@ describe('createContextBuilder', () => {
     const ctx = builder(request);
 
     // Universal context fields
+    expect(ctx.user?.sub).toBe('user-123');
     expect(ctx.userId).toBe('user-123');
     expect(ctx.correlationId).toBeDefined();
     expect(ctx.ip).toBe('127.0.0.1');
@@ -160,6 +225,7 @@ describe('createContextBuilder', () => {
 
     const ctx = builder(request);
 
+    expect(ctx.user?.sub).toBe('user-abc');
     expect(ctx.userId).toBe('user-abc');
     expect(ctx.correlationId).toBeDefined();
   });
@@ -192,6 +258,7 @@ describe('createUserContext', () => {
       'ws-789'
     );
 
+    expect(ctx.user?.sub).toBe('user-456');
     expect(ctx.userId).toBe('user-456');
     expect(ctx.workspaceId).toBe('ws-789');
     expect(ctx.actorId).toBe('user-456');
@@ -210,6 +277,7 @@ describe('createUserContext', () => {
       'ws-123'
     );
 
+    expect(ctx.user).toBeUndefined();
     expect(ctx.userId).toBeUndefined();
     expect(ctx.actorId).toBeNull();
     expect(ctx.isUserAction).toBe(false);
@@ -232,6 +300,7 @@ describe('createSystemContext', () => {
   it('allows system action with userId for impersonation', () => {
     const ctx = createSystemContext('ws-123', 'user-456');
 
+    expect(ctx.user?.sub).toBe('user-456');
     expect(ctx.userId).toBe('user-456');
     expect(ctx.actorId).toBe('user-456');
     expect(ctx.actionSource).toBe('system');
