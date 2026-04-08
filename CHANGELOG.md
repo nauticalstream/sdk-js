@@ -1,3 +1,10 @@
+## [9.0.3](https://github.com/nauticalstream/sdk-js/compare/v9.0.2...v9.0.3) (2026-04-08)
+
+
+### Bug Fixes
+
+* **context:** add typed user info to Fastify context ([5889dc1](https://github.com/nauticalstream/sdk-js/commit/5889dc142b62c161e4ee1c1023cef107255c17d0))
+
 ## [9.0.2](https://github.com/nauticalstream/sdk-js/compare/v9.0.1...v9.0.2) (2026-04-02)
 
 
