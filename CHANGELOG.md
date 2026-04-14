@@ -1,3 +1,10 @@
+# [9.1.0](https://github.com/nauticalstream/sdk-js/compare/v9.0.4...v9.1.0) (2026-04-14)
+
+
+### Features
+
+* **context:** expose identity metadata and refresh realtime auth ([fb8e1de](https://github.com/nauticalstream/sdk-js/commit/fb8e1dee947b1c718f188fa67adb056863acfa7b))
+
 ## [9.0.4](https://github.com/nauticalstream/sdk-js/compare/v9.0.3...v9.0.4) (2026-04-14)
 
 
