@@ -1,6 +1,8 @@
 import type { Logger } from '../../logger/index.js';
 import type { RetryConfig } from '../../resilience/index.js';
 
+export type RealtimePasswordFactory = () => string | Promise<string>;
+
 /**
  * Realtime module configuration
  * Re-exports resilience config for consistency
@@ -33,6 +35,7 @@ export interface RealtimeClientConfig {
   clientId?: string;
   username?: string;
   password?: string;
+  passwordFactory?: RealtimePasswordFactory;
   reconnectPeriod?: number;
   connectTimeout?: number;
   clean?: boolean;

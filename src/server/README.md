@@ -40,7 +40,8 @@ app.addHook("preHandler", async (req) => {
 
 // Handler — destructure what you need
 async function handler(req: FastifyRequest) {
-  const { correlationId, workspaceId, userId, user } = req.ctx;
+  const { correlationId, workspaceId, userId, sub, clientId, user, identity } =
+    req.ctx;
 }
 ```
 
@@ -52,7 +53,11 @@ async function handler(req: FastifyRequest) {
 | `x-workspace-id`   | `workspaceId`                                                                   |
 | `x-user-id`        | `userId`                                                                        |
 | `x-userinfo`       | `user` parsed from decoded APISIX user claims; `userId` derived from `user.sub` |
-| `authorization`    | `token`                                                                         |
+| `authorization`    | `identity.authorization`; bearer token is exposed as `identity.accessToken`     |
+
+`Context` also exposes propagated JWT claims as top-level convenience fields such as `ctx.sub`, `ctx.clientId`, `ctx.aud`, `ctx.iss`, `ctx.jti`, `ctx.scp`, `ctx.ext`, `ctx.iat`, `ctx.nbf`, and `ctx.exp`.
+
+For full flexibility, raw headers are still available through `ctx.headers['x-userinfo']` and normalized lookup is available through `ctx.getHeader('x-userinfo')` or `ctx.identity?.getHeader('x-userinfo')`.
 
 ---
 

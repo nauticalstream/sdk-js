@@ -79,7 +79,10 @@ describe('createContext (from Fastify request)', () => {
 
     expect(ctx.userId).toBe('user-456');
     expect(ctx.user?.sub).toBe('user-456');
+    expect(ctx.sub).toBe('user-456');
     expect(ctx.workspaceId).toBe('ws-789');
+    expect(ctx.identity?.userId).toBe('user-456');
+    expect(ctx.identity?.workspaceId).toBe('ws-789');
     expect(ctx.actorId).toBe('user-456');
     expect(ctx.isUserAction).toBe(true);
     expect(ctx.isSystemAction).toBe(false);
@@ -146,6 +149,7 @@ describe('createContext (from Fastify request)', () => {
 
     expect(ctx.user?.sub).toBe('user-from-userinfo');
     expect(ctx.userId).toBe('user-from-userinfo');
+    expect(ctx.sub).toBe('user-from-userinfo');
     expect(ctx.workspaceId).toBe('ws-789');
     expect(ctx.actorId).toBe('user-from-userinfo');
   });
@@ -166,6 +170,10 @@ describe('createContext (from Fastify request)', () => {
       sub: 'user-from-userinfo',
       ext: { authenticated: true, guest: false },
     });
+    expect(ctx.clientId).toBe('web-public-staging');
+    expect(ctx.ext).toEqual({ authenticated: true, guest: false });
+    expect(ctx.identity?.clientId).toBe('web-public-staging');
+    expect(ctx.identity?.getHeader('x-userinfo')).toBeDefined();
   });
 
   it('prefers x-user-id over x-userinfo when both are present', () => {
@@ -178,6 +186,62 @@ describe('createContext (from Fastify request)', () => {
 
     expect(ctx.user).toEqual({ client_id: 'web-public-staging', sub: 'trusted-user-id' });
     expect(ctx.userId).toBe('trusted-user-id');
+    expect(ctx.sub).toBe('trusted-user-id');
+  });
+
+  it('exposes propagated token metadata and header accessors', () => {
+    const request = createMockRequest({
+      authorization: 'Bearer access-token-123',
+      'x-workspace-id': 'ws-321',
+      'x-userinfo': encodeUserinfo({
+        aud: ['graph-api-staging'],
+        client_id: 'web-public-staging',
+        exp: 1775841893,
+        ext: {
+          authenticated: false,
+          guest: true,
+          sub: 'guest:019d7835-e957-7399-a4e8-746138933d4b',
+        },
+        iat: 1775838293,
+        iss: 'https://oauth-staging.nauticalstream.com/',
+        jti: '4f49a9b9-066b-4517-9229-b0b5b788c2f4',
+        nbf: 1775838293,
+        scp: ['openid', 'offline'],
+        sub: 'guest:019d7835-e957-7399-a4e8-746138933d4b',
+      }),
+    });
+
+    const ctx = createContext(request);
+
+    expect(ctx.sub).toBe('guest:019d7835-e957-7399-a4e8-746138933d4b');
+    expect(ctx.clientId).toBe('web-public-staging');
+    expect(ctx.aud).toEqual(['graph-api-staging']);
+    expect(ctx.iss).toBe('https://oauth-staging.nauticalstream.com/');
+    expect(ctx.jti).toBe('4f49a9b9-066b-4517-9229-b0b5b788c2f4');
+    expect(ctx.scp).toEqual(['openid', 'offline']);
+    expect(ctx.ext).toEqual({
+      authenticated: false,
+      guest: true,
+      sub: 'guest:019d7835-e957-7399-a4e8-746138933d4b',
+    });
+    expect(ctx.identity?.accessToken).toBe('access-token-123');
+    expect(ctx.getHeader('authorization')).toBe('Bearer access-token-123');
+    expect(ctx.identity?.getHeader('x-workspace-id')).toBe('ws-321');
+  });
+
+  it('falls back to bearer JWT claims when x-userinfo is absent', () => {
+    const request = createMockRequest({
+      authorization:
+        'Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IjMwYTMxNzVlLWI0NGYtNGM1Ni1hMzEzLWJlNDE3Mjk3MjczMCIsInR5cCI6IkpXVCJ9.eyJhdWQiOltdLCJjbGllbnRfaWQiOiJhcGlzaXgtc3RhZ2luZyIsImV4cCI6MTc3NTY5Mjc3NSwiZXh0Ijp7fSwiaWF0IjoxNzc1Njg5MTc1LCJpc3MiOiJodHRwczovL29hdXRoLXN0YWdpbmcu bmF1dGljYWxzdHJlYW0uY29tLyIsImp0aSI6IjcyOWM5NjY3LWUyYmEtNGI0ZC04MDA2LTU0NDQ5YzY1M2Y2ZCIsIm5iZiI6MTc3NTY4OTE3NSwic2NwIjpbXSwic3ViIjoiYXBpc2l4LXN0YWdpbmcifQ.signature'
+    });
+
+    const ctx = createContext(request);
+
+    expect(ctx.sub).toBe('apisix-staging');
+    expect(ctx.clientId).toBe('apisix-staging');
+    expect(ctx.iss).toBe('https://oauth-staging.nauticalstream.com/');
+    expect(ctx.scp).toEqual([]);
+    expect(ctx.identity?.accessToken).toBeDefined();
   });
 
   it('ignores malformed x-userinfo values', () => {

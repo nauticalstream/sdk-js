@@ -8,6 +8,17 @@ import type { DestinationStream } from 'pino';
 /** Action source type for audit tracking */
 export type ActionSource = 'user' | 'system';
 
+export type HeaderValue = string | string[] | undefined;
+
+export interface ContextHeaders extends Record<string, HeaderValue> {
+  authorization?: HeaderValue;
+  'x-user-id'?: HeaderValue;
+  'x-workspace-id'?: HeaderValue;
+  'x-userinfo'?: HeaderValue;
+  'x-access-token'?: HeaderValue;
+  'x-id-token'?: HeaderValue;
+}
+
 export interface UserInfoExt {
   sub?: string;
   authenticated?: boolean;
@@ -27,6 +38,28 @@ export interface UserInfo {
   aud?: string | string[];
   exp?: number;
   [key: string]: unknown;
+}
+
+export interface IdentityContext extends Record<string, unknown> {
+  sub?: string;
+  userId?: string;
+  workspaceId?: string;
+  clientId?: string;
+  client_id?: string;
+  scp?: string[];
+  jti?: string;
+  iss?: string;
+  ext?: UserInfoExt;
+  iat?: number;
+  nbf?: number;
+  aud?: string | string[];
+  exp?: number;
+  authorization?: string;
+  accessToken?: string;
+  idToken?: string;
+  rawUserInfo?: Record<string, unknown>;
+  headers: ContextHeaders;
+  getHeader(name: string): string | undefined;
 }
 
 /**
@@ -55,9 +88,45 @@ export interface Context {
   userAgent?: string;
   
   /** Request headers */
-  headers: Record<string, string | string[] | undefined>;
+  headers: ContextHeaders;
+
+  /** Normalized header accessor for propagated edge metadata */
+  getHeader(name: string): string | undefined;
   
   // ── Business Identifiers ───────────────────────────────────────────────────
+
+  /** Parsed APISIX-propagated identity and token metadata */
+  identity?: IdentityContext;
+
+  /** Convenience alias for identity subject */
+  sub?: string;
+
+  /** Convenience alias for APISIX/Hydra client ID */
+  clientId?: string;
+
+  /** Convenience alias for propagated audience claim */
+  aud?: string | string[];
+
+  /** Convenience alias for propagated issuer claim */
+  iss?: string;
+
+  /** Convenience alias for propagated token ID claim */
+  jti?: string;
+
+  /** Convenience alias for propagated scopes */
+  scp?: string[];
+
+  /** Convenience alias for propagated ext claims */
+  ext?: UserInfoExt;
+
+  /** Convenience alias for propagated issued-at */
+  iat?: number;
+
+  /** Convenience alias for propagated not-before */
+  nbf?: number;
+
+  /** Convenience alias for propagated expiry */
+  exp?: number;
 
   /** Parsed authenticated user claims */
   user?: UserInfo;

@@ -1,12 +1,21 @@
 import mqtt, { MqttClient } from 'mqtt';
 import type { IClientOptions } from 'mqtt';
 import type { Logger } from '../../logger/index.js';
+import type { RealtimePasswordFactory } from '../core/config.js';
+
+export interface MQTTLifecycleEvent {
+  type: 'connect' | 'reconnect' | 'offline' | 'close' | 'error';
+  error?: Error;
+}
+
+type MQTTLifecycleListener = (event: MQTTLifecycleEvent) => void;
 
 export interface MQTTClientConfig {
   brokerUrl: string;
   clientId?: string;
   username?: string;
   password?: string;
+  passwordFactory?: RealtimePasswordFactory;
   reconnectPeriod?: number;
   connectTimeout?: number;
   clean?: boolean;
@@ -20,10 +29,99 @@ export class MQTTClientManager {
   private logger?: Logger;
   private isConnecting = false;
   private isDisconnecting = false;
+  private reconnectTimer: NodeJS.Timeout | null = null;
+  private lifecycleListeners = new Set<MQTTLifecycleListener>();
 
   constructor(config: MQTTClientConfig) {
     this.config = config;
     this.logger = config.logger;
+  }
+
+  onLifecycleEvent(listener: MQTTLifecycleListener): () => void {
+    this.lifecycleListeners.add(listener);
+
+    return () => {
+      this.lifecycleListeners.delete(listener);
+    };
+  }
+
+  private emitLifecycleEvent(event: MQTTLifecycleEvent): void {
+    for (const listener of this.lifecycleListeners) {
+      listener(event);
+    }
+  }
+
+  private clearReconnectTimer(): void {
+    if (!this.reconnectTimer) {
+      return;
+    }
+
+    clearTimeout(this.reconnectTimer);
+    this.reconnectTimer = null;
+  }
+
+  private scheduleReconnect(): void {
+    const reconnectDelay = this.config.reconnectPeriod ?? 5000;
+    if (this.isDisconnecting || reconnectDelay <= 0 || this.reconnectTimer || this.isConnecting) {
+      return;
+    }
+
+    this.emitLifecycleEvent({ type: 'reconnect' });
+    this.logger?.info('MQTT reconnecting...');
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      void this.connect().catch((error) => {
+        this.logger?.error({ error }, 'MQTT reconnect attempt failed');
+      });
+    }, reconnectDelay);
+  }
+
+  private async resolvePassword(): Promise<string | undefined> {
+    if (this.config.passwordFactory) {
+      return this.config.passwordFactory();
+    }
+
+    return this.config.password;
+  }
+
+  private async buildOptions(): Promise<IClientOptions> {
+    const password = await this.resolvePassword();
+
+    return {
+      clientId: this.config.clientId || `mqtt_${Math.random().toString(16).slice(2, 8)}`,
+      username: this.config.username,
+      password,
+      reconnectPeriod: 0,
+      connectTimeout: this.config.connectTimeout ?? 30000,
+      clean: this.config.clean !== false,
+      keepalive: this.config.keepalive ?? 60,
+      protocolVersion: 5,
+    };
+  }
+
+  private attachLifecycleHandlers(client: MqttClient): void {
+    client.on('connect', () => {
+      this.logger?.info('MQTT connected');
+      this.emitLifecycleEvent({ type: 'connect' });
+    });
+
+    client.on('error', (error) => {
+      this.logger?.error({ error }, 'MQTT connection error');
+      this.emitLifecycleEvent({ type: 'error', error: error as Error });
+    });
+
+    client.on('offline', () => {
+      this.logger?.warn('MQTT client offline');
+      this.emitLifecycleEvent({ type: 'offline' });
+      this.scheduleReconnect();
+    });
+
+    client.on('close', () => {
+      this.client = null;
+      this.logger?.info('MQTT connection closed');
+      this.emitLifecycleEvent({ type: 'close' });
+      this.scheduleReconnect();
+    });
   }
 
   async connect(): Promise<MqttClient> {
@@ -49,47 +147,39 @@ export class MQTTClientManager {
     }
 
     this.isConnecting = true;
+    this.clearReconnectTimer();
 
-    const options: IClientOptions = {
-      clientId: this.config.clientId || `mqtt_${Math.random().toString(16).slice(2, 8)}`,
-      username: this.config.username,
-      password: this.config.password,
-      reconnectPeriod: this.config.reconnectPeriod ?? 5000,
-      connectTimeout: this.config.connectTimeout ?? 30000,
-      clean: this.config.clean !== false,
-      keepalive: this.config.keepalive ?? 60,
-      protocolVersion: 5, // Enable MQTT v5 for User Properties support
-    };
+    try {
+      const options = await this.buildOptions();
 
-    return new Promise((resolve, reject) => {
-      this.client = mqtt.connect(this.config.brokerUrl, options);
+      return await new Promise((resolve, reject) => {
+        const client = mqtt.connect(this.config.brokerUrl, options);
+        this.client = client;
+        this.attachLifecycleHandlers(client);
 
-      this.client.on('connect', () => {
-        this.logger?.info('MQTT connected');
-        this.isConnecting = false;
-        resolve(this.client!);
+        const handleConnect = () => {
+          client.removeListener('error', handleError);
+          this.isConnecting = false;
+          resolve(client);
+        };
+
+        const handleError = (error: Error) => {
+          client.removeListener('connect', handleConnect);
+          this.isConnecting = false;
+          this.client = null;
+          this.scheduleReconnect();
+          reject(error);
+        };
+
+        client.once('connect', handleConnect);
+        client.once('error', handleError);
       });
-
-      this.client.on('error', (error) => {
-        this.logger?.error({ error }, 'MQTT connection error');
-        this.isConnecting = false;
-        reject(error);
-      });
-
-      this.client.on('reconnect', () => {
-        if (!this.isDisconnecting) {
-          this.logger?.info('MQTT reconnecting...');
-        }
-      });
-
-      this.client.on('offline', () => {
-        this.logger?.warn('MQTT client offline');
-      });
-
-      this.client.on('close', () => {
-        this.logger?.info('MQTT connection closed');
-      });
-    });
+    } catch (error) {
+      this.isConnecting = false;
+      this.client = null;
+      this.scheduleReconnect();
+      throw error;
+    }
   }
 
   getClient(): MqttClient {
@@ -117,6 +207,7 @@ export class MQTTClientManager {
     }
 
     this.isDisconnecting = true;
+    this.clearReconnectTimer();
 
     try {
       // End connection gracefully (force=false allows pending messages to complete)

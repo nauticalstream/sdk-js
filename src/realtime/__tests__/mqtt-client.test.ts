@@ -19,6 +19,18 @@ function createMockMqttClient(connectImmediately = true, failConnect = false) {
       (handlers[event] ??= []).push(handler);
       return mockClient;
     },
+    once(event: string, handler: EventHandler) {
+      const wrapped: EventHandler = (...args: unknown[]) => {
+        mockClient.removeListener(event, wrapped);
+        handler(...args);
+      };
+
+      return mockClient.on(event, wrapped);
+    },
+    removeListener(event: string, handler: EventHandler) {
+      handlers[event] = (handlers[event] ?? []).filter((candidate) => candidate !== handler);
+      return mockClient;
+    },
     emit(event: string, ...args: unknown[]) {
       handlers[event]?.forEach(h => h(...args));
     },

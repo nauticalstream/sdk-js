@@ -1,6 +1,6 @@
-import type { UserInfo } from '../types.js';
+import type { ContextHeaders, HeaderValue, IdentityContext, UserInfo } from '../types.js';
 
-function getHeaderValue(value: string | string[] | undefined): string | undefined {
+function getHeaderValue(value: HeaderValue): string | undefined {
   if (typeof value === 'string') {
     return value;
   }
@@ -10,6 +10,20 @@ function getHeaderValue(value: string | string[] | undefined): string | undefine
   }
 
   return undefined;
+}
+
+function getHeader(headers: ContextHeaders, name: string): string | undefined {
+  const normalizedName = name.toLowerCase();
+  return getHeaderValue(headers[normalizedName] ?? headers[name]);
+}
+
+function extractBearerToken(value: string | undefined): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  const match = /^Bearer\s+(.+)$/i.exec(value.trim());
+  return match?.[1] || undefined;
 }
 
 function decodeBase64Json(value: string): Record<string, unknown> | undefined {
@@ -28,6 +42,15 @@ function decodeBase64Json(value: string): Record<string, unknown> | undefined {
   }
 
   return undefined;
+}
+
+function decodeJwtPayload(token: string): Record<string, unknown> | undefined {
+  const parts = token.split('.');
+  if (parts.length < 2) {
+    return undefined;
+  }
+
+  return decodeBase64Json(parts[1]);
 }
 
 function getStringClaim(claims: Record<string, unknown>, key: string): string | undefined {
@@ -59,18 +82,71 @@ function normalizeUserInfo(
   } as UserInfo;
 }
 
-export function extractUserFromHeaders(
-  headers: Record<string, string | string[] | undefined>
-): UserInfo | undefined {
-  const explicitUserId = getHeaderValue(headers['x-user-id']);
-  const userinfoHeader = getHeaderValue(headers['x-userinfo']);
+export function extractIdentityFromHeaders(headers: ContextHeaders): IdentityContext | undefined {
+  const explicitUserId = getHeader(headers, 'x-user-id');
+  const workspaceId = getHeader(headers, 'x-workspace-id');
+  const authorization = getHeader(headers, 'authorization');
+  const userinfoHeader = getHeader(headers, 'x-userinfo');
+  const accessToken = getHeader(headers, 'x-access-token') ?? extractBearerToken(authorization);
+  const idToken = getHeader(headers, 'x-id-token');
   const rawUserInfo = userinfoHeader ? decodeBase64Json(userinfoHeader) : undefined;
+  const accessTokenClaims = accessToken ? decodeJwtPayload(accessToken) : undefined;
+  const claimSource = rawUserInfo ? { ...(accessTokenClaims ?? {}), ...rawUserInfo } : accessTokenClaims;
+  const user = normalizeUserInfo(claimSource, explicitUserId);
 
-  return normalizeUserInfo(rawUserInfo, explicitUserId);
+  if (!user && !workspaceId && !authorization && !accessToken && !idToken && !rawUserInfo && !accessTokenClaims) {
+    return undefined;
+  }
+
+  const clientId = claimSource ? getStringClaim(claimSource, 'client_id') : undefined;
+
+  return {
+    ...(claimSource ?? {}),
+    sub: user?.sub,
+    userId: explicitUserId ?? user?.sub,
+    workspaceId,
+    clientId,
+    client_id: clientId,
+    scp: Array.isArray(claimSource?.scp)
+      ? claimSource.scp.filter((scope): scope is string => typeof scope === 'string')
+      : undefined,
+    jti: claimSource ? getStringClaim(claimSource, 'jti') : undefined,
+    iss: claimSource ? getStringClaim(claimSource, 'iss') : undefined,
+    ext: claimSource && typeof claimSource.ext === 'object' && claimSource.ext !== null
+      ? (claimSource.ext as UserInfo['ext'])
+      : undefined,
+    iat: claimSource && typeof claimSource.iat === 'number' ? claimSource.iat : undefined,
+    nbf: claimSource && typeof claimSource.nbf === 'number' ? claimSource.nbf : undefined,
+    aud:
+      claimSource && (typeof claimSource.aud === 'string' || Array.isArray(claimSource.aud))
+        ? (claimSource.aud as string | string[])
+        : undefined,
+    exp: claimSource && typeof claimSource.exp === 'number' ? claimSource.exp : undefined,
+    authorization,
+    accessToken,
+    idToken,
+    rawUserInfo,
+    headers,
+    getHeader: (name: string) => getHeader(headers, name),
+  };
+}
+
+export function extractUserFromHeaders(
+  headers: ContextHeaders
+): UserInfo | undefined {
+  const identity = extractIdentityFromHeaders(headers);
+  if (!identity?.sub) {
+    return undefined;
+  }
+
+  return {
+    ...(identity.rawUserInfo ?? identity),
+    sub: identity.sub,
+  } as UserInfo;
 }
 
 export function extractUserIdFromHeaders(
-  headers: Record<string, string | string[] | undefined>
+  headers: ContextHeaders
 ): string | undefined {
   return extractUserFromHeaders(headers)?.sub;
 }

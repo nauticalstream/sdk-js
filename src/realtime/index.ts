@@ -38,6 +38,7 @@ export { RealtimeClient } from './core/realtime-client.js';
 export type { 
   RetryConfig, 
   RealtimeClientConfig, 
+  RealtimePasswordFactory,
   PublishOptions, 
   QoS 
 } from './core/config.js';

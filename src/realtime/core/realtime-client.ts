@@ -6,7 +6,7 @@ import { publishLatency, publishSuccess, publishAttempts, retryAttempts, publish
 import { resilientOperation, getOrCreateCircuitBreaker, shouldRetry, DEFAULT_CIRCUIT_BREAKER_CONFIG, type ResilientCircuitBreaker } from '../../resilience/index.js';
 import { DEFAULT_RETRY_CONFIG, type RetryConfig, type RealtimeClientConfig, type PublishOptions, type QoS } from './config.js';
 import { createConsoleLogger, type Logger } from '../../logger/index.js';
-import type { IClientPublishOptions } from 'mqtt';
+import type { IClientPublishOptions, ISubscriptionMap, MqttClient } from 'mqtt';
 
 /**
  * RealtimeClient - MQTT client with proto serialization and resilience
@@ -18,8 +18,10 @@ export class RealtimeClient {
   private brokerUrl: string;
   private breaker: ResilientCircuitBreaker;
   private connected = false;
-  private transportListenersRegistered = false;
   private retryConfig: RetryConfig & { operationTimeout: number };
+  private readonly subscriptions = new Map<string, QoS>();
+  private readonly messageHandlers = new Set<(topic: string, payload: unknown) => void | Promise<void>>();
+  private messageListenerClient: MqttClient | null = null;
 
   constructor(config: RealtimeClientConfig) {
     this.name = config.name;
@@ -33,34 +35,88 @@ export class RealtimeClient {
       brokerUrl: config.brokerUrl,
       clientId: config.clientId,
       username: config.username,
-      password: config.password, // Password must now be pre-generated and passed in
+      password: config.password,
+      passwordFactory: config.passwordFactory,
       reconnectPeriod: config.reconnectPeriod,
       connectTimeout: config.connectTimeout,
       clean: config.clean,
       keepalive: config.keepalive,
       logger: this.logger,
     });
+
+    this.mqttClient.onLifecycleEvent((event) => {
+      if (event.type === 'connect') {
+        this.connected = true;
+        void this.restoreRuntimeState().catch((error) => {
+          this.logger.error({ error, service: this.name }, 'Failed to restore realtime runtime state');
+        });
+        return;
+      }
+
+      if (event.type === 'offline' || event.type === 'close') {
+        this.connected = false;
+        if (event.type === 'close') {
+          this.messageListenerClient = null;
+        }
+        return;
+      }
+
+      if (event.type === 'error') {
+        this.connected = false;
+      }
+    });
+  }
+
+  private async restoreRuntimeState(): Promise<void> {
+    const client = this.mqttClient.getClient();
+
+    if (this.messageListenerClient !== client) {
+      this.messageListenerClient = client;
+      client.on('message', async (topic, payload, packet) => {
+        const userProperties = packet.properties?.userProperties as Record<string, string | string[]> | undefined;
+        const correlationId = userProperties?.['x-correlation-id'] as string | undefined;
+
+        this.logger.debug({ topic, correlationId, service: this.name }, 'Received message');
+
+        for (const handler of this.messageHandlers) {
+          await withMessageSpan(topic, userProperties, () =>
+            Promise.resolve(handler(topic, deserialize(payload)))
+          );
+        }
+      });
+    }
+
+    if (this.subscriptions.size === 0) {
+      return;
+    }
+
+    const topics = [...this.subscriptions.entries()].reduce<ISubscriptionMap>((accumulator, [topic, qos]) => {
+      accumulator[topic] = { qos };
+      return accumulator;
+    }, {});
+    await new Promise<void>((resolve, reject) => {
+      client.subscribe(topics, (error) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+
+        this.logger.info({ topics: Object.keys(topics), service: this.name }, 'Restored MQTT subscriptions');
+        resolve();
+      });
+    });
   }
 
   /** Connect to MQTT broker */
   async connect(): Promise<void> {
-    if (this.connected) {
+    if (this.connected && this.mqttClient.isConnected()) {
       return;
     }
 
     try {
-      const mqttClient = await this.mqttClient.connect();
+      await this.mqttClient.connect();
       this.connected = true;
-
-      // Register transport-level listeners exactly once per client instance.
-      // These keep this.connected in sync with the underlying socket so that
-      // _publishInternal correctly re-enters connect() after a broker disconnect.
-      if (!this.transportListenersRegistered) {
-        this.transportListenersRegistered = true;
-        mqttClient.on('offline', () => { this.connected = false; });
-        // mqtt.js fires 'connect' on every successful (re)connect
-        mqttClient.on('connect', () => { this.connected = true; });
-      }
+      await this.restoreRuntimeState();
 
       this.logger.info({ service: this.name }, 'RealtimeClient connected');
     } catch (error) {
@@ -156,11 +212,15 @@ export class RealtimeClient {
 
   /** Subscribe to MQTT topic(s) */
   async subscribe(topics: string | string[], qos: QoS = 1): Promise<void> {
+    const topicArray = Array.isArray(topics) ? topics : [topics];
+    for (const topic of topicArray) {
+      this.subscriptions.set(topic, qos);
+    }
+
     if (!this.connected) {
       await this.connect();
     }
 
-    const topicArray = Array.isArray(topics) ? topics : [topics];
     const client = this.mqttClient.getClient();
 
     return new Promise((resolve, reject) => {
@@ -185,6 +245,9 @@ export class RealtimeClient {
   /** Unsubscribe from MQTT topic(s) */
   async unsubscribe(topics: string | string[]): Promise<void> {
     const topicArray = Array.isArray(topics) ? topics : [topics];
+    for (const topic of topicArray) {
+      this.subscriptions.delete(topic);
+    }
     const client = this.mqttClient.getClient();
 
     return new Promise((resolve, reject) => {
@@ -220,17 +283,7 @@ export class RealtimeClient {
    * ```
    */
   onMessage<T = unknown>(handler: (topic: string, payload: T) => void | Promise<void>): void {
-    const client = this.mqttClient.getClient();
-    client.on('message', async (topic, payload, packet) => {
-      const userProperties = packet.properties?.userProperties as Record<string, string | string[]> | undefined;
-      const correlationId = userProperties?.['x-correlation-id'] as string | undefined;
-
-      this.logger.debug({ topic, correlationId, service: this.name }, 'Received message');
-
-      await withMessageSpan(topic, userProperties, () =>
-        Promise.resolve(handler(topic, deserialize<T>(payload)))
-      );
-    });
+    this.messageHandlers.add(handler as (topic: string, payload: unknown) => void | Promise<void>);
   }
 
   /**
@@ -246,9 +299,7 @@ export class RealtimeClient {
       this.logger.info({ service: this.name }, 'Disconnecting RealtimeClient...');
       await this.mqttClient.disconnect();
       this.connected = false;
-      // Allow listeners to be re-registered on the next connect() call
-      // since mqtt.js creates a new MqttClient instance after disconnect
-      this.transportListenersRegistered = false;
+      this.messageListenerClient = null;
       this.logger.info({ service: this.name }, 'RealtimeClient disconnected');
     } catch (error) {
       this.logger.error({ error, service: this.name }, 'Error disconnecting RealtimeClient');

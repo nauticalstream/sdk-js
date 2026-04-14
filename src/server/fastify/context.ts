@@ -1,8 +1,27 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { peekCorrelationId, generateCorrelationId } from '../../telemetry/utils/context.js';
-import type { Context, ActionSource, UserInfo } from './types.js';
+import type { Context, ActionSource, ContextHeaders, IdentityContext, UserInfo } from './types.js';
 
 const contextStorage = new AsyncLocalStorage<Context>();
+
+function getHeaderValue(value: string | string[] | undefined): string | undefined {
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    return value.find((item) => item !== '');
+  }
+
+  return undefined;
+}
+
+function createHeaderGetter(headers: ContextHeaders): (name: string) => string | undefined {
+  return (name: string) => {
+    const normalizedName = name.toLowerCase();
+    return getHeaderValue(headers[normalizedName] ?? headers[name]);
+  };
+}
 
 // ────────────────────────────────────────────────────────────────────────────
 // Context Enrichment (Internal)
@@ -23,7 +42,8 @@ function enrichContext(partial: {
   requestId?: string;
   ip?: string;
   userAgent?: string;
-  headers?: Record<string, string | string[] | undefined>;
+  headers?: ContextHeaders;
+  identity?: IdentityContext;
   eventMetadata?: {
     eventSource: string;
     eventTimestamp: string;
@@ -40,6 +60,11 @@ function enrichContext(partial: {
   const userId = explicitUserId ?? user?.sub;
   const workspaceId = partial.workspaceId && partial.workspaceId !== '' ? partial.workspaceId : undefined;
   const { source } = partial;
+  const headers = partial.headers ?? {};
+  const getHeader = createHeaderGetter(headers);
+  const identity = partial.identity;
+  const sub = userId ?? user?.sub ?? identity?.sub;
+  const clientId = identity?.clientId ?? user?.client_id;
   
   // Compute audit fields once
   const actorId = userId ?? null;
@@ -55,9 +80,21 @@ function enrichContext(partial: {
     requestId: partial.requestId,
     ip: partial.ip ?? '127.0.0.1',
     userAgent: partial.userAgent,
-    headers: partial.headers ?? {},
+    headers,
+    getHeader,
     
     // Business
+    identity,
+    sub,
+    clientId,
+    aud: identity?.aud ?? user?.aud,
+    iss: identity?.iss ?? user?.iss,
+    jti: identity?.jti ?? user?.jti,
+    scp: identity?.scp ?? user?.scp,
+    ext: identity?.ext ?? user?.ext,
+    iat: identity?.iat ?? user?.iat,
+    nbf: identity?.nbf ?? user?.nbf,
+    exp: identity?.exp ?? user?.exp,
     user,
     userId,
     workspaceId,
@@ -102,16 +139,18 @@ export function createUserContext(
     requestId?: string;
     ip: string;
     userAgent?: string;
-    headers: Record<string, string | string[] | undefined>;
+    headers: ContextHeaders;
   },
   userId?: string,
   workspaceId?: string,
-  user?: UserInfo
+  user?: UserInfo,
+  identity?: IdentityContext
 ): Context {
   return enrichContext({
     user,
     userId,
     workspaceId,
+    identity,
     source: 'user',
     correlationId: request.correlationId,
     traceId: request.traceId,
