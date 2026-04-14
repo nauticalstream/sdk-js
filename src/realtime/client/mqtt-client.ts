@@ -54,10 +54,10 @@ export class MQTTClientManager {
       clientId: this.config.clientId || `mqtt_${Math.random().toString(16).slice(2, 8)}`,
       username: this.config.username,
       password: this.config.password,
-      reconnectPeriod: this.config.reconnectPeriod || 5000,
-      connectTimeout: this.config.connectTimeout || 30000,
+      reconnectPeriod: this.config.reconnectPeriod ?? 5000,
+      connectTimeout: this.config.connectTimeout ?? 30000,
       clean: this.config.clean !== false,
-      keepalive: this.config.keepalive || 60,
+      keepalive: this.config.keepalive ?? 60,
       protocolVersion: 5, // Enable MQTT v5 for User Properties support
     };
 
