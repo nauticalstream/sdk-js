@@ -1,3 +1,4 @@
+import type { GraphQLSchema } from 'graphql';
 import type { FastifyRequest } from 'fastify';
 import type { DestinationStream } from 'pino';
 
@@ -12,6 +13,7 @@ export type HeaderValue = string | string[] | undefined;
 
 export interface ContextHeaders extends Record<string, HeaderValue> {
   authorization?: HeaderValue;
+  'x-currency'?: HeaderValue;
   'x-user-id'?: HeaderValue;
   'x-workspace-id'?: HeaderValue;
   'x-userinfo'?: HeaderValue;
@@ -136,6 +138,9 @@ export interface Context {
   
   /** Workspace ID */
   workspaceId?: string;
+
+  /** Preferred ISO 4217 currency propagated from the edge */
+  currency?: string;
   
   /** Tenant ID (separate from workspace, extend context to populate) */
   tenantId?: string;
@@ -202,8 +207,8 @@ export interface FastifyServerOptions {
 }
 
 export interface GraphQLPluginOptions {
-  /** GraphQL schema as SDL string */
-  schema: string;
+  /** GraphQL schema as SDL, SDL array, or executable GraphQL schema */
+  schema: string | string[] | GraphQLSchema;
   /** GraphQL resolvers */
   resolvers: any;
   /** Context builder function */

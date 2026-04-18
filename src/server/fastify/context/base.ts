@@ -15,6 +15,13 @@ import { extractUserFromHeaders } from './identity.js';
  * @deprecated Use createUserContext from context.ts instead
  */
 export function createBaseContext(request: FastifyRequest): Partial<Context> {
+  const currencyHeader = request.headers['x-currency'];
+  const currency = typeof currencyHeader === 'string'
+    ? currencyHeader.trim().toUpperCase()
+    : Array.isArray(currencyHeader)
+      ? currencyHeader[0]?.trim().toUpperCase()
+      : undefined;
+
   return {
     correlationId: (request as any).correlationId || getCorrelationId(),
     traceId: getTraceId(),
@@ -22,6 +29,7 @@ export function createBaseContext(request: FastifyRequest): Partial<Context> {
     ip: request.ip,
     userAgent: request.headers['user-agent'] as string | undefined,
     headers: request.headers,
+    currency: currency && /^[A-Z]{3}$/.test(currency) ? currency : undefined,
   };
 }
 

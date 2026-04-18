@@ -72,6 +72,7 @@ describe('createContext (from Fastify request)', () => {
   it('extracts userId and workspaceId from headers', () => {
     const request = createMockRequest({
       'x-user-id': 'user-456',
+      'x-currency': 'eur',
       'x-workspace-id': 'ws-789',
     });
 
@@ -81,6 +82,7 @@ describe('createContext (from Fastify request)', () => {
     expect(ctx.user?.sub).toBe('user-456');
     expect(ctx.sub).toBe('user-456');
     expect(ctx.workspaceId).toBe('ws-789');
+    expect(ctx.currency).toBe('EUR');
     expect(ctx.identity?.userId).toBe('user-456');
     expect(ctx.identity?.workspaceId).toBe('ws-789');
     expect(ctx.actorId).toBe('user-456');
@@ -95,6 +97,7 @@ describe('createContext (from Fastify request)', () => {
     expect(ctx.user).toBeUndefined();
     expect(ctx.userId).toBeUndefined();
     expect(ctx.workspaceId).toBeUndefined();
+    expect(ctx.currency).toBeUndefined();
     expect(ctx.actorId).toBeNull();
     expect(ctx.isUserAction).toBe(false);
     expect(ctx.isSystemAction).toBe(true);
@@ -103,6 +106,7 @@ describe('createContext (from Fastify request)', () => {
   it('combines base and business context', () => {
     const request = createMockRequest({
       'x-correlation-id': 'universal-123',
+      'x-currency': 'usd',
       'x-user-id': 'user-999',
       'x-workspace-id': 'ws-888',
     });
@@ -118,6 +122,7 @@ describe('createContext (from Fastify request)', () => {
     expect(ctx.user?.sub).toBe('user-999');
     expect(ctx.userId).toBe('user-999');
     expect(ctx.workspaceId).toBe('ws-888');
+    expect(ctx.currency).toBe('USD');
     
     // Pre-computed audit fields
     expect(ctx.actorId).toBe('user-999');
@@ -137,6 +142,18 @@ describe('createContext (from Fastify request)', () => {
     expect(ctx.userId).toBe('user-only');
     expect(ctx.workspaceId).toBeUndefined();
     expect(ctx.correlationId).toBeDefined();
+  });
+
+  it('ignores invalid currency headers', () => {
+    const request = createMockRequest({
+      'x-currency': 'usdollars',
+      'x-user-id': 'user-only',
+    });
+
+    const ctx = createContext(request);
+
+    expect(ctx.userId).toBe('user-only');
+    expect(ctx.currency).toBeUndefined();
   });
 
   it('falls back to x-userinfo sub when x-user-id is missing', () => {
@@ -265,6 +282,7 @@ describe('createContextBuilder', () => {
     }));
 
     const request = createMockRequest({
+      'x-currency': 'gbp',
       'x-user-id': 'user-123',
       'x-customer-id': 'cust-456',
       'x-tenant-id': 'tenant-789',
@@ -275,6 +293,7 @@ describe('createContextBuilder', () => {
     // Universal context fields
     expect(ctx.user?.sub).toBe('user-123');
     expect(ctx.userId).toBe('user-123');
+    expect(ctx.currency).toBe('GBP');
     expect(ctx.correlationId).toBeDefined();
     expect(ctx.ip).toBe('127.0.0.1');
 

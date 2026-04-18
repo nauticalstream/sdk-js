@@ -16,6 +16,16 @@ function getHeaderValue(value: string | string[] | undefined): string | undefine
   return undefined;
 }
 
+function normalizeCurrency(value: string | undefined): string | undefined {
+  const normalizedValue = value?.trim().toUpperCase();
+
+  if (!normalizedValue || !/^[A-Z]{3}$/.test(normalizedValue)) {
+    return undefined;
+  }
+
+  return normalizedValue;
+}
+
 function createHeaderGetter(headers: ContextHeaders): (name: string) => string | undefined {
   return (name: string) => {
     const normalizedName = name.toLowerCase();
@@ -63,6 +73,7 @@ function enrichContext(partial: {
   const headers = partial.headers ?? {};
   const getHeader = createHeaderGetter(headers);
   const identity = partial.identity;
+  const currency = normalizeCurrency(getHeader('x-currency'));
   const sub = userId ?? user?.sub ?? identity?.sub;
   const clientId = identity?.clientId ?? user?.client_id;
   
@@ -98,6 +109,7 @@ function enrichContext(partial: {
     user,
     userId,
     workspaceId,
+    currency,
     tenantId: undefined,
     
     // Audit (pre-computed)

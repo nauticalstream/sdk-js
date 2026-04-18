@@ -40,8 +40,16 @@ app.addHook("preHandler", async (req) => {
 
 // Handler — destructure what you need
 async function handler(req: FastifyRequest) {
-  const { correlationId, workspaceId, userId, sub, clientId, user, identity } =
-    req.ctx;
+  const {
+    correlationId,
+    workspaceId,
+    currency,
+    userId,
+    sub,
+    clientId,
+    user,
+    identity,
+  } = req.ctx;
 }
 ```
 
@@ -50,6 +58,7 @@ async function handler(req: FastifyRequest) {
 | Header             | `ctx` field                                                                     |
 | ------------------ | ------------------------------------------------------------------------------- |
 | `x-correlation-id` | `correlationId`                                                                 |
+| `x-currency`       | `currency`                                                                      |
 | `x-workspace-id`   | `workspaceId`                                                                   |
 | `x-user-id`        | `userId`                                                                        |
 | `x-userinfo`       | `user` parsed from decoded APISIX user claims; `userId` derived from `user.sub` |
