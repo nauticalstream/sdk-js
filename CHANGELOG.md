@@ -1,3 +1,10 @@
+# [9.2.0](https://github.com/nauticalstream/sdk-js/compare/v9.1.0...v9.2.0) (2026-04-18)
+
+
+### Features
+
+* **context:** expose currency in shared Fastify context ([07dc7b3](https://github.com/nauticalstream/sdk-js/commit/07dc7b3b4738f521ac712aa970c1fb0bbc0cfdc8))
+
 # [9.1.0](https://github.com/nauticalstream/sdk-js/compare/v9.0.4...v9.1.0) (2026-04-14)
 
 
